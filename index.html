@@ -7,34 +7,42 @@
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
     :root {
-      /* Глубокая спокойная ночная гамма (Slate & Midnight Obsidian) */
       --bg-pure-black: #08090d;
-      --card-bg: rgba(17, 21, 30, 0.88);
+      --card-bg: rgba(17, 21, 30, 0.94);
       --card-border: rgba(255, 255, 255, 0.08);
       
-      /* Мягкие ненавязчивые акценты */
-      --accent-primary: #38bdf8;        /* Спокойный небесно-стальной */
-      --accent-indigo: #6366f1;         /* Матовый индиго */
-      --accent-muted: #94a3b8;          /* Пепельный */
-      --accent-emerald: #10b981;        /* Матовый зелёный для баланса */
-      --accent-rose: #f43f5e;           /* Спокойный розово-коралловый */
+      --accent-primary: #38bdf8;
+      --accent-indigo: #6366f1;
+      --accent-muted: #94a3b8;
+      --accent-emerald: #10b981;
+      --accent-rose: #f43f5e;
+      --accent-amber: #f59e0b;
 
-      --text: #f1f5f9;                  /* Мягкий матовый белый */
-      --text-sub: #94a3b8;              /* Приглушённый нейтральный сланец */
+      --text: #f1f5f9;
+      --text-sub: #94a3b8;
       
       --rarity-col: #94a3b8;
       --rarity-glow: rgba(148, 163, 184, 0.12);
-      --sheen-x: 50%;
-      --sheen-y: 50%;
     }
 
     * {
       box-sizing: border-box;
       user-select: none;
+      -webkit-user-select: none;
       -webkit-tap-highlight-color: transparent;
       margin: 0;
       padding: 0;
       font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", Roboto, sans-serif;
+    }
+
+    /* Блокировка вертикального скролла на главном экране */
+    html, body {
+      width: 100%;
+      height: 100vh;
+      max-height: 100vh;
+      overflow: hidden;
+      position: fixed;
+      touch-action: none;
     }
 
     body {
@@ -47,12 +55,9 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      min-height: 100vh;
-      padding: 10px 12px calc(85px + env(safe-area-inset-bottom, 12px)) 12px;
-      overflow-x: hidden;
+      padding: 10px 12px calc(72px + env(safe-area-inset-bottom, 12px)) 12px;
     }
 
-    /* Мягкая дымчатая вспышка */
     #gachaFlash {
       position: fixed;
       inset: 0;
@@ -62,22 +67,13 @@
       transition: opacity 0.35s ease-out;
     }
 
-    /* Микро-пылинки Canvas */
-    #sparksCanvas {
-      position: absolute;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      pointer-events: none;
-      z-index: 5;
-    }
-
     .app-viewport {
       width: 100%;
       max-width: 440px;
+      height: 100%;
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      justify-content: space-between;
       position: relative;
     }
 
@@ -85,27 +81,27 @@
       position: absolute;
       top: -4px;
       right: 0;
-      font-size: 10px;
+      font-size: 9px;
       font-weight: 700;
       color: var(--accent-primary);
       opacity: 0;
       transition: opacity 0.25s ease;
-      display: flex;
-      align-items: center;
-      gap: 4px;
       pointer-events: none;
     }
-    .db-sync-indicator.visible {
-      opacity: 0.85;
+    .db-sync-indicator.visible { opacity: 0.85; }
+
+    /* Верхний HUD с балансом и уровнем (без кнопок) */
+    .hud-bar {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      flex-shrink: 0;
     }
 
-    /* HUD */
-    .hud-bar {
+    .hud-top-row {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 6px 2px;
-      position: relative;
     }
 
     .hud-logo {
@@ -122,7 +118,6 @@
       font-size: 10px;
       padding: 3px 7px;
       border-radius: 6px;
-      letter-spacing: 0.8px;
     }
 
     .logo-text {
@@ -132,115 +127,70 @@
       color: #fff;
     }
 
-    .hud-wallets {
-      display: flex;
-      gap: 6px;
-    }
-
     .wallet-chip {
       background: var(--card-bg);
       backdrop-filter: blur(14px);
-      -webkit-backdrop-filter: blur(14px);
       border: 1px solid var(--card-border);
       border-radius: 12px;
-      padding: 6px 11px;
+      padding: 6px 12px;
       display: flex;
       align-items: center;
       gap: 5px;
-      font-size: 12px;
-      font-weight: 700;
-      color: var(--text);
-      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-    }
-
-    .wallet-chip.fuel {
-      color: #e2e8f0;
-    }
-
-    .wallet-chip.rub {
+      font-size: 13px;
+      font-weight: 800;
       color: var(--accent-emerald);
     }
 
-    /* Лента новичка */
-    .luck-ribbon {
-      background: rgba(99, 102, 241, 0.08);
-      border: 1px solid rgba(99, 102, 241, 0.2);
-      border-radius: 14px;
-      padding: 9px 12px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-
-    .luck-left {
+    .level-row {
       display: flex;
       align-items: center;
       gap: 8px;
-    }
-
-    .luck-titles strong {
-      font-size: 12px;
-      font-weight: 700;
-      color: #fff;
-      display: block;
-    }
-
-    .luck-titles span {
-      font-size: 10px;
-      color: var(--text-sub);
-    }
-
-    .luck-countdown {
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      color: #cbd5e1;
-      font-size: 11px;
-      font-weight: 700;
-      padding: 4px 8px;
-      border-radius: 6px;
-      font-variant-numeric: tabular-nums;
-    }
-
-    /* Быстрые разделы */
-    .feature-strip {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 6px;
-    }
-
-    .btn-feature {
-      background: var(--card-bg);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
+      background: rgba(255, 255, 255, 0.02);
       border: 1px solid var(--card-border);
-      color: var(--text-sub);
-      padding: 8px 3px;
-      border-radius: 12px;
-      font-size: 11px;
+      border-radius: 8px;
+      padding: 4px 8px;
+    }
+
+    .lvl-tag {
+      font-size: 10px;
+      font-weight: 800;
+      color: var(--accent-primary);
+      background: rgba(56, 189, 248, 0.1);
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    .lvl-progress-bg {
+      flex: 1;
+      height: 5px;
+      background: rgba(255, 255, 255, 0.06);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .lvl-progress-bar {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--accent-indigo), var(--accent-primary));
+      border-radius: 4px;
+      transition: width 0.3s ease;
+    }
+
+    .lvl-xp-text {
+      font-size: 9px;
       font-weight: 700;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 4px;
-      cursor: pointer;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.25);
-      transition: all 0.15s ease;
+      color: var(--text-sub);
     }
 
-    .btn-feature:active {
-      transform: scale(0.97);
-      color: #fff;
-      border-color: rgba(255, 255, 255, 0.2);
-    }
-
-    /* Центральная сцена */
+    /* Центральная сцена: Рулетка <-> Карточка */
     .center-stage-container {
       position: relative;
-      min-height: 420px;
+      flex: 1;
+      min-height: 0;
       display: flex;
       flex-direction: column;
       justify-content: center;
-      perspective: 1000px;
+      margin: 6px 0;
     }
 
     .roulette-box {
@@ -251,16 +201,12 @@
       background: var(--card-bg);
       border: 1px solid var(--card-border);
       border-radius: 20px;
-      padding: 20px 10px;
-      backdrop-filter: blur(20px);
-      box-shadow: 0 16px 36px rgba(0, 0, 0, 0.5);
-      min-height: 420px;
+      padding: 16px 10px;
+      height: 100%;
       position: relative;
     }
 
-    .roulette-box.active {
-      display: flex;
-    }
+    .roulette-box.active { display: flex; }
 
     .roulette-headline {
       font-size: 11px;
@@ -268,19 +214,17 @@
       text-transform: uppercase;
       letter-spacing: 1px;
       color: var(--accent-primary);
-      margin-bottom: 24px;
-      opacity: 0.9;
+      margin-bottom: 18px;
     }
 
     .roulette-strip-wrapper {
       position: relative;
       width: 100%;
-      height: 210px;
+      height: 195px;
       overflow: hidden;
       border-radius: 14px;
       background: #06070a;
       border: 1px solid rgba(255, 255, 255, 0.08);
-      box-shadow: inset 0 0 20px rgba(0,0,0,0.8);
     }
 
     .roulette-pointer {
@@ -292,31 +236,19 @@
       background: var(--accent-primary);
       transform: translateX(-50%);
       z-index: 10;
-      box-shadow: 0 0 10px rgba(56, 189, 248, 0.4);
-      pointer-events: none;
+      box-shadow: 0 0 10px rgba(56, 189, 248, 0.5);
     }
 
-    .roulette-pointer::before,
-    .roulette-pointer::after {
+    .roulette-pointer::before, .roulette-pointer::after {
       content: '';
       position: absolute;
       left: 50%;
       transform: translateX(-50%);
-      width: 0;
-      height: 0;
       border-left: 6px solid transparent;
       border-right: 6px solid transparent;
     }
-
-    .roulette-pointer::before {
-      top: 0;
-      border-top: 8px solid var(--accent-primary);
-    }
-
-    .roulette-pointer::after {
-      bottom: 0;
-      border-bottom: 8px solid var(--accent-primary);
-    }
+    .roulette-pointer::before { top: 0; border-top: 8px solid var(--accent-primary); }
+    .roulette-pointer::after { bottom: 0; border-bottom: 8px solid var(--accent-primary); }
 
     .roulette-tape {
       display: flex;
@@ -327,7 +259,7 @@
     }
 
     .tape-card {
-      width: 140px;
+      width: 135px;
       height: 100%;
       display: flex;
       flex-direction: column;
@@ -341,18 +273,12 @@
 
     .tape-img-wrap {
       width: 100%;
-      height: 110px;
+      height: 100px;
       border-radius: 10px;
       overflow: hidden;
-      position: relative;
       border: 1px solid rgba(255, 255, 255, 0.08);
     }
-
-    .tape-img-wrap img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
+    .tape-img-wrap img { width: 100%; height: 100%; object-fit: cover; }
 
     .tape-title {
       font-size: 11px;
@@ -362,342 +288,215 @@
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      max-width: 125px;
-      margin-top: 6px;
+      max-width: 120px;
     }
 
     .tape-rarity {
       font-size: 9px;
       font-weight: 800;
       text-transform: uppercase;
-      letter-spacing: 0.5px;
     }
 
-    /* Карточка авто */
+    /* Карточка результата */
     .stage-card {
       position: relative;
       background: var(--card-bg);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
       border: 1px solid var(--rarity-col);
       border-radius: 20px;
-      padding: 14px;
+      padding: 12px;
       display: flex;
       flex-direction: column;
-      gap: 10px;
-      box-shadow: 0 16px 36px rgba(0, 0, 0, 0.55), 0 0 16px var(--rarity-glow);
-      transition: border-color 0.35s ease, box-shadow 0.35s ease, transform 0.15s ease-out;
+      justify-content: space-between;
+      height: 100%;
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5), 0 0 16px var(--rarity-glow);
       overflow: hidden;
-      transform-style: preserve-3d;
     }
 
-    .stage-card.hidden {
-      display: none;
-    }
-
-    /* Мягкий шёлковый отблеск */
-    .stage-card.holo::after {
-      content: '';
-      position: absolute;
-      inset: -50%;
-      background: radial-gradient(circle at var(--sheen-x) var(--sheen-y), 
-        rgba(255, 255, 255, 0.15) 0%, 
-        rgba(255, 255, 255, 0.03) 30%, 
-        transparent 65%);
-      pointer-events: none;
-      z-index: 4;
-      transition: opacity 0.3s;
-    }
+    .stage-card.hidden { display: none; }
 
     .stage-meta {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      z-index: 1;
     }
 
     .badge-rarity {
-      font-size: 10px;
+      font-size: 9px;
       font-weight: 800;
-      letter-spacing: 0.8px;
       text-transform: uppercase;
-      padding: 3px 9px;
+      padding: 3px 8px;
       border-radius: 6px;
       color: var(--rarity-col);
       background: rgba(0, 0, 0, 0.4);
       border: 1px solid var(--rarity-col);
     }
 
-    .stage-country {
-      font-size: 11px;
-      font-weight: 600;
-      color: var(--text-sub);
-    }
-
     .image-showcase {
       width: 100%;
-      height: 180px;
+      flex: 1;
+      max-height: 180px;
+      min-height: 120px;
       border-radius: 14px;
       overflow: hidden;
       position: relative;
       background: #050608;
       border: 1px solid rgba(255, 255, 255, 0.08);
+      margin: 4px 0;
     }
-
-    .image-showcase img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      transition: transform 0.4s ease;
-    }
-
-    .image-showcase::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: repeating-linear-gradient(
-        0deg,
-        rgba(0, 0, 0, 0.14),
-        rgba(0, 0, 0, 0.14) 2px,
-        transparent 2px,
-        transparent 4px
-      );
-      pointer-events: none;
-      z-index: 2;
-    }
+    .image-showcase img { width: 100%; height: 100%; object-fit: cover; }
 
     .image-overlay-price {
       position: absolute;
       bottom: 8px;
       right: 8px;
-      background: rgba(10, 13, 20, 0.85);
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
+      background: rgba(10, 13, 20, 0.88);
       border: 1px solid rgba(255, 255, 255, 0.12);
       padding: 4px 9px;
       border-radius: 8px;
       font-size: 12px;
       font-weight: 800;
       color: var(--accent-emerald);
-      z-index: 3;
     }
 
     .vehicle-header {
       display: flex;
       justify-content: space-between;
       align-items: baseline;
-      z-index: 1;
     }
-
-    .vehicle-title {
-      font-size: 16px;
-      font-weight: 800;
-      color: #fff;
-    }
-
-    .vehicle-sub {
-      font-size: 11px;
-      color: var(--text-sub);
-      font-weight: 500;
-      margin-top: 1px;
-    }
+    .vehicle-title { font-size: 15px; font-weight: 800; color: #fff; }
+    .vehicle-sub { font-size: 10px; color: var(--text-sub); }
 
     .specs-matrix {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
       gap: 6px;
-      z-index: 1;
     }
-
     .spec-cell {
       background: rgba(255, 255, 255, 0.03);
       border: 1px solid rgba(255, 255, 255, 0.06);
       border-radius: 8px;
-      padding: 6px 4px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
+      padding: 5px 3px;
       text-align: center;
-      gap: 2px;
     }
-
-    .spec-cell .lbl {
-      font-size: 9px;
-      font-weight: 700;
-      color: var(--text-sub);
-      text-transform: uppercase;
-    }
-
-    .spec-cell .val {
-      font-size: 11px;
-      font-weight: 800;
-      color: #f8fafc;
-    }
+    .spec-cell .lbl { font-size: 8px; font-weight: 700; color: var(--text-sub); text-transform: uppercase; display: block; }
+    .spec-cell .val { font-size: 10px; font-weight: 800; color: #f8fafc; }
 
     .stage-actions {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 8px;
-      margin-top: 4px;
-      z-index: 1;
     }
-
     .btn-action-stage {
-      padding: 12px;
-      border-radius: 12px;
-      font-size: 13px;
+      padding: 10px;
+      border-radius: 10px;
+      font-size: 12px;
       font-weight: 700;
       cursor: pointer;
       border: none;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-      transition: transform 0.1s;
     }
+    .btn-action-stage:disabled { opacity: 0.35; cursor: not-allowed; }
+    .btn-garage { background: rgba(99, 102, 241, 0.15); border: 1px solid rgba(99, 102, 241, 0.35); color: #e0e7ff; }
+    .btn-sell { background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.12); color: #cbd5e1; }
 
-    .btn-action-stage:active {
-      transform: scale(0.98);
-    }
-
-    .btn-action-stage:disabled {
-      opacity: 0.35;
-      cursor: not-allowed;
-      transform: none;
-    }
-
-    .btn-garage {
-      background: rgba(99, 102, 241, 0.15);
-      border: 1px solid rgba(99, 102, 241, 0.35);
-      color: #e0e7ff;
-    }
-
-    .btn-sell {
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      color: #cbd5e1;
-    }
-
-    /* Селекторы */
+    /* Нижний блок управления спинами (Кнопка + x2 + x5 справа) */
     .controls-panel {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 8px;
-    }
-
-    .selector-card {
-      background: var(--card-bg);
-      backdrop-filter: blur(14px);
-      -webkit-backdrop-filter: blur(14px);
-      border: 1px solid var(--card-border);
-      border-radius: 14px;
-      padding: 8px 12px;
       display: flex;
       flex-direction: column;
-      gap: 2px;
-      position: relative;
-      cursor: pointer;
+      gap: 6px;
+      flex-shrink: 0;
     }
 
-    .selector-card .caption {
-      font-size: 9px;
-      text-transform: uppercase;
-      font-weight: 700;
+    .bet-selector-bar {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 5px;
+    }
+
+    .bet-chip {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--card-border);
       color: var(--text-sub);
-    }
-
-    .selector-card .active-val {
-      font-size: 13px;
+      padding: 5px;
+      border-radius: 8px;
+      font-size: 10px;
       font-weight: 700;
-      color: #fff;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .selector-card select {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      opacity: 0;
       cursor: pointer;
+      text-align: center;
+    }
+    .bet-chip.active {
+      background: rgba(56, 189, 248, 0.12);
+      border-color: var(--accent-primary);
+      color: #fff;
     }
 
-    /* Кнопка запуска */
+    .spin-cluster-row {
+      display: flex;
+      gap: 6px;
+      align-items: stretch;
+    }
+
     .btn-spin-main {
-      width: 100%;
+      flex: 1;
       background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
       border: 1px solid rgba(255, 255, 255, 0.14);
-      border-radius: 16px;
-      padding: 15px;
+      border-radius: 14px;
+      padding: 13px 10px;
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 10px;
+      gap: 8px;
       cursor: pointer;
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
-      transition: transform 0.1s ease, border-color 0.2s ease;
     }
+    .btn-spin-main:active { transform: scale(0.98); border-color: var(--accent-primary); }
+    .btn-spin-main:disabled { opacity: 0.45; cursor: not-allowed; }
 
-    .btn-spin-main:active {
-      transform: scale(0.98);
-      border-color: var(--accent-primary);
-    }
-
-    .btn-spin-main:disabled {
-      background: #0f141d;
-      box-shadow: none;
-      cursor: not-allowed;
-      border: 1px solid rgba(255, 255, 255, 0.05);
-    }
-
-    .spin-label {
-      font-size: 15px;
-      font-weight: 800;
-      color: #fff;
-      letter-spacing: 0.6px;
-      text-transform: uppercase;
-    }
-
-    .btn-spin-main:disabled .spin-label {
-      color: #475569;
-    }
-
+    .spin-label { font-size: 14px; font-weight: 800; color: #fff; text-transform: uppercase; }
     .spin-price-pill {
       background: rgba(255, 255, 255, 0.07);
       color: var(--accent-primary);
-      padding: 4px 9px;
-      border-radius: 8px;
-      font-size: 12px;
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-size: 11px;
       font-weight: 700;
-      border: 1px solid rgba(255, 255, 255, 0.1);
     }
 
-    .btn-spin-main:disabled .spin-price-pill {
-      background: rgba(0, 0, 0, 0.2);
-      color: #475569;
-      border-color: transparent;
+    .multi-spin-btns {
+      display: flex;
+      gap: 6px;
     }
 
-    /* Навигация */
+    .btn-multi-spin {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      color: var(--accent-primary);
+      border-radius: 12px;
+      padding: 0 13px;
+      font-size: 13px;
+      font-weight: 800;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    .btn-multi-spin span { font-size: 8px; color: var(--text-sub); text-transform: uppercase; }
+    .btn-multi-spin:active { transform: scale(0.95); border-color: var(--accent-primary); }
+
+    /* Нижняя навигация с кнопкой МЕНЮ */
     .dock-navigation {
       position: fixed;
-      bottom: calc(10px + env(safe-area-inset-bottom, 10px));
+      bottom: calc(8px + env(safe-area-inset-bottom, 8px));
       left: 50%;
       transform: translateX(-50%);
       width: calc(100% - 20px);
       max-width: 420px;
-      background: rgba(14, 18, 26, 0.94);
+      background: rgba(14, 18, 26, 0.96);
       backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
       border: 1px solid var(--card-border);
       border-radius: 18px;
       display: grid;
       grid-template-columns: repeat(5, 1fr);
       padding: 6px 4px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
       z-index: 100;
     }
 
@@ -705,48 +504,33 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 3px;
+      gap: 2px;
       background: none;
       border: none;
       color: var(--text-sub);
       font-size: 10px;
       font-weight: 700;
       cursor: pointer;
-      padding: 4px 0;
-      transition: color 0.2s;
+      padding: 3px 0;
     }
+    .dock-tab .dock-icon { font-size: 17px; opacity: 0.7; }
+    .dock-tab.active { color: var(--accent-primary); }
+    .dock-tab.active .dock-icon { opacity: 1; }
 
-    .dock-tab .dock-icon {
-      font-size: 18px;
-      opacity: 0.7;
-      transition: opacity 0.2s;
-    }
-
-    .dock-tab.active {
-      color: var(--accent-primary);
-    }
-
-    .dock-tab.active .dock-icon {
-      opacity: 1;
-    }
-
-    /* Модалки */
+    /* Модальные окна */
     .modal-sheet {
       position: fixed;
       inset: 0;
       background: rgba(8, 10, 15, 0.98);
       backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
       z-index: 200;
       display: none;
       flex-direction: column;
-      padding: 20px 16px env(safe-area-inset-bottom, 20px) 16px;
+      padding: 18px 16px calc(24px + env(safe-area-inset-bottom, 16px)) 16px;
       overflow-y: auto;
+      touch-action: pan-y;
     }
-
-    .modal-sheet.active {
-      display: flex;
-    }
+    .modal-sheet.active { display: flex; }
 
     .modal-head {
       display: flex;
@@ -755,13 +539,9 @@
       margin-bottom: 14px;
       padding-bottom: 10px;
       border-bottom: 1px solid var(--card-border);
+      flex-shrink: 0;
     }
-
-    .modal-head h2 {
-      font-size: 17px;
-      font-weight: 800;
-      color: #fff;
-    }
+    .modal-head h2 { font-size: 17px; font-weight: 800; color: #fff; }
 
     .btn-close-modal {
       background: rgba(255, 255, 255, 0.06);
@@ -772,41 +552,30 @@
       border-radius: 50%;
       font-size: 18px;
       cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
     }
 
     .glass-card {
       background: var(--card-bg);
       border: 1px solid var(--card-border);
       border-radius: 14px;
-      padding: 12px 14px;
+      padding: 11px 12px;
       margin-bottom: 8px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
       gap: 10px;
     }
 
-    /* Миниатюры */
     .item-thumbnail {
-      width: 60px;
-      height: 48px;
+      width: 56px;
+      height: 44px;
       border-radius: 8px;
       overflow: hidden;
       flex-shrink: 0;
-      position: relative;
       border: 1px solid rgba(255, 255, 255, 0.1);
       background: #000;
     }
-
-    .item-thumbnail img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
+    .item-thumbnail img { width: 100%; height: 100%; object-fit: cover; }
 
     .item-info-cluster {
       display: flex;
@@ -815,179 +584,233 @@
       flex: 1;
       min-width: 0;
     }
-
     .item-details-text {
       display: flex;
       flex-direction: column;
       gap: 2px;
       min-width: 0;
     }
-
     .item-details-text strong {
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
       color: #fff;
-    }
-
-    /* Баннеры кейсов */
-    .case-card {
-      flex-direction: column;
-      align-items: stretch;
-      padding: 10px;
-      gap: 8px;
-    }
-
-    .case-banner-img {
-      width: 100%;
-      height: 100px;
-      border-radius: 10px;
-      overflow: hidden;
-      position: relative;
-      border: 1px solid rgba(255, 255, 255, 0.1);
-    }
-
-    .case-banner-img img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-
-    .case-banner-badge {
-      position: absolute;
-      top: 8px;
-      left: 8px;
-      background: rgba(11, 14, 21, 0.85);
-      backdrop-filter: blur(8px);
-      padding: 3px 8px;
-      border-radius: 6px;
-      font-size: 10px;
-      font-weight: 800;
-      border: 1px solid rgba(255, 255, 255, 0.1);
-    }
-
-    .case-footer-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 2px 4px;
+      font-size: 13px;
     }
 
     .btn-modal-action {
       background: rgba(255, 255, 255, 0.08);
       border: 1px solid rgba(255, 255, 255, 0.14);
       color: #fff;
-      padding: 8px 14px;
+      padding: 8px 12px;
       border-radius: 8px;
       font-size: 11px;
       font-weight: 700;
       cursor: pointer;
       flex-shrink: 0;
-      transition: background 0.15s ease;
+    }
+    .btn-modal-action.danger { background: rgba(244, 63, 94, 0.15); border-color: rgba(244, 63, 94, 0.3); color: #fca5a5; }
+    .btn-modal-action.purple { background: rgba(99, 102, 241, 0.15); border-color: rgba(99, 102, 241, 0.3); color: #c7d2fe; }
+    .btn-modal-action.emerald { background: rgba(16, 185, 129, 0.18); border-color: rgba(16, 185, 129, 0.4); color: #6ee7b7; }
+
+    /* Сетка главного МЕНЮ */
+    .menu-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    .menu-hub-btn {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 16px 10px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      text-align: center;
+    }
+    .menu-hub-btn:active { border-color: var(--accent-primary); transform: scale(0.98); }
+    .menu-hub-icon { font-size: 26px; }
+    .menu-hub-title { font-size: 13px; font-weight: 800; color: #fff; }
+    .menu-hub-sub { font-size: 10px; color: var(--text-sub); }
+
+    /* КОЛЕСО АПГРЕЙДЕРА (UPGRADER WHEEL) */
+    .upgrader-panel {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 14px;
+      margin-bottom: 14px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
     }
 
-    .btn-modal-action:active {
-      background: rgba(255, 255, 255, 0.15);
+    .upgrader-selectors {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      width: 100%;
     }
 
-    .btn-modal-action.danger {
-      background: rgba(244, 63, 94, 0.15);
-      border-color: rgba(244, 63, 94, 0.3);
-      color: #fca5a5;
+    .upgrader-slot {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      padding: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .upgrader-slot label { font-size: 9px; color: var(--text-sub); text-transform: uppercase; font-weight: 700; }
+    .upgrader-slot select {
+      background: #0b0d13;
+      color: #fff;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 6px;
+      padding: 6px;
+      font-size: 11px;
+      outline: none;
+      width: 100%;
     }
 
-    .btn-modal-action.purple {
-      background: rgba(99, 102, 241, 0.15);
-      border-color: rgba(99, 102, 241, 0.3);
-      color: #c7d2fe;
+    .wheel-container {
+      position: relative;
+      width: 170px;
+      height: 170px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 6px 0;
     }
 
-    .coin-display {
-      width: 64px;
-      height: 64px;
+    /* Круг с зеленым сектором шанса (conic-gradient) */
+    .wheel-circle {
+      width: 100%;
+      height: 100%;
       border-radius: 50%;
+      background: conic-gradient(var(--accent-emerald) 0% 50%, #1e293b 50% 100%);
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 20px rgba(0,0,0,0.6), inset 0 0 12px rgba(0,0,0,0.6);
+      border: 2px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .wheel-inner {
+      width: 124px;
+      height: 124px;
+      border-radius: 50%;
+      background: #0b0d13;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 2;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .wheel-chance-val { font-size: 22px; font-weight: 900; color: #fff; }
+    .wheel-chance-lbl { font-size: 9px; color: var(--text-sub); text-transform: uppercase; }
+
+    /* Вращающаяся по кругу стрелка */
+    .wheel-pointer-arm {
+      position: absolute;
+      inset: -6px;
+      z-index: 5;
+      pointer-events: none;
+      transform: rotate(0deg);
+      transition: transform 3.6s cubic-bezier(0.12, 0.82, 0.18, 1);
+    }
+
+    .wheel-pointer-tip {
+      width: 0;
+      height: 0;
+      border-left: 8px solid transparent;
+      border-right: 8px solid transparent;
+      border-top: 14px solid #fff;
+      margin: 0 auto;
+      filter: drop-shadow(0 0 6px var(--accent-primary));
+    }
+
+    /* Другие мини-игры */
+    .minigame-box {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 12px;
+      margin-bottom: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .slots-reels {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      background: #06070a;
+      padding: 10px;
+      border-radius: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .slot-cell {
+      width: 52px;
+      height: 52px;
       background: rgba(255, 255, 255, 0.04);
-      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 8px;
       display: flex;
       align-items: center;
       justify-content: center;
       font-size: 26px;
-      margin: 10px auto;
     }
   </style>
 </head>
 <body>
 
-  <!-- Оверлей вспышки Gacha Reveal -->
   <div id="gachaFlash"></div>
 
   <div class="app-viewport">
 
-    <!-- Индикатор синхронизации БД -->
     <div class="db-sync-indicator" id="dbSyncStatus">☁️ СОХРАНЕНО</div>
 
-    <!-- HUD -->
+    <!-- Верхний блок: Лого, Баланс, Уровень -->
     <header class="hud-bar">
-      <div class="hud-logo">
-        <span class="logo-badge">PRO</span>
-        <span class="logo-text">MASHINKA</span>
+      <div class="hud-top-row">
+        <div class="hud-logo">
+          <span class="logo-badge">PRO</span>
+          <span class="logo-text">MASHINKA</span>
+        </div>
+        <div class="wallet-chip">💰 <span id="hudBalance">1 500</span> ₽</div>
       </div>
-      <div class="hud-wallets">
-        <div class="wallet-chip fuel">⛽ <span id="hudFuel">5</span>/5</div>
-        <div class="wallet-chip rub">💰 <span id="hudBalance">1 500</span> ₽</div>
+
+      <div class="level-row">
+        <span class="lvl-tag" id="lvlTag">УР. 1</span>
+        <div class="lvl-progress-bg">
+          <div class="lvl-progress-bar" id="lvlBar"></div>
+        </div>
+        <span class="lvl-xp-text" id="lvlXpText">0/100 XP</span>
       </div>
     </header>
 
-    <!-- Баннер Удачи Новичка x5 -->
-    <section class="luck-ribbon" id="luckRibbon">
-      <div class="luck-left">
-        <span style="font-size:18px;">🍀</span>
-        <div class="luck-titles">
-          <strong>Удача х5 Новичка</strong>
-          <span>Повышенный шанс на суперкары</span>
-        </div>
-      </div>
-      <div class="luck-countdown" id="luckTimer">20:00</div>
-    </section>
-
-    <!-- Быстрые разделы -->
-    <section class="feature-strip">
-      <button class="btn-feature" id="btnOpenCases">
-        <span style="font-size:16px;">📦</span>
-        <span>Кейсы</span>
-      </button>
-      <button class="btn-feature" id="btnOpenCoin">
-        <span style="font-size:16px;">🪙</span>
-        <span>Монетка</span>
-      </button>
-      <button class="btn-feature" id="btnOpenTuning">
-        <span style="font-size:16px;">🔧</span>
-        <span>Тюнинг</span>
-      </button>
-      <button class="btn-feature" id="btnOpenPvp">
-        <span style="font-size:16px;">🏁</span>
-        <span>Заезды</span>
-      </button>
-    </section>
-
-    <!-- ЦЕНТРАЛЬНАЯ АРЕНА (Рулетка <-> Карточка) -->
+    <!-- Центральная сцена (Смена: Рулетка <-> Карточка) -->
     <div class="center-stage-container">
-      <canvas id="sparksCanvas"></canvas>
-
-      <!-- 1. Барабан рулетки со стрелкой по центру -->
       <div class="roulette-box" id="rouletteBox">
-        <div class="roulette-headline">СКАНИРОВАНИЕ МОДЕЛЕЙ...</div>
+        <div class="roulette-headline">СКАНИРОВАНИЕ ЕДИНОГО ПУЛА...</div>
         <div class="roulette-strip-wrapper">
           <div class="roulette-pointer"></div>
           <div class="roulette-tape" id="rouletteTape"></div>
         </div>
       </div>
 
-      <!-- 2. Итоговая карточка выпавшего автомобиля -->
-      <main class="stage-card holo" id="stageCard">
+      <main class="stage-card" id="stageCard">
         <div class="stage-meta">
           <span class="badge-rarity" id="dispRarity">ОБЫЧНЫЙ</span>
-          <span class="stage-country" id="dispCountry">Россия 🇷🇺</span>
+          <span style="font-size:10px; color:var(--text-sub);">Единый каталог</span>
         </div>
 
         <div class="image-showcase">
@@ -998,11 +821,11 @@
         <div class="vehicle-header">
           <div>
             <div class="vehicle-title" id="dispTitle">Lada Vesta Sport</div>
-            <div class="vehicle-sub" id="dispSub">Серийный городской спорткар</div>
+            <div class="vehicle-sub" id="dispSub">Городской спорткар</div>
           </div>
           <div style="text-align:right;">
-            <span style="font-size:10px; color:var(--text-sub);">МНОЖИТЕЛЬ</span>
-            <div style="font-size:13px; font-weight:800; color:var(--accent-primary);" id="dispMult">×1.0</div>
+            <span style="font-size:9px; color:var(--text-sub);">МНОЖИТЕЛЬ</span>
+            <div style="font-size:12px; font-weight:800; color:var(--accent-primary);" id="dispMult">×1.0</div>
           </div>
         </div>
 
@@ -1017,7 +840,7 @@
           </div>
           <div class="spec-cell">
             <span class="lbl">Двигатель</span>
-            <span class="val" id="specEngine" style="font-size:9px;">1.8L I4</span>
+            <span class="val" id="specEngine">1.8L I4</span>
           </div>
           <div class="spec-cell">
             <span class="lbl">Привод</span>
@@ -1032,49 +855,37 @@
       </main>
     </div>
 
-    <!-- Селекторы -->
+    <!-- Управление: Ставка + Кнопка Крутить + Кнопки *2 и *5 справа -->
     <section class="controls-panel">
-      <div class="selector-card">
-        <span class="caption">Сборка страны</span>
-        <div class="active-val">
-          <span id="countryLabel">🇷🇺 Россия</span>
-          <span>▾</span>
-        </div>
-        <select id="countrySelect">
-          <option value="ru" selected>🇷🇺 Россия</option>
-          <option value="de">🇩🇪 Германия</option>
-          <option value="jp">🇯🇵 Япония</option>
-          <option value="us">🇺🇸 США</option>
-          <option value="it">🇮🇹 Италия</option>
-        </select>
+      <div class="bet-selector-bar" id="betSelectorBar">
+        <div class="bet-chip active" data-bet="1">Ставка ×1</div>
+        <div class="bet-chip" data-bet="2">Ставка ×2</div>
+        <div class="bet-chip" data-bet="5">Ставка ×5</div>
+        <div class="bet-chip" data-bet="10">Ставка ×10</div>
       </div>
 
-      <div class="selector-card">
-        <span class="caption">Размер ставки</span>
-        <div class="active-val">
-          <span id="betLabel">x1 (150 ₽)</span>
-          <span>▾</span>
+      <div class="spin-cluster-row">
+        <button class="btn-spin-main" id="btnSpinNow">
+          <span class="spin-label">Крутить</span>
+          <span class="spin-price-pill" id="spinCostTag">150 ₽</span>
+        </button>
+
+        <div class="multi-spin-btns">
+          <button class="btn-multi-spin" id="btnSpinX2">
+            <span>Спин</span>
+            ×2
+          </button>
+          <button class="btn-multi-spin" id="btnSpinX5">
+            <span>Спин</span>
+            ×5
+          </button>
         </div>
-        <select id="betSelect">
-          <option value="1" selected>Ставка: x1 (150 ₽)</option>
-          <option value="2">Ставка: x2 (300 ₽)</option>
-          <option value="5">Ставка: x5 (750 ₽)</option>
-          <option value="10">Ставка: x10 (1500 ₽)</option>
-        </select>
       </div>
     </section>
 
-    <!-- Кнопка прокрута -->
-    <div>
-      <button class="btn-spin-main" id="btnSpinNow">
-        <span class="spin-label">Крутить ещё</span>
-        <span class="spin-price-pill" id="spinCostTag">150 ₽</span>
-      </button>
-    </div>
-
   </div>
 
-  <!-- Dock навигации -->
+  <!-- Нижняя панель навигации с кнопкой МЕНЮ -->
   <nav class="dock-navigation">
     <button class="dock-tab active" id="dockPlay">
       <span class="dock-icon">🎮</span>
@@ -1088,9 +899,9 @@
       <span class="dock-icon">🏪</span>
       <span>Рынок</span>
     </button>
-    <button class="dock-tab" id="dockLeaderboard">
-      <span class="dock-icon">🏆</span>
-      <span>Топ</span>
+    <button class="dock-tab" id="dockMenu">
+      <span class="dock-icon">📱</span>
+      <span>Меню</span>
     </button>
     <button class="dock-tab" id="dockFriends">
       <span class="dock-icon">👥</span>
@@ -1098,152 +909,232 @@
     </button>
   </nav>
 
-  <!-- Модальные окна -->
+  <!-- 1. Модалка: МЕНЮ (Все функции, убранные сверху) -->
+  <div class="modal-sheet" id="sheetMenu">
+    <div class="modal-head">
+      <h2>Игровое Меню</h2>
+      <button class="btn-close-modal" data-close="sheetMenu">&times;</button>
+    </div>
+
+    <div class="menu-grid">
+      <div class="menu-hub-btn" id="menuOpenGames">
+        <span class="menu-hub-icon">🎡</span>
+        <div class="menu-hub-title">Мини-Игры & Апгрейд</div>
+        <div class="menu-hub-sub">Апгрейдер, Слоты, Монетка</div>
+      </div>
+
+      <div class="menu-hub-btn" id="menuOpenCases">
+        <span class="menu-hub-icon">📦</span>
+        <div class="menu-hub-title">Контейнеры</div>
+        <div class="menu-hub-sub">JDM, Supercar, Свалка</div>
+      </div>
+
+      <div class="menu-hub-btn" id="menuOpenTuning">
+        <span class="menu-hub-icon">🔧</span>
+        <div class="menu-hub-title">Тюнинг СТО</div>
+        <div class="menu-hub-sub">Прокачка Stage 1–3</div>
+      </div>
+
+      <div class="menu-hub-btn" id="menuOpenTrophy">
+        <span class="menu-hub-icon">🏆</span>
+        <div class="menu-hub-title">Топ Сезона</div>
+        <div class="menu-hub-sub">Таблица лидеров</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. Модалка: МИНИ-ИГРЫ И АПГРЕЙДЕР -->
+  <div class="modal-sheet" id="sheetGames">
+    <div class="modal-head">
+      <h2>Мини-Игры и Апгрейдер</h2>
+      <button class="btn-close-modal" data-close="sheetGames">&times;</button>
+    </div>
+
+    <!-- АПГРЕЙДЕР МАШИН С КОЛЕСОМ -->
+    <div class="upgrader-panel">
+      <div style="width:100%; display:flex; justify-content:space-between; align-items:center;">
+        <strong style="font-size:13px; color:#fff;">⚙️ Апгрейдер Автомобилей</strong>
+        <span style="font-size:10px; color:var(--accent-primary);">Зелёный сектор = Победа</span>
+      </div>
+
+      <div class="upgrader-selectors">
+        <div class="upgrader-slot">
+          <label>Ваша машина (из гаража)</label>
+          <select id="upgSourceSelect"></select>
+        </div>
+        <div class="upgrader-slot">
+          <label>Желаемая машина</label>
+          <select id="upgTargetSelect"></select>
+        </div>
+      </div>
+
+      <div class="wheel-container">
+        <div class="wheel-pointer-arm" id="wheelPointerArm">
+          <div class="wheel-pointer-tip"></div>
+        </div>
+        <div class="wheel-circle" id="wheelCircle">
+          <div class="wheel-inner">
+            <div class="wheel-chance-val" id="wheelChanceVal">50%</div>
+            <div class="wheel-chance-lbl">Шанс успеха</div>
+          </div>
+        </div>
+      </div>
+
+      <div id="upgStatusText" style="font-size:11px; color:var(--text-sub); text-align:center;">
+        Выберите авто из гаража и цель для апгрейда
+      </div>
+
+      <button class="btn-modal-action emerald" id="btnRunUpgrade" style="width:100%; padding:11px; font-size:12px;">
+        КРУТИТЬ КОЛЕСО АПГРЕЙДА
+      </button>
+    </div>
+
+    <!-- Кибер-Слоты -->
+    <div class="minigame-box">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <strong style="font-size:13px;">🎰 Слоты (Ставка 200 ₽)</strong>
+        <span style="font-size:10px; color:var(--accent-primary);">Джекпот до ×20</span>
+      </div>
+      <div class="slots-reels">
+        <div class="slot-cell" id="slot1">🍒</div>
+        <div class="slot-cell" id="slot2">💎</div>
+        <div class="slot-cell" id="slot3">7️⃣</div>
+      </div>
+      <button class="btn-modal-action" id="btnSpinSlots" style="width:100%; padding:10px;">Крутить барабаны (-200 ₽)</button>
+    </div>
+
+    <!-- Орёл и Решка -->
+    <div class="minigame-box">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <strong style="font-size:13px;">🪙 Монетка (Ставка 150 ₽)</strong>
+        <span style="font-size:10px; color:var(--accent-emerald);">Выигрыш ×2</span>
+      </div>
+      <div style="display:flex; gap:8px;">
+        <button class="btn-modal-action" id="btnCoinHeads" style="flex:1;">Орёл (×2)</button>
+        <button class="btn-modal-action purple" id="btnCoinTails" style="flex:1;">Решка (×2)</button>
+      </div>
+    </div>
+
+    <!-- Кости -->
+    <div class="minigame-box">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <strong style="font-size:13px;">🎲 Кости (Ставка 250 ₽)</strong>
+        <span style="font-size:10px; color:var(--accent-primary);">Сумма > 7 = ×2.3</span>
+      </div>
+      <div style="text-align:center; font-size:18px; font-weight:800;" id="diceResult">🎲 Бросьте кубики</div>
+      <button class="btn-modal-action" id="btnRollDice" style="width:100%; padding:10px;">Бросить кости (-250 ₽)</button>
+    </div>
+  </div>
+
+  <!-- 3. Модалка: Кейсы -->
   <div class="modal-sheet" id="sheetCases">
     <div class="modal-head">
-      <h2>Эксклюзивные контейнеры</h2>
+      <h2>Контейнеры</h2>
       <button class="btn-close-modal" data-close="sheetCases">&times;</button>
     </div>
 
-    <div class="glass-card case-card">
-      <div class="case-banner-img">
-        <img src="https://images.unsplash.com/photo-1552519507-da3b142c6e3d?auto=format&fit=crop&w=800&q=80" alt="JDM Box">
-        <div class="case-banner-badge" style="color: var(--accent-primary);">JAPAN NIGHTS</div>
-      </div>
-      <div class="case-footer-row">
-        <div>
-          <strong style="color:#fff;">📦 JDM Night Box</strong>
-          <div style="font-size:11px; color:var(--text-sub);">Только легендарные авто Японии (Epic/Mythic)</div>
+    <div class="glass-card">
+      <div class="item-info-cluster">
+        <div class="item-thumbnail">
+          <img src="https://images.unsplash.com/photo-1552519507-da3b142c6e3d?auto=format&fit=crop&w=800&q=80" alt="JDM">
         </div>
-        <button class="btn-modal-action" id="btnOpenJdmBox">Открыть (500 ₽)</button>
+        <div class="item-details-text">
+          <strong>JDM Night Box</strong>
+          <div style="font-size:10px; color:var(--text-sub);">Редкие спорткары (Rare / Epic)</div>
+        </div>
       </div>
+      <button class="btn-modal-action" id="btnOpenJdmBox">500 ₽</button>
     </div>
 
-    <div class="glass-card case-card">
-      <div class="case-banner-img">
-        <img src="https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=800&q=80" alt="Supercar Box">
-        <div class="case-banner-badge" style="color: #c7d2fe;">EURO HYPER</div>
-      </div>
-      <div class="case-footer-row">
-        <div>
-          <strong style="color:#fff;">📦 Supercar Mystery Box</strong>
-          <div style="font-size:11px; color:var(--text-sub);">Шанс на гиперкары от 700 л.с. (Legendary/Mythic)</div>
+    <div class="glass-card">
+      <div class="item-info-cluster">
+        <div class="item-thumbnail">
+          <img src="https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=800&q=80" alt="Super">
         </div>
-        <button class="btn-modal-action purple" id="btnOpenSuperBox">Открыть (1 200 ₽)</button>
+        <div class="item-details-text">
+          <strong>Supercar Mystery Box</strong>
+          <div style="font-size:10px; color:var(--text-sub);">Гиперкары (Legendary / Mythic)</div>
+        </div>
       </div>
+      <button class="btn-modal-action purple" id="btnOpenSuperBox">1 200 ₽</button>
     </div>
 
-    <div class="glass-card case-card">
-      <div class="case-banner-img">
-        <img src="https://images.unsplash.com/photo-1558981403-c5f9899a28bc?auto=format&fit=crop&w=800&q=80" alt="Свалка">
-        <div class="case-banner-badge" style="color: #94a3b8;">BARN FIND</div>
-      </div>
-      <div class="case-footer-row">
-        <div>
-          <strong style="color:#fff;">📦 Контейнер со свалки</strong>
-          <div style="font-size:11px; color:var(--text-sub);">Металлолом (85%) или скрытая классика (15%)</div>
+    <div class="glass-card">
+      <div class="item-info-cluster">
+        <div class="item-thumbnail">
+          <img src="https://images.unsplash.com/photo-1558981403-c5f9899a28bc?auto=format&fit=crop&w=800&q=80" alt="Junk">
         </div>
-        <button class="btn-modal-action danger" id="btnOpenJunkyardBox">Открыть (100 ₽)</button>
+        <div class="item-details-text">
+          <strong>Контейнер со свалки</strong>
+          <div style="font-size:10px; color:var(--text-sub);">Шанс найти капсулу времени</div>
+        </div>
       </div>
+      <button class="btn-modal-action danger" id="btnOpenJunkyardBox">100 ₽</button>
     </div>
   </div>
 
-  <div class="modal-sheet" id="sheetCoin">
-    <div class="modal-head">
-      <h2>Монетка: Удвоение ставки</h2>
-      <button class="btn-close-modal" data-close="sheetCoin">&times;</button>
-    </div>
-    <div class="glass-card" style="flex-direction:column; text-align:center; gap:8px;">
-      <div class="coin-display" id="coinIcon">🪙</div>
-      <div id="coinStatus" style="font-size:13px; font-weight:700; color:#fff;">Выберите сторону:</div>
-      <div style="display:flex; gap:10px; width:100%; margin-top:6px;">
-        <button class="btn-modal-action" id="btnCoinHeads" style="flex:1;">Орёл (х2)</button>
-        <button class="btn-modal-action purple" id="btnCoinTails" style="flex:1;">Решка (х2)</button>
-      </div>
-      <div style="font-size:11px; color:var(--text-sub); margin-top:4px;">Ставка за раунд: 200 ₽</div>
-    </div>
-  </div>
-
+  <!-- 4. Модалка: Тюнинг -->
   <div class="modal-sheet" id="sheetTuning">
     <div class="modal-head">
-      <h2>Мастерская и Тюнинг</h2>
+      <h2>Мастерская Stage 1–3</h2>
       <button class="btn-close-modal" data-close="sheetTuning">&times;</button>
     </div>
     <div id="tuningListContainer" style="display:flex; flex-direction:column; gap:8px;"></div>
   </div>
 
-  <div class="modal-sheet" id="sheetPvp">
-    <div class="modal-head">
-      <h2>PvP Драг-Рейсинг</h2>
-      <button class="btn-close-modal" data-close="sheetPvp">&times;</button>
-    </div>
-    <div class="glass-card" style="flex-direction:column; align-items:flex-start; gap:8px;">
-      <strong>Заезд 1 на 1 (1/4 мили)</strong>
-      <div style="font-size:12px; color:var(--text-sub);">Расход: 1 канистра топлива ⛽. Ставка 300 ₽.</div>
-      <button class="btn-modal-action" id="btnStartPvpRace" style="width:100%; margin-top:4px;">Старт гонки 🏁</button>
-    </div>
-    <div class="glass-card" id="pvpResultCard" style="display:none; flex-direction:column; gap:6px;">
-      <strong id="pvpVerdict" style="color:var(--accent-primary);">Результат</strong>
-      <div id="pvpLog" style="font-size:12px; color:var(--text-sub);"></div>
-    </div>
-  </div>
-
+  <!-- 5. Модалка: Гараж -->
   <div class="modal-sheet" id="sheetGarage">
     <div class="modal-head">
-      <h2>Мой автопарк</h2>
+      <h2>Мой Гараж</h2>
       <button class="btn-close-modal" data-close="sheetGarage">&times;</button>
     </div>
     <div id="garageContainer" style="display:flex; flex-direction:column; gap:8px;"></div>
   </div>
 
+  <!-- 6. Модалка: Рынок -->
   <div class="modal-sheet" id="sheetMarket">
     <div class="modal-head">
-      <h2>Рынок игроков</h2>
+      <h2>P2P Рынок</h2>
       <button class="btn-close-modal" data-close="sheetMarket">&times;</button>
     </div>
     <div id="marketListContainer" style="display:flex; flex-direction:column; gap:8px;"></div>
   </div>
 
+  <!-- 7. Модалка: Рейтинг -->
   <div class="modal-sheet" id="sheetLeaderboard">
     <div class="modal-head">
-      <h2>Рейтинг Сезона</h2>
+      <h2>Топ Сезона</h2>
       <button class="btn-close-modal" data-close="sheetLeaderboard">&times;</button>
     </div>
     <div class="glass-card">
       <div>
         <strong>🥇 1. @cyber_racer</strong>
-        <div style="font-size:11px; color:var(--text-sub);">Гараж: 145 000 ₽</div>
+        <div style="font-size:11px; color:var(--text-sub);">Стоимость парка: 145 000 ₽</div>
       </div>
-      <span class="badge-rarity" style="color:var(--accent-primary); border-color:var(--accent-primary);">50 ⭐</span>
+      <span class="badge-rarity" style="color:var(--accent-primary);">50 ⭐</span>
     </div>
     <div class="glass-card">
       <div>
         <strong>🥈 2. @drift_king</strong>
-        <div style="font-size:11px; color:var(--text-sub);">Гараж: 98 000 ₽</div>
+        <div style="font-size:11px; color:var(--text-sub);">Стоимость парка: 98 000 ₽</div>
       </div>
-      <span class="badge-rarity" style="color:var(--accent-indigo); border-color:var(--accent-indigo);">25 ⭐</span>
+      <span class="badge-rarity" style="color:var(--accent-indigo);">25 ⭐</span>
     </div>
   </div>
 
+  <!-- 8. Модалка: Друзья -->
   <div class="modal-sheet" id="sheetFriends">
     <div class="modal-head">
-      <h2>Реферальная сеть</h2>
+      <h2>Друзья и Бонусы</h2>
       <button class="btn-close-modal" data-close="sheetFriends">&times;</button>
     </div>
     <div class="glass-card" style="flex-direction:column; align-items:flex-start; gap:8px;">
-      <strong style="color:#fff;">Условия:</strong>
-      <div style="font-size:12px; color:var(--text-sub); line-height:1.5;">
-        • +50 ₽ сразу за приглашение друга<br>
-        • 10% с каждого пополнения звезд другом
+      <strong style="color:#fff;">Приглашайте друзей:</strong>
+      <div style="font-size:12px; color:var(--text-sub); line-height:1.4;">
+        • +50 ₽ сразу на баланс за друга<br>
+        • +30 XP к уровню аккаунта
       </div>
-      <button class="btn-modal-action" id="btnShareReferral" style="width:100%; margin-top:4px;">Пригласить (+50 ₽)</button>
-    </div>
-    <div class="glass-card">
-      <div>
-        <strong>Приглашено</strong>
-        <div style="font-size:11px; color:var(--text-sub);">Заработано: <span id="refIncome">0</span> ₽</div>
-      </div>
-      <span style="font-size:16px; font-weight:800; color:var(--accent-primary);" id="refTotal">0 чел.</span>
+      <button class="btn-modal-action emerald" id="btnShareReferral" style="width:100%; margin-top:4px;">Пригласить друга (+50 ₽)</button>
     </div>
   </div>
 
@@ -1257,44 +1148,31 @@
     const Haptic = {
       light: () => tg?.HapticFeedback?.impactOccurred('light'),
       medium: () => tg?.HapticFeedback?.impactOccurred('medium'),
-      heavy: () => tg?.HapticFeedback?.impactOccurred('heavy'),
       success: () => tg?.HapticFeedback?.notificationOccurred('success'),
       error: () => tg?.HapticFeedback?.notificationOccurred('error')
     };
 
-    // БАЗА ДАННЫХ
+    // БАЗА ДАННЫХ (CloudStorage + LocalStorage)
     const DB = {
-      KEY: 'mashinka_player_save_v1',
+      KEY: 'mashinka_save_v3',
       async save(data) {
         const payload = JSON.stringify(data);
-        const syncLabel = document.getElementById('dbSyncStatus');
-        
-        if (syncLabel) {
-          syncLabel.classList.add('visible');
-          setTimeout(() => syncLabel.classList.remove('visible'), 1200);
+        const ind = document.getElementById('dbSyncStatus');
+        if (ind) {
+          ind.classList.add('visible');
+          setTimeout(() => ind.classList.remove('visible'), 1000);
         }
-
-        try {
-          localStorage.setItem(this.KEY, payload);
-        } catch (e) {
-          console.warn('LocalStorage save failed:', e);
-        }
-
+        try { localStorage.setItem(this.KEY, payload); } catch (e) {}
         if (tg?.CloudStorage?.setItem) {
-          tg.CloudStorage.setItem(this.KEY, payload, (err, stored) => {
-            if (err) console.warn('TG CloudStorage set error:', err);
-          });
+          tg.CloudStorage.setItem(this.KEY, payload, () => {});
         }
       },
-
       async load() {
         return new Promise((resolve) => {
           if (tg?.CloudStorage?.getItem) {
             tg.CloudStorage.getItem(this.KEY, (err, val) => {
               if (!err && val) {
-                try {
-                  return resolve(JSON.parse(val));
-                } catch (e) {}
+                try { return resolve(JSON.parse(val)); } catch (e) {}
               }
               this.loadLocal(resolve);
             });
@@ -1303,7 +1181,6 @@
           }
         });
       },
-
       loadLocal(resolve) {
         try {
           const raw = localStorage.getItem(this.KEY);
@@ -1313,13 +1190,13 @@
       }
     };
 
-    // Звуковой синтезатор
+    // Звуковой движок
     const AudioEngine = {
       ctx: null,
       init() {
         if (!this.ctx) {
-          const AudioContext = window.AudioContext || window.webkitAudioContext;
-          if (AudioContext) this.ctx = new AudioContext();
+          const AC = window.AudioContext || window.webkitAudioContext;
+          if (AC) this.ctx = new AC();
         }
       },
       playTick() {
@@ -1328,221 +1205,103 @@
         const osc = this.ctx.createOscillator();
         const gain = this.ctx.createGain();
         osc.type = 'triangle';
-        osc.frequency.setValueAtTime(280 + Math.random() * 140, this.ctx.currentTime);
-        gain.gain.setValueAtTime(0.05, this.ctx.currentTime);
+        osc.frequency.setValueAtTime(300 + Math.random() * 120, this.ctx.currentTime);
+        gain.gain.setValueAtTime(0.04, this.ctx.currentTime);
         gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.03);
         osc.connect(gain);
         gain.connect(this.ctx.destination);
         osc.start();
         osc.stop(this.ctx.currentTime + 0.03);
       },
-      playWin(tier) {
+      playWin() {
         this.init();
         if (!this.ctx) return;
-        const notes = tier === 'mythic' || tier === 'legendary' ? [392, 523, 659, 784] : [293, 392, 493];
-        notes.forEach((freq, idx) => {
+        [392, 523, 659].forEach((freq, idx) => {
           const osc = this.ctx.createOscillator();
           const gain = this.ctx.createGain();
           osc.type = 'sine';
-          osc.frequency.setValueAtTime(freq, this.ctx.currentTime + idx * 0.09);
-          gain.gain.setValueAtTime(0.06, this.ctx.currentTime + idx * 0.09);
-          gain.gain.exponentialRampToValueAtTime(0.0001, this.ctx.currentTime + idx * 0.09 + 0.3);
+          osc.frequency.setValueAtTime(freq, this.ctx.currentTime + idx * 0.08);
+          gain.gain.setValueAtTime(0.05, this.ctx.currentTime + idx * 0.08);
+          gain.gain.exponentialRampToValueAtTime(0.0001, this.ctx.currentTime + idx * 0.08 + 0.25);
           osc.connect(gain);
           gain.connect(this.ctx.destination);
-          osc.start(this.ctx.currentTime + idx * 0.09);
-          osc.stop(this.ctx.currentTime + idx * 0.09 + 0.3);
+          osc.start(this.ctx.currentTime + idx * 0.08);
+          osc.stop(this.ctx.currentTime + idx * 0.08 + 0.25);
         });
       }
     };
 
-    // Спокойные мягкие микро-пылинки
-    const Sparks = {
-      canvas: document.getElementById('sparksCanvas'),
-      ctx: null,
-      particles: [],
-      animId: null,
-      init() {
-        this.ctx = this.canvas.getContext('2d');
-        this.resize();
-        window.addEventListener('resize', () => this.resize());
-      },
-      resize() {
-        this.canvas.width = this.canvas.parentElement.clientWidth;
-        this.canvas.height = this.canvas.parentElement.clientHeight;
-      },
-      burst(color) {
-        this.particles = [];
-        for (let i = 0; i < 20; i++) {
-          this.particles.push({
-            x: this.canvas.width / 2 + (Math.random() - 0.5) * 140,
-            y: this.canvas.height * 0.72,
-            vx: (Math.random() - 0.5) * 3,
-            vy: -Math.random() * 4 - 2,
-            size: Math.random() * 2 + 1,
-            color: color || '#38bdf8',
-            alpha: 0.8,
-            decay: Math.random() * 0.02 + 0.015
-          });
-        }
-        if (!this.animId) this.loop();
-      },
-      loop() {
-        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-        this.particles.forEach((p, idx) => {
-          p.x += p.vx;
-          p.y += p.vy;
-          p.alpha -= p.decay;
-          this.ctx.save();
-          this.ctx.globalAlpha = Math.max(0, p.alpha);
-          this.ctx.fillStyle = p.color;
-          this.ctx.beginPath();
-          this.ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-          this.ctx.fill();
-          this.ctx.restore();
-          if (p.alpha <= 0) this.particles.splice(idx, 1);
-        });
-        if (this.particles.length > 0) {
-          this.animId = requestAnimationFrame(() => this.loop());
-        } else {
-          cancelAnimationFrame(this.animId);
-          this.animId = null;
-          this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-        }
-      }
-    };
-    Sparks.init();
-
-    // Спокойная матовая палитра редкостей
     const RARITY_SCHEME = {
-      junk: { name: 'Металлолом', color: '#64748b', glow: 'rgba(100, 116, 139, 0.1)', mult: '×0.05' },
-      common: { name: 'Обычный', color: '#94a3b8', glow: 'rgba(148, 163, 184, 0.1)', mult: '×1.0' },
-      rare: { name: 'Редкий', color: '#38bdf8', glow: 'rgba(56, 189, 248, 0.15)', mult: '×1.6' },
-      epic: { name: 'Эпический', color: '#818cf8', glow: 'rgba(129, 140, 248, 0.15)', mult: '×2.8' },
-      legendary: { name: 'Легендарный', color: '#f43f5e', glow: 'rgba(244, 63, 94, 0.18)', mult: '×6.0' },
-      mythic: { name: 'Мифический', color: '#fbbf24', glow: 'rgba(251, 191, 36, 0.2)', mult: '×15.0' }
+      junk: { name: 'Металлолом', color: '#64748b', mult: '×0.05', tierWeight: 0 },
+      common: { name: 'Обычный', color: '#94a3b8', mult: '×1.0', tierWeight: 1 },
+      rare: { name: 'Редкий', color: '#38bdf8', mult: '×1.6', tierWeight: 2 },
+      epic: { name: 'Эпический', color: '#818cf8', mult: '×2.8', tierWeight: 3 },
+      legendary: { name: 'Легендарный', color: '#f43f5e', mult: '×6.0', tierWeight: 4 },
+      mythic: { name: 'Мифический', color: '#fbbf24', mult: '×15.0', tierWeight: 5 }
     };
+
+    // ЕДИНЫЙ КАТАЛОГ ВСЕХ МАШИН (БЕЗ ДЕЛЕНИЯ НА СТРАНЫ И МАРКИ)
+    const UNIFIED_CARS = [
+      { name: "Lada Granta Active", rarity: "common", baseHp: 106, basePrice: 140, engine: "1.6L I4", drive: "FWD", img: "https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?auto=format&fit=crop&w=800&q=80", sub: "Городской лифтбек" },
+      { name: "Lada Vesta Sport", rarity: "common", baseHp: 145, basePrice: 180, engine: "1.8L I4", drive: "FWD", img: "https://images.unsplash.com/photo-1549399542-7e3f8b79c341?auto=format&fit=crop&w=800&q=80", sub: "Серийный спорт" },
+      { name: "VW Golf 7 GTI", rarity: "common", baseHp: 220, basePrice: 210, engine: "2.0L TSI", drive: "FWD", img: "https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?auto=format&fit=crop&w=800&q=80", sub: "Хот-хэтч" },
+      { name: "Toyota Altezza RS200", rarity: "common", baseHp: 210, basePrice: 195, engine: "2.0L 3S-GE", drive: "RWD", img: "https://images.unsplash.com/photo-1552519507-da3b142c6e3d?auto=format&fit=crop&w=800&q=80", sub: "Заднеприводный седан" },
+      { name: "Ford Mustang GT 5.0", rarity: "common", baseHp: 450, basePrice: 250, engine: "5.0L V8", drive: "RWD", img: "https://images.unsplash.com/photo-1583121274602-3e2820c69888?auto=format&fit=crop&w=800&q=80", sub: "Классический V8" },
+      { name: "Alfa Romeo Giulia Ti", rarity: "common", baseHp: 280, basePrice: 230, engine: "2.0L Turbo", drive: "RWD", img: "https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?auto=format&fit=crop&w=800&q=80", sub: "Спортивный седан" },
+
+      { name: "Priora Black Edition", rarity: "rare", baseHp: 140, basePrice: 320, engine: "1.6L 16V", drive: "FWD", img: "https://images.unsplash.com/photo-1555215695-3004980ad54e?auto=format&fit=crop&w=800&q=80", sub: "Уличная классика" },
+      { name: "Subaru WRX STI", rarity: "rare", baseHp: 300, basePrice: 450, engine: "2.0L Boxer", drive: "AWD", img: "https://images.unsplash.com/photo-1549399542-7e3f8b79c341?auto=format&fit=crop&w=800&q=80", sub: "Раллийная легенда" },
+      { name: "Mazda RX-7 Spirit R", rarity: "rare", baseHp: 280, basePrice: 490, engine: "1.3L Rotary", drive: "RWD", img: "https://images.unsplash.com/photo-1552519507-da3b142c6e3d?auto=format&fit=crop&w=800&q=80", sub: "Роторный битурбо" },
+      { name: "BMW M2 Competition", rarity: "rare", baseHp: 410, basePrice: 560, engine: "3.0L S55", drive: "RWD", img: "https://images.unsplash.com/photo-1555215695-3004980ad54e?auto=format&fit=crop&w=800&q=80", sub: "Купе M-Power" },
+      { name: "Dodge Charger Hellcat", rarity: "rare", baseHp: 717, basePrice: 680, engine: "6.2L HEMI", drive: "RWD", img: "https://images.unsplash.com/photo-1552519507-da3b142c6e3d?auto=format&fit=crop&w=800&q=80", sub: "Компрессорный монстр" },
+
+      { name: "Toyota Supra A80 2JZ", rarity: "epic", baseHp: 330, basePrice: 1100, engine: "3.0L 2JZ-GTE", drive: "RWD", img: "https://images.unsplash.com/photo-1617814076367-b759c7d7e738?auto=format&fit=crop&w=800&q=80", sub: "Икона тюнинга" },
+      { name: "Nissan Skyline GT-R R34", rarity: "epic", baseHp: 327, basePrice: 1300, engine: "2.6L RB26DETT", drive: "AWD", img: "https://images.unsplash.com/photo-1616422285623-13ff0162193c?auto=format&fit=crop&w=800&q=80", sub: "Godzilla V-Spec" },
+      { name: "Audi RS6 Avant", rarity: "epic", baseHp: 600, basePrice: 1350, engine: "4.0L V8 TFSI", drive: "AWD", img: "https://images.unsplash.com/photo-1603584173870-7f23fdae1b7a?auto=format&fit=crop&w=800&q=80", sub: "Супер-универсал" },
+      { name: "Maserati MC20 Cielo", rarity: "epic", baseHp: 630, basePrice: 1450, engine: "3.0L Nettuno V6", drive: "RWD", img: "https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=800&q=80", sub: "Среднемоторный суперкар" },
+
+      { name: "Porsche 911 GT3 RS", rarity: "legendary", baseHp: 525, basePrice: 3200, engine: "4.0L Flat-6", drive: "RWD", img: "https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=800&q=80", sub: "Трековый скальпель" },
+      { name: "Aurus Senat Limo", rarity: "legendary", baseHp: 598, basePrice: 3500, engine: "4.4L V8 Hybrid", drive: "AWD", img: "https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?auto=format&fit=crop&w=800&q=80", sub: "Представительский люкс" },
+      { name: "Corvette C8 ZR1", rarity: "legendary", baseHp: 1064, basePrice: 4200, engine: "5.5L Twin-Turbo", drive: "RWD", img: "https://images.unsplash.com/photo-1583121274602-3e2820c69888?auto=format&fit=crop&w=800&q=80", sub: "1064 силы с завода" },
+      { name: "Ferrari SF90 Stradale", rarity: "legendary", baseHp: 1000, basePrice: 4500, engine: "4.0L V8 Hybrid", drive: "AWD", img: "https://images.unsplash.com/photo-1583121274602-3e2820c69888?auto=format&fit=crop&w=800&q=80", sub: "Флагман Маранелло" },
+
+      { name: "Skyline R34 Nismo Z-Tune", rarity: "mythic", baseHp: 500, basePrice: 5800, engine: "2.8L RB26 Z2", drive: "AWD", img: "https://images.unsplash.com/photo-1616422285623-13ff0162193c?auto=format&fit=crop&w=800&q=80", sub: "1 из 19 в мире" },
+      { name: "Mercedes-AMG ONE F1", rarity: "mythic", baseHp: 1063, basePrice: 6200, engine: "1.6L V6 F1", drive: "AWD", img: "https://images.unsplash.com/photo-1583121274602-3e2820c69888?auto=format&fit=crop&w=800&q=80", sub: "Технологии Формулы-1" },
+      { name: "Hennessey Venom F5", rarity: "mythic", baseHp: 1817, basePrice: 6500, engine: "6.6L Fury V8", drive: "RWD", img: "https://images.unsplash.com/photo-1583121274602-3e2820c69888?auto=format&fit=crop&w=800&q=80", sub: "Рекордсмен скорости" },
+      { name: "Pagani Huayra BC", rarity: "mythic", baseHp: 800, basePrice: 6800, engine: "6.0L V12 AMG", drive: "RWD", img: "https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=800&q=80", sub: "Карбоновое искусство" }
+    ];
 
     const JUNK_POOL = [
-      { name: "Ржавый кузов ВАЗ-2101", rarity: "junk", hp: 12, accel: "Не едет", engine: "Заклинен", drive: "Нет", price: 10, img: "https://images.unsplash.com/photo-1558981403-c5f9899a28bc?auto=format&fit=crop&w=800&q=80", sub: "Сгнившее железо на кирпичах" },
-      { name: "Сгоревший остов седана", rarity: "junk", hp: 0, accel: "Не едет", engine: "Пепел", drive: "Нет", price: 5, img: "https://images.unsplash.com/photo-1563720223185-11003d516935?auto=format&fit=crop&w=800&q=80", sub: "Только на сдачу в чермет" },
-      { name: "Смятая рама после ДТП", rarity: "junk", hp: 5, accel: "Не едет", engine: "Отсутствует", drive: "Нет", price: 15, img: "https://images.unsplash.com/photo-1590362891991-f776e747a588?auto=format&fit=crop&w=800&q=80", sub: "Геометрия нарушена" }
+      { name: "Ржавый кузов ВАЗ-2101", rarity: "junk", hp: 10, accel: "—", engine: "Заклинен", drive: "Нет", price: 10, img: "https://images.unsplash.com/photo-1558981403-c5f9899a28bc?auto=format&fit=crop&w=800&q=80", sub: "Металлолом" },
+      { name: "Сгоревший остов седана", rarity: "junk", hp: 0, accel: "—", engine: "Пепел", drive: "Нет", price: 5, img: "https://images.unsplash.com/photo-1563720223185-11003d516935?auto=format&fit=crop&w=800&q=80", sub: "На чермет" }
     ];
-
-    const CARS_DATABASE = {
-      ru: {
-        countryName: 'Россия 🇷🇺',
-        catalog: [
-          { name: "Lada Vesta Sport", rarity: "common", baseHp: 145, basePrice: 180, engine: "1.8L I4", drive: "FWD", img: "https://images.unsplash.com/photo-1549399542-7e3f8b79c341?auto=format&fit=crop&w=800&q=80", sub: "Серийный городской спорт" },
-          { name: "Lada Granta Drive Active", rarity: "common", baseHp: 106, basePrice: 140, engine: "1.6L I4", drive: "FWD", img: "https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?auto=format&fit=crop&w=800&q=80", sub: "Динамичный лифтбек" },
-          { name: "Lada Priora Black Edition", rarity: "rare", baseHp: 130, basePrice: 320, engine: "1.6L 16V", drive: "FWD", img: "https://images.unsplash.com/photo-1555215695-3004980ad54e?auto=format&fit=crop&w=800&q=80", sub: "Легенда улиц" },
-          { name: "Lada Kalina NFR Turbo", rarity: "rare", baseHp: 190, basePrice: 410, engine: "1.6L Turbo", drive: "FWD", img: "https://images.unsplash.com/photo-1549399542-7e3f8b79c341?auto=format&fit=crop&w=800&q=80", sub: "Заряженный хэтчбек" },
-          { name: "ВАЗ-2107 Turbo Custom", rarity: "rare", baseHp: 215, basePrice: 390, engine: "1.6L Turbo 16V", drive: "RWD", img: "https://images.unsplash.com/photo-1552519507-da3b142c6e3d?auto=format&fit=crop&w=800&q=80", sub: "Злой дрифт-корч" },
-          { name: "Marussia B1", rarity: "epic", baseHp: 420, basePrice: 1200, engine: "2.8L V6 Turbo", drive: "RWD", img: "https://images.unsplash.com/photo-1552519507-da3b142c6e3d?auto=format&fit=crop&w=800&q=80", sub: "Среднемоторный болид" },
-          { name: "Marussia B2", rarity: "epic", baseHp: 420, basePrice: 1350, engine: "2.8L Cosworth V6", drive: "RWD", img: "https://images.unsplash.com/photo-1617814076367-b759c7d7e738?auto=format&fit=crop&w=800&q=80", sub: "Истребитель на колёсах" },
-          { name: "Aurus Senat Custom", rarity: "legendary", baseHp: 598, basePrice: 3500, engine: "4.4L V8 Hybrid", drive: "AWD", img: "https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?auto=format&fit=crop&w=800&q=80", sub: "Флагманский люкс" },
-          { name: "Aurus Komendant Cyber", rarity: "legendary", baseHp: 598, basePrice: 3800, engine: "4.4L V8 Twin-Turbo", drive: "AWD", img: "https://images.unsplash.com/photo-1603584173870-7f23fdae1b7a?auto=format&fit=crop&w=800&q=80", sub: "Тяжелый премиум SUV" },
-          { name: "Rossa LMGT Concept", rarity: "mythic", baseHp: 680, basePrice: 5500, engine: "5.2L V10 GT", drive: "RWD", img: "https://images.unsplash.com/photo-1583121274602-3e2820c69888?auto=format&fit=crop&w=800&q=80", sub: "Российский гиперкар GT2" }
-        ]
-      },
-      de: {
-        countryName: 'Германия 🇩🇪',
-        catalog: [
-          { name: "VW Golf 7 GTI", rarity: "common", baseHp: 220, basePrice: 210, engine: "2.0L TSI", drive: "FWD", img: "https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?auto=format&fit=crop&w=800&q=80", sub: "Немецкий хот-хэтч" },
-          { name: "BMW M2 Competition", rarity: "rare", baseHp: 410, basePrice: 560, engine: "3.0L S55 Twin-Turbo", drive: "RWD", img: "https://images.unsplash.com/photo-1555215695-3004980ad54e?auto=format&fit=crop&w=800&q=80", sub: "Баварский дрифт" },
-          { name: "Audi RS6 Avant", rarity: "epic", baseHp: 600, basePrice: 1350, engine: "4.0L V8 TFSI", drive: "AWD", img: "https://images.unsplash.com/photo-1603584173870-7f23fdae1b7a?auto=format&fit=crop&w=800&q=80", sub: "Скоростной универсал" },
-          { name: "Porsche 911 GT3 RS", rarity: "legendary", baseHp: 525, basePrice: 3200, engine: "4.0L Flat-6 NA", drive: "RWD", img: "https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=800&q=80", sub: "Трековый эталон" },
-          { name: "Mercedes-AMG ONE F1", rarity: "mythic", baseHp: 1063, basePrice: 6200, engine: "1.6L V6 Turbo F1", drive: "AWD", img: "https://images.unsplash.com/photo-1583121274602-3e2820c69888?auto=format&fit=crop&w=800&q=80", sub: "Формула-1 на дорогах" }
-        ]
-      },
-      jp: {
-        countryName: 'Япония 🇯🇵',
-        catalog: [
-          { name: "Toyota Altezza RS200", rarity: "common", baseHp: 210, basePrice: 190, engine: "2.0L 3S-GE", drive: "RWD", img: "https://images.unsplash.com/photo-1552519507-da3b142c6e3d?auto=format&fit=crop&w=800&q=80", sub: "Заднеприводный седан" },
-          { name: "Mazda RX-7 FD Spirit R", rarity: "rare", baseHp: 280, basePrice: 490, engine: "1.3L Twin-Rotary", drive: "RWD", img: "https://images.unsplash.com/photo-1552519507-da3b142c6e3d?auto=format&fit=crop&w=800&q=80", sub: "Роторный битурбо" },
-          { name: "Toyota Supra A80 2JZ", rarity: "epic", baseHp: 330, basePrice: 1100, engine: "3.0L 2JZ-GTE", drive: "RWD", img: "https://images.unsplash.com/photo-1617814076367-b759c7d7e738?auto=format&fit=crop&w=800&q=80", sub: "Культовая JDM икона" },
-          { name: "Nissan Skyline GT-R R34", rarity: "epic", baseHp: 327, basePrice: 1300, engine: "2.6L RB26DETT", drive: "AWD", img: "https://images.unsplash.com/photo-1616422285623-13ff0162193c?auto=format&fit=crop&w=800&q=80", sub: "Godzilla V-Spec II" },
-          { name: "Nissan R34 Nismo Z-Tune", rarity: "mythic", baseHp: 500, basePrice: 5800, engine: "2.8L RB26DETT Z2", drive: "AWD", img: "https://images.unsplash.com/photo-1616422285623-13ff0162193c?auto=format&fit=crop&w=800&q=80", sub: "Всего 19 штук в мире" },
-          { name: "Lexus LFA V10 Nurburgring", rarity: "mythic", baseHp: 571, basePrice: 5900, engine: "4.8L V10 1LR-GUE", drive: "RWD", img: "https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=800&q=80", sub: "Лучший звук мотора" }
-        ]
-      },
-      us: {
-        countryName: 'США 🇺🇸',
-        catalog: [
-          { name: "Ford Mustang GT 5.0", rarity: "common", baseHp: 450, basePrice: 240, engine: "5.0L Coyote V8", drive: "RWD", img: "https://images.unsplash.com/photo-1583121274602-3e2820c69888?auto=format&fit=crop&w=800&q=80", sub: "Американский маслкар" },
-          { name: "Dodge Charger Hellcat", rarity: "rare", baseHp: 717, basePrice: 690, engine: "6.2L Supercharged HEMI", drive: "RWD", img: "https://images.unsplash.com/photo-1552519507-da3b142c6e3d?auto=format&fit=crop&w=800&q=80", sub: "Седан на 700+ сил" },
-          { name: "Dodge Challenger Redeye", rarity: "epic", baseHp: 797, basePrice: 1350, engine: "6.2L Supercharged V8", drive: "RWD", img: "https://images.unsplash.com/photo-1552519507-da3b142c6e3d?auto=format&fit=crop&w=800&q=80", sub: "Компрессорный вой" },
-          { name: "Corvette C8 ZR1", rarity: "legendary", baseHp: 1064, basePrice: 4200, engine: "5.5L LT7 Twin-Turbo", drive: "RWD", img: "https://images.unsplash.com/photo-1583121274602-3e2820c69888?auto=format&fit=crop&w=800&q=80", sub: "1064 силы с завода" },
-          { name: "Hennessey Venom F5", rarity: "mythic", baseHp: 1817, basePrice: 6500, engine: "6.6L Fury V8 Twin-Turbo", drive: "RWD", img: "https://images.unsplash.com/photo-1583121274602-3e2820c69888?auto=format&fit=crop&w=800&q=80", sub: "Цель 500 км/ч" }
-        ]
-      },
-      it: {
-        countryName: 'Италия 🇮🇹',
-        catalog: [
-          { name: "Alfa Romeo Giulia Ti", rarity: "common", baseHp: 280, basePrice: 230, engine: "2.0L Turbo", drive: "RWD", img: "https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?auto=format&fit=crop&w=800&q=80", sub: "Итальянский баланс" },
-          { name: "Maserati MC20 Cielo", rarity: "epic", baseHp: 630, basePrice: 1450, engine: "3.0L Nettuno V6", drive: "RWD", img: "https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=800&q=80", sub: "Технологии F1" },
-          { name: "Ferrari SF90 Stradale", rarity: "legendary", baseHp: 1000, basePrice: 4500, engine: "4.0L V8 Hybrid", drive: "AWD", img: "https://images.unsplash.com/photo-1583121274602-3e2820c69888?auto=format&fit=crop&w=800&q=80", sub: "1000 сил и полный привод" },
-          { name: "Pagani Huayra BC", rarity: "mythic", baseHp: 800, basePrice: 6600, engine: "6.0L V12 Twin-Turbo", drive: "RWD", img: "https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=800&q=80", sub: "Автомобильное искусство" }
-        ]
-      }
-    };
-
-    const EXPANDED_REGISTRY = [];
-    const MOD_SPECS = [
-      { tag: "Stock", hpMul: 1.0, prMul: 1.0 },
-      { tag: "Stage 1", hpMul: 1.15, prMul: 1.25 },
-      { tag: "Stage 2+", hpMul: 1.3, prMul: 1.55 },
-      { tag: "Track Edition", hpMul: 1.2, prMul: 1.7 },
-      { tag: "Carbon", hpMul: 1.1, prMul: 1.85 },
-      { tag: "Twin-Turbo", hpMul: 1.45, prMul: 2.1 }
-    ];
-
-    Object.keys(CARS_DATABASE).forEach(cKey => {
-      const countryGroup = CARS_DATABASE[cKey];
-      countryGroup.catalog.forEach(car => {
-        MOD_SPECS.forEach(mod => {
-          EXPANDED_REGISTRY.push({
-            name: mod.tag === "Stock" ? car.name : `${car.name} [${mod.tag}]`,
-            rarity: car.rarity,
-            baseHp: Math.round(car.baseHp * mod.hpMul),
-            basePrice: Math.round(car.basePrice * mod.prMul),
-            engine: car.engine,
-            drive: car.drive,
-            img: car.img,
-            sub: car.sub,
-            country: cKey
-          });
-        });
-      });
-    });
 
     let playerData = {
       balance: 1500,
-      fuel: 5,
-      luckSeconds: 20 * 60,
-      totalFriends: 0,
-      totalRefEarned: 0,
+      level: 1,
+      xp: 0,
       garage: [],
       marketLots: [
-        { id: 101, seller: "@smash_boy", name: "Mazda RX-7 [Stage 2+]", rarity: "rare", hp: 364, price: 950, img: "https://images.unsplash.com/photo-1552519507-da3b142c6e3d?auto=format&fit=crop&w=800&q=80" },
+        { id: 101, seller: "@smash_boy", name: "Mazda RX-7 Spirit R", rarity: "rare", hp: 364, price: 950, img: "https://images.unsplash.com/photo-1552519507-da3b142c6e3d?auto=format&fit=crop&w=800&q=80" },
         { id: 102, seller: "@berlin_racer", name: "BMW M2 Competition", rarity: "rare", hp: 410, price: 1100, img: "https://images.unsplash.com/photo-1555215695-3004980ad54e?auto=format&fit=crop&w=800&q=80" }
       ]
     };
 
     let currentCar = null;
-    let selectedCountry = 'ru';
     let betMult = 1;
+    let isSpinning = false;
+    let wheelRotation = 0;
+    let isUpgrading = false;
 
     const hudBalance = document.getElementById('hudBalance');
-    const hudFuel = document.getElementById('hudFuel');
-    const luckRibbon = document.getElementById('luckRibbon');
-    const luckTimer = document.getElementById('luckTimer');
+    const lvlTag = document.getElementById('lvlTag');
+    const lvlBar = document.getElementById('lvlBar');
+    const lvlXpText = document.getElementById('lvlXpText');
     const stageCard = document.getElementById('stageCard');
     const rouletteBox = document.getElementById('rouletteBox');
     const rouletteTape = document.getElementById('rouletteTape');
-    const gachaFlash = document.getElementById('gachaFlash');
 
     const dispRarity = document.getElementById('dispRarity');
-    const dispCountry = document.getElementById('dispCountry');
     const dispImage = document.getElementById('dispImage');
     const dispSellPrice = document.getElementById('dispSellPrice');
     const dispTitle = document.getElementById('dispTitle');
@@ -1556,195 +1315,100 @@
     const btnDirectSell = document.getElementById('btnDirectSell');
     const btnSpinNow = document.getElementById('btnSpinNow');
     const spinCostTag = document.getElementById('spinCostTag');
-    const countrySelect = document.getElementById('countrySelect');
-    const countryLabel = document.getElementById('countryLabel');
-    const betSelect = document.getElementById('betSelect');
-    const betLabel = document.getElementById('betLabel');
 
-    function syncDB() {
-      DB.save(playerData);
-    }
+    function syncDB() { DB.save(playerData); }
 
-    setInterval(() => {
-      if (playerData.fuel < 5) {
-        playerData.fuel++;
-        hudFuel.textContent = playerData.fuel;
-        syncDB();
+    function calcSpinCost() { return 150 * betMult; }
+
+    function addXP(amount) {
+      playerData.xp += amount;
+      const needed = playerData.level * 100;
+      if (playerData.xp >= needed) {
+        playerData.xp -= needed;
+        playerData.level++;
+        const reward = playerData.level * 250;
+        playerData.balance += reward;
+        Haptic.success();
+        alert(`🎉 УРОВЕНЬ ПОВЫШЕН: ${playerData.level}!\nПремия за уровень: +${reward} ₽`);
       }
-    }, 180000);
-
-    const timerInterval = setInterval(() => {
-      if (playerData.luckSeconds > 0) {
-        playerData.luckSeconds--;
-        const m = Math.floor(playerData.luckSeconds / 60);
-        const s = playerData.luckSeconds % 60;
-        luckTimer.textContent = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
-        if (playerData.luckSeconds % 30 === 0) syncDB();
-      } else {
-        luckRibbon.style.display = 'none';
-        clearInterval(timerInterval);
-        syncDB();
-      }
-    }, 1000);
-
-    function calcSpinCost() {
-      return 150 * betMult;
+      refreshHUD();
+      syncDB();
     }
 
     function refreshHUD() {
       hudBalance.textContent = playerData.balance.toLocaleString('ru-RU');
-      hudFuel.textContent = playerData.fuel;
       spinCostTag.textContent = `${calcSpinCost()} ₽`;
-      btnSpinNow.disabled = playerData.balance < calcSpinCost();
-      document.getElementById('refTotal').textContent = `${playerData.totalFriends} чел.`;
-      document.getElementById('refIncome').textContent = playerData.totalRefEarned;
+      lvlTag.textContent = `УР. ${playerData.level}`;
+      const needed = playerData.level * 100;
+      lvlBar.style.width = `${Math.min(100, (playerData.xp / needed) * 100)}%`;
+      lvlXpText.textContent = `${playerData.xp}/${needed} XP`;
     }
 
-    countrySelect.addEventListener('change', (e) => {
-      selectedCountry = e.target.value;
-      countryLabel.textContent = CARS_DATABASE[selectedCountry].countryName;
-      Haptic.light();
+    // Выбор множителя ставки
+    document.querySelectorAll('#betSelectorBar .bet-chip').forEach(chip => {
+      chip.addEventListener('click', () => {
+        document.querySelectorAll('#betSelectorBar .bet-chip').forEach(c => c.classList.remove('active'));
+        chip.classList.add('active');
+        betMult = parseInt(chip.dataset.bet, 10);
+        Haptic.light();
+        refreshHUD();
+      });
     });
 
-    betSelect.addEventListener('change', (e) => {
-      betMult = parseInt(e.target.value);
-      betLabel.textContent = `x${betMult} (${calcSpinCost()} ₽)`;
-      Haptic.light();
-      refreshHUD();
-    });
-
-    function animateValue(elem, start, end, duration, suffix = '') {
-      let startTimestamp = null;
-      const step = (timestamp) => {
-        if (!startTimestamp) startTimestamp = timestamp;
-        const progress = Math.min((timestamp - startTimestamp) / duration, 1);
-        const current = Math.floor(progress * (end - start) + start);
-        elem.textContent = `${current.toLocaleString('ru-RU')}${suffix}`;
-        if (progress < 1) {
-          window.requestAnimationFrame(step);
-        }
-      };
-      window.requestAnimationFrame(step);
-    }
-
-    function setupHoloTilt() {
-      if (window.DeviceOrientationEvent) {
-        window.addEventListener('deviceorientation', (e) => {
-          if (!e.gamma || !e.beta) return;
-          const tiltX = Math.min(Math.max(e.gamma, -20), 20);
-          const tiltY = Math.min(Math.max(e.beta - 45, -20), 20);
-          stageCard.style.transform = `rotateY(${tiltX * 0.3}deg) rotateX(${-tiltY * 0.3}deg)`;
-          document.documentElement.style.setProperty('--sheen-x', `${50 + tiltX * 1.5}%`);
-          document.documentElement.style.setProperty('--sheen-y', `${50 + tiltY * 1.5}%`);
-        });
+    function generateDrop() {
+      if (Math.random() < 0.16) {
+        return { ...JUNK_POOL[Math.floor(Math.random() * JUNK_POOL.length)] };
       }
-
-      stageCard.addEventListener('mousemove', (e) => {
-        const rect = stageCard.getBoundingClientRect();
-        const x = (e.clientX - rect.left) / rect.width;
-        const y = (e.clientY - rect.top) / rect.height;
-        stageCard.style.transform = `rotateY(${(x - 0.5) * 12}deg) rotateX(${-(y - 0.5) * 12}deg)`;
-        document.documentElement.style.setProperty('--sheen-x', `${x * 100}%`);
-        document.documentElement.style.setProperty('--sheen-y', `${y * 100}%`);
-      });
-
-      stageCard.addEventListener('mouseleave', () => {
-        stageCard.style.transform = 'rotateY(0deg) rotateX(0deg)';
-      });
-    }
-    setupHoloTilt();
-
-    function triggerGachaFlash(color) {
-      gachaFlash.style.background = `radial-gradient(circle, ${color}33 0%, rgba(8,10,15,0.92) 80%)`;
-      gachaFlash.style.opacity = '0.75';
-      setTimeout(() => {
-        gachaFlash.style.opacity = '0';
-      }, 250);
-    }
-
-    function generateDrop(forcedTier = null, customCountry = null) {
-      const junkRisk = Math.max(15, 23 - betMult);
-      if (!forcedTier && Math.random() * 100 < junkRisk) {
-        const junk = JUNK_POOL[Math.floor(Math.random() * JUNK_POOL.length)];
-        return { ...junk, country: selectedCountry, isJunk: true };
-      }
-
-      const luckMultiplier = (playerData.luckSeconds > 0 ? 2.5 : 1) + (betMult * 0.35);
+      const boost = 1 + (betMult * 0.25);
       const roll = Math.random() * 100;
-      let targetTier = forcedTier || 'common';
+      let targetTier = 'common';
+      if (roll < 0.8 * boost) targetTier = 'mythic';
+      else if (roll < 3.5 * boost) targetTier = 'legendary';
+      else if (roll < 12.0 * boost) targetTier = 'epic';
+      else if (roll < 34.0) targetTier = 'rare';
 
-      if (!forcedTier) {
-        if (roll < (0.15 * luckMultiplier)) targetTier = 'mythic';
-        else if (roll < (1.2 * luckMultiplier)) targetTier = 'legendary';
-        else if (roll < (5.5 * luckMultiplier)) targetTier = 'epic';
-        else if (roll < 22.0) targetTier = 'rare';
-        else targetTier = 'common';
-      }
-
-      const c = customCountry || selectedCountry;
-      const matchedPool = EXPANDED_REGISTRY.filter(item => item.country === c && item.rarity === targetTier);
-      const picked = matchedPool.length > 0 ? matchedPool[Math.floor(Math.random() * matchedPool.length)] : EXPANDED_REGISTRY.filter(item => item.country === c)[0];
-
-      const variance = (Math.random() * 0.40) - 0.18;
-      const calcHp = Math.max(35, Math.round(picked.baseHp * (1 + variance)));
-      const calcAccel = (Math.max(2.1, 10.8 - (calcHp / 105))).toFixed(1);
-      const calcPrice = Math.max(25, Math.round(picked.basePrice * (1 + variance * 0.5) * betMult));
+      const pool = UNIFIED_CARS.filter(c => c.rarity === targetTier);
+      const picked = pool[Math.floor(Math.random() * pool.length)] || UNIFIED_CARS[0];
+      const variance = (Math.random() * 0.3) - 0.12;
+      const calcHp = Math.round(picked.baseHp * (1 + variance));
+      const calcPrice = Math.round(picked.basePrice * betMult * (1 + variance * 0.5));
 
       return {
-        name: picked.name,
-        rarity: picked.rarity,
+        ...picked,
         hp: calcHp,
-        accel: `${calcAccel} с`,
-        engine: picked.engine,
-        drive: picked.drive,
-        price: calcPrice,
-        img: picked.img,
-        sub: picked.sub,
-        country: c,
-        isJunk: false
+        accel: `${Math.max(2.0, (10.5 - (calcHp / 115))).toFixed(1)} с`,
+        price: calcPrice
       };
     }
 
     function renderStage(item) {
       const meta = RARITY_SCHEME[item.rarity];
       document.documentElement.style.setProperty('--rarity-col', meta.color);
-      document.documentElement.style.setProperty('--rarity-glow', meta.glow);
 
       dispRarity.textContent = meta.name;
-      dispCountry.textContent = CARS_DATABASE[item.country].countryName;
       dispImage.src = item.img;
       dispTitle.textContent = item.name;
       dispSub.textContent = item.sub;
       dispMult.textContent = meta.mult;
+      dispSellPrice.textContent = item.price.toLocaleString('ru-RU');
 
-      animateValue(dispSellPrice, 0, item.price, 350);
-      if (item.isJunk) {
-        specHp.textContent = `${item.hp} л.с.`;
-      } else {
-        animateValue(specHp, 0, item.hp, 350, ' л.с.');
-      }
-
+      specHp.textContent = `${item.hp} л.с.`;
       specAccel.textContent = item.accel;
       specEngine.textContent = item.engine;
       specDrive.textContent = item.drive;
 
-      btnDirectSell.textContent = item.isJunk ? `В чермет (+${item.price} ₽)` : `Сдать (+${item.price} ₽)`;
+      btnDirectSell.textContent = item.rarity === 'junk' ? `В чермет (+${item.price} ₽)` : `Сдать (+${item.price} ₽)`;
       btnKeepGarage.disabled = false;
       btnDirectSell.disabled = false;
     }
 
-    const ITEM_WIDTH = 140;
-    const WINNING_INDEX = 24;
+    const ITEM_WIDTH = 135;
+    const WINNING_INDEX = 22;
 
     function buildRouletteTape(winningCar) {
       rouletteTape.innerHTML = '';
-      const pool = EXPANDED_REGISTRY.filter(c => c.country === selectedCountry);
-
-      for (let i = 0; i < 32; i++) {
-        let car = (i === WINNING_INDEX) 
-          ? winningCar 
-          : (Math.random() < 0.2 ? JUNK_POOL[Math.floor(Math.random() * JUNK_POOL.length)] : pool[Math.floor(Math.random() * pool.length)]);
-
+      for (let i = 0; i < 28; i++) {
+        let car = (i === WINNING_INDEX) ? winningCar : UNIFIED_CARS[Math.floor(Math.random() * UNIFIED_CARS.length)];
         const meta = RARITY_SCHEME[car.rarity];
         const card = document.createElement('div');
         card.className = 'tape-card';
@@ -1759,11 +1423,17 @@
       }
     }
 
-    // Запуск прокрута
-    btnSpinNow.addEventListener('click', () => {
+    // Запуск одиночного прокрута
+    function executeSingleSpin() {
+      if (isSpinning) return;
       const cost = calcSpinCost();
-      if (playerData.balance < cost) return;
+      if (playerData.balance < cost) {
+        Haptic.error();
+        alert('Недостаточно рублей для прокрута!');
+        return;
+      }
 
+      isSpinning = true;
       playerData.balance -= cost;
       refreshHUD();
       syncDB();
@@ -1775,59 +1445,93 @@
       stageCard.classList.add('hidden');
       rouletteBox.classList.add('active');
 
-      const droppedCar = generateDrop();
-      currentCar = droppedCar;
-      buildRouletteTape(droppedCar);
+      const dropped = generateDrop();
+      currentCar = dropped;
+      buildRouletteTape(dropped);
 
       const wrapper = document.querySelector('.roulette-strip-wrapper');
       rouletteTape.style.transition = 'none';
       rouletteTape.style.transform = 'translateX(0px)';
 
-      const centerScreen = wrapper.clientWidth / 2;
+      const center = wrapper.clientWidth / 2;
       const targetPos = (WINNING_INDEX * ITEM_WIDTH) + (ITEM_WIDTH / 2);
-      const microJitter = (Math.random() - 0.5) * 35;
-      const finalTranslate = -(targetPos - centerScreen + microJitter);
+      const finalTranslate = -(targetPos - center);
 
       requestAnimationFrame(() => {
         setTimeout(() => {
-          rouletteTape.style.transition = 'transform 4.5s cubic-bezier(0.12, 0.8, 0.16, 1)';
+          rouletteTape.style.transition = 'transform 3.6s cubic-bezier(0.12, 0.8, 0.16, 1)';
           rouletteTape.style.transform = `translateX(${finalTranslate}px)`;
-        }, 30);
+        }, 25);
       });
 
       let ticks = 0;
       const tickTimer = setInterval(() => {
-        if (ticks < 22) {
+        if (ticks < 16) {
           AudioEngine.playTick();
           Haptic.light();
           ticks++;
         } else {
           clearInterval(tickTimer);
         }
-      }, 190);
+      }, 200);
 
       setTimeout(() => {
+        isSpinning = false;
+        btnSpinNow.disabled = false;
         rouletteBox.classList.remove('active');
         stageCard.classList.remove('hidden');
 
-        const meta = RARITY_SCHEME[droppedCar.rarity];
-        triggerGachaFlash(meta.color);
-        renderStage(droppedCar);
+        renderStage(dropped);
+        addXP(15);
 
-        if (droppedCar.rarity === 'mythic' || droppedCar.rarity === 'legendary') {
-          Sparks.burst(meta.color);
+        if (dropped.rarity === 'mythic' || dropped.rarity === 'legendary') {
           Haptic.success();
-          AudioEngine.playWin(droppedCar.rarity);
-        } else if (droppedCar.isJunk) {
-          Haptic.error();
+          AudioEngine.playWin();
         } else {
           Haptic.medium();
-          AudioEngine.playWin('common');
         }
+      }, 3750);
+    }
 
-        btnSpinNow.disabled = playerData.balance < calcSpinCost();
-      }, 4700);
-    });
+    btnSpinNow.addEventListener('click', executeSingleSpin);
+
+    // Пакетный мульти-спин (*2 и *5 справа)
+    function executeBatchSpin(count) {
+      if (isSpinning) return;
+      const totalCost = calcSpinCost() * count;
+      if (playerData.balance < totalCost) {
+        Haptic.error();
+        alert(`Для прокрута ×${count} нужно ${totalCost.toLocaleString()} ₽!`);
+        return;
+      }
+
+      playerData.balance -= totalCost;
+      let droppedNames = [];
+      let bestCar = null;
+
+      for (let i = 0; i < count; i++) {
+        const c = generateDrop();
+        playerData.garage.push(c);
+        droppedNames.push(`• ${c.name} (${RARITY_SCHEME[c.rarity].name})`);
+        if (!bestCar || c.price > bestCar.price) bestCar = c;
+      }
+
+      currentCar = bestCar;
+      renderStage(bestCar);
+      btnKeepGarage.disabled = true;
+      btnDirectSell.disabled = true;
+
+      addXP(15 * count);
+      Haptic.success();
+      AudioEngine.playWin();
+      syncDB();
+      refreshHUD();
+
+      alert(`⚡ ОТКРЫТО ×${count} ПРОКРУТОВ!\nВсе машины отправлены в ваш Гараж:\n\n${droppedNames.join('\n')}`);
+    }
+
+    document.getElementById('btnSpinX2').addEventListener('click', () => executeBatchSpin(2));
+    document.getElementById('btnSpinX5').addEventListener('click', () => executeBatchSpin(5));
 
     btnKeepGarage.addEventListener('click', () => {
       if (!currentCar) return;
@@ -1837,8 +1541,6 @@
       btnDirectSell.disabled = true;
       currentCar = null;
       syncDB();
-      refreshHUD();
-      alert('Автомобиль успешно отправлен в гараж!');
     });
 
     btnDirectSell.addEventListener('click', () => {
@@ -1852,16 +1554,16 @@
       refreshHUD();
     });
 
-    // Навигация
+    // Навигация по вкладкам
     const sheets = {
+      sheetMenu: document.getElementById('sheetMenu'),
+      sheetGames: document.getElementById('sheetGames'),
+      sheetCases: document.getElementById('sheetCases'),
+      sheetTuning: document.getElementById('sheetTuning'),
       sheetGarage: document.getElementById('sheetGarage'),
       sheetMarket: document.getElementById('sheetMarket'),
       sheetLeaderboard: document.getElementById('sheetLeaderboard'),
-      sheetFriends: document.getElementById('sheetFriends'),
-      sheetTuning: document.getElementById('sheetTuning'),
-      sheetPvp: document.getElementById('sheetPvp'),
-      sheetCases: document.getElementById('sheetCases'),
-      sheetCoin: document.getElementById('sheetCoin')
+      sheetFriends: document.getElementById('sheetFriends')
     };
 
     function dismissSheets() {
@@ -1891,11 +1593,11 @@
       loadMarketSheet();
     });
 
-    document.getElementById('dockLeaderboard').addEventListener('click', () => {
+    document.getElementById('dockMenu').addEventListener('click', () => {
       dismissSheets();
       Haptic.light();
-      document.getElementById('dockLeaderboard').classList.add('active');
-      sheets.sheetLeaderboard.classList.add('active');
+      document.getElementById('dockMenu').classList.add('active');
+      sheets.sheetMenu.classList.add('active');
     });
 
     document.getElementById('dockFriends').addEventListener('click', () => {
@@ -1905,29 +1607,26 @@
       sheets.sheetFriends.classList.add('active');
     });
 
-    document.getElementById('btnOpenCases').addEventListener('click', () => {
+    document.getElementById('menuOpenGames').addEventListener('click', () => {
       dismissSheets();
-      Haptic.light();
+      sheets.sheetGames.classList.add('active');
+      initUpgraderUI();
+    });
+
+    document.getElementById('menuOpenCases').addEventListener('click', () => {
+      dismissSheets();
       sheets.sheetCases.classList.add('active');
     });
 
-    document.getElementById('btnOpenCoin').addEventListener('click', () => {
+    document.getElementById('menuOpenTuning').addEventListener('click', () => {
       dismissSheets();
-      Haptic.light();
-      sheets.sheetCoin.classList.add('active');
-    });
-
-    document.getElementById('btnOpenTuning').addEventListener('click', () => {
-      dismissSheets();
-      Haptic.light();
       sheets.sheetTuning.classList.add('active');
       loadTuningSheet();
     });
 
-    document.getElementById('btnOpenPvp').addEventListener('click', () => {
+    document.getElementById('menuOpenTrophy').addEventListener('click', () => {
       dismissSheets();
-      Haptic.light();
-      sheets.sheetPvp.classList.add('active');
+      sheets.sheetLeaderboard.classList.add('active');
     });
 
     document.querySelectorAll('.btn-close-modal').forEach(btn => {
@@ -1938,94 +1637,248 @@
       });
     });
 
-    // Открытие кейсов
-    document.getElementById('btnOpenJdmBox').addEventListener('click', () => {
-      if (playerData.balance < 500) { alert('Нужно 500 ₽!'); return; }
-      playerData.balance -= 500;
-      refreshHUD();
-      syncDB();
-      dismissSheets();
-      currentCar = generateDrop('epic', 'jp');
-      renderStage(currentCar);
-      triggerGachaFlash(RARITY_SCHEME.epic.color);
-      Haptic.success();
-      AudioEngine.playWin('epic');
+    // ==========================================
+    // МИНИ-ИГРА 1: КОЛЕСО АПГРЕЙДЕРА (UPGRADER)
+    // ==========================================
+    const upgSourceSelect = document.getElementById('upgSourceSelect');
+    const upgTargetSelect = document.getElementById('upgTargetSelect');
+    const wheelCircle = document.getElementById('wheelCircle');
+    const wheelChanceVal = document.getElementById('wheelChanceVal');
+    const wheelPointerArm = document.getElementById('wheelPointerArm');
+    const upgStatusText = document.getElementById('upgStatusText');
+    const btnRunUpgrade = document.getElementById('btnRunUpgrade');
+
+    function initUpgraderUI() {
+      upgSourceSelect.innerHTML = '';
+      upgTargetSelect.innerHTML = '';
+
+      if (playerData.garage.length === 0) {
+        upgSourceSelect.innerHTML = '<option value="-1">Гараж пуст</option>';
+        btnRunUpgrade.disabled = true;
+        updateWheelChance(0);
+        return;
+      }
+
+      btnRunUpgrade.disabled = false;
+      playerData.garage.forEach((car, idx) => {
+        const opt = document.createElement('option');
+        opt.value = idx;
+        opt.textContent = `${car.name} (${car.price} ₽)`;
+        upgSourceSelect.appendChild(opt);
+      });
+
+      // Целевые машины из общего каталога, отсортированные по стоимости
+      const sortedTargets = [...UNIFIED_CARS].sort((a, b) => a.basePrice - b.basePrice);
+      sortedTargets.forEach((car, idx) => {
+        const opt = document.createElement('option');
+        opt.value = car.name;
+        opt.textContent = `${car.name} [${RARITY_SCHEME[car.rarity].name}] (${car.basePrice} ₽)`;
+        upgTargetSelect.appendChild(opt);
+      });
+
+      recalcUpgradeOdds();
+    }
+
+    function getUpgradeChance() {
+      const srcIdx = parseInt(upgSourceSelect.value, 10);
+      if (isNaN(srcIdx) || srcIdx < 0 || !playerData.garage[srcIdx]) return 0;
+
+      const srcCar = playerData.garage[srcIdx];
+      const targetCar = UNIFIED_CARS.find(c => c.name === upgTargetSelect.value) || UNIFIED_CARS[0];
+
+      // Формула шанса: отношение цены машины игрока к цене желаемой машины (от 5% до 85%)
+      const ratio = (srcCar.price / targetCar.basePrice) * 80;
+      return Math.min(85, Math.max(5, Math.round(ratio)));
+    }
+
+    function updateWheelChance(chancePct) {
+      wheelChanceVal.textContent = `${chancePct}%`;
+      wheelCircle.style.background = `conic-gradient(var(--accent-emerald) 0% ${chancePct}%, #1e293b ${chancePct}% 100%)`;
+    }
+
+    function recalcUpgradeOdds() {
+      const chance = getUpgradeChance();
+      updateWheelChance(chance);
+    }
+
+    upgSourceSelect.addEventListener('change', recalcUpgradeOdds);
+    upgTargetSelect.addEventListener('change', recalcUpgradeOdds);
+
+    btnRunUpgrade.addEventListener('click', () => {
+      if (isUpgrading || playerData.garage.length === 0) return;
+      const srcIdx = parseInt(upgSourceSelect.value, 10);
+      const srcCar = playerData.garage[srcIdx];
+      const targetTemplate = UNIFIED_CARS.find(c => c.name === upgTargetSelect.value);
+      if (!srcCar || !targetTemplate) return;
+
+      isUpgrading = true;
+      btnRunUpgrade.disabled = true;
+      upgStatusText.textContent = 'Стрелка вращается...';
+      Haptic.medium();
+
+      const chancePct = getUpgradeChance();
+      const winThresholdDeg = (chancePct / 100) * 360;
+
+      // Случайный угол остановки от 0 до 360 градусов
+      const stopAngle = Math.random() * 360;
+      const isWin = stopAngle <= winThresholdDeg;
+
+      // 5 полных оборотов + целевой угол
+      const baseSpins = 360 * 5;
+      wheelRotation = wheelRotation - (wheelRotation % 360) + baseSpins + stopAngle;
+      wheelPointerArm.style.transform = `rotate(${wheelRotation}deg)`;
+
+      let ticks = 0;
+      const tInt = setInterval(() => {
+        if (ticks < 14) { AudioEngine.playTick(); ticks++; }
+        else clearInterval(tInt);
+      }, 220);
+
+      setTimeout(() => {
+        isUpgrading = false;
+        if (isWin) {
+          // Успех: заменяем старую машину на новую прокачанную
+          const upgradedCar = {
+            ...targetTemplate,
+            hp: targetTemplate.baseHp,
+            accel: `${Math.max(2.0, (10.5 - (targetTemplate.baseHp / 115))).toFixed(1)} с`,
+            price: targetTemplate.basePrice
+          };
+          playerData.garage[srcIdx] = upgradedCar;
+          upgStatusText.innerHTML = `<span style="color:var(--accent-emerald); font-weight:800;">✅ УСПЕХ! Вы получили ${upgradedCar.name}!</span>`;
+          addXP(45);
+          Haptic.success();
+          AudioEngine.playWin();
+        } else {
+          // Неудача: машина сгорает
+          playerData.garage.splice(srcIdx, 1);
+          upgStatusText.innerHTML = `<span style="color:var(--accent-rose); font-weight:800;">❌ НЕУДАЧА! Ваша машина сгорела при апгрейде.</span>`;
+          Haptic.error();
+        }
+
+        syncDB();
+        initUpgraderUI();
+      }, 3700);
     });
 
-    document.getElementById('btnOpenSuperBox').addEventListener('click', () => {
-      if (playerData.balance < 1200) { alert('Нужно 1 200 ₽!'); return; }
-      playerData.balance -= 1200;
+    // ==========================================
+    // ОСТАЛЬНЫЕ МИНИ-ИГРЫ (Слоты, Монетка, Кости)
+    // ==========================================
+    const SLOT_SYMBOLS = ['🍒', '🍋', '🍇', '💎', '7️⃣', '👑'];
+    document.getElementById('btnSpinSlots').addEventListener('click', () => {
+      if (playerData.balance < 200) { alert('Нужно 200 ₽!'); return; }
+      playerData.balance -= 200;
+      refreshHUD();
+      Haptic.medium();
+
+      const s1 = SLOT_SYMBOLS[Math.floor(Math.random() * SLOT_SYMBOLS.length)];
+      const s2 = SLOT_SYMBOLS[Math.floor(Math.random() * SLOT_SYMBOLS.length)];
+      const s3 = SLOT_SYMBOLS[Math.floor(Math.random() * SLOT_SYMBOLS.length)];
+
+      document.getElementById('slot1').textContent = s1;
+      document.getElementById('slot2').textContent = s2;
+      document.getElementById('slot3').textContent = s3;
+
+      if (s1 === s2 && s2 === s3) {
+        const win = s1 === '👑' ? 4000 : 2000;
+        playerData.balance += win;
+        addXP(50);
+        Haptic.success();
+        AudioEngine.playWin();
+        alert(`🎰 ДЖЕКПОТ! Выигрыш: +${win} ₽`);
+      } else if (s1 === s2 || s2 === s3 || s1 === s3) {
+        playerData.balance += 350;
+        addXP(15);
+        Haptic.medium();
+      } else {
+        Haptic.error();
+      }
       refreshHUD();
       syncDB();
-      dismissSheets();
-      currentCar = generateDrop('legendary', 'it');
-      renderStage(currentCar);
-      triggerGachaFlash(RARITY_SCHEME.legendary.color);
-      Sparks.burst(RARITY_SCHEME.legendary.color);
-      Haptic.success();
-      AudioEngine.playWin('legendary');
     });
 
+    function playCoin(side) {
+      if (playerData.balance < 150) { alert('Нужно 150 ₽!'); return; }
+      playerData.balance -= 150;
+      const win = Math.random() < 0.5;
+      if (win) {
+        playerData.balance += 300;
+        addXP(20);
+        Haptic.success();
+        alert(`🪙 Выпало: ${side}! Победа +300 ₽!`);
+      } else {
+        Haptic.error();
+        alert('🪙 Увы, выпала противоположная сторона.');
+      }
+      refreshHUD();
+      syncDB();
+    }
+    document.getElementById('btnCoinHeads').addEventListener('click', () => playCoin('Орёл'));
+    document.getElementById('btnCoinTails').addEventListener('click', () => playCoin('Решка'));
+
+    document.getElementById('btnRollDice').addEventListener('click', () => {
+      if (playerData.balance < 250) { alert('Нужно 250 ₽!'); return; }
+      playerData.balance -= 250;
+      const d1 = Math.floor(Math.random() * 6) + 1;
+      const d2 = Math.floor(Math.random() * 6) + 1;
+      const sum = d1 + d2;
+      document.getElementById('diceResult').textContent = `🎲 ${d1} + 🎲 ${d2} = ${sum}`;
+
+      if (sum > 7) {
+        playerData.balance += 575;
+        addXP(25);
+        Haptic.success();
+      } else {
+        Haptic.error();
+      }
+      refreshHUD();
+      syncDB();
+    });
+
+    // Кейсы
+    function openBox(cost, tier) {
+      if (playerData.balance < cost) { alert(`Нужно ${cost} ₽!`); return; }
+      playerData.balance -= cost;
+      dismissSheets();
+      const pool = UNIFIED_CARS.filter(c => c.rarity === tier);
+      const picked = pool[Math.floor(Math.random() * pool.length)] || UNIFIED_CARS[0];
+      currentCar = {
+        ...picked,
+        hp: picked.baseHp,
+        accel: '3.5 с',
+        price: picked.basePrice
+      };
+      renderStage(currentCar);
+      addXP(35);
+      Haptic.success();
+      AudioEngine.playWin();
+    }
+    document.getElementById('btnOpenJdmBox').addEventListener('click', () => openBox(500, 'epic'));
+    document.getElementById('btnOpenSuperBox').addEventListener('click', () => openBox(1200, 'legendary'));
     document.getElementById('btnOpenJunkyardBox').addEventListener('click', () => {
       if (playerData.balance < 100) { alert('Нужно 100 ₽!'); return; }
       playerData.balance -= 100;
+      dismissSheets();
+      currentCar = Math.random() < 0.2 ? { ...UNIFIED_CARS[7], hp: 300, accel: '5.2 с', price: 450 } : { ...JUNK_POOL[0] };
+      renderStage(currentCar);
       refreshHUD();
       syncDB();
-      dismissSheets();
-      currentCar = (Math.random() < 0.15) ? generateDrop('rare', 'ru') : JUNK_POOL[Math.floor(Math.random() * JUNK_POOL.length)];
-      renderStage(currentCar);
-      triggerGachaFlash(RARITY_SCHEME[currentCar.rarity].color);
-      Haptic.medium();
     });
-
-    // Монетка
-    function playCoin(choice) {
-      if (playerData.balance < 200) { alert('Нужно 200 ₽ для ставки!'); return; }
-      playerData.balance -= 200;
-      Haptic.medium();
-      const coin = document.getElementById('coinIcon');
-      const status = document.getElementById('coinStatus');
-      coin.textContent = "🔄";
-      status.textContent = "Монетка крутится...";
-
-      setTimeout(() => {
-        const win = Math.random() < 0.5;
-        const resultSide = win ? choice : (choice === 'heads' ? 'tails' : 'heads');
-        coin.textContent = resultSide === 'heads' ? '🦅' : '👑';
-
-        if (win) {
-          playerData.balance += 400;
-          status.textContent = `Победа! Выпало то, что вы выбрали (+400 ₽)`;
-          status.style.color = "var(--accent-emerald)";
-          Haptic.success();
-        } else {
-          status.textContent = `Проигрыш! Выпала другая сторона (-200 ₽)`;
-          status.style.color = "var(--accent-rose)";
-          Haptic.error();
-        }
-        refreshHUD();
-        syncDB();
-      }, 500);
-    }
-
-    document.getElementById('btnCoinHeads').addEventListener('click', () => playCoin('heads'));
-    document.getElementById('btnCoinTails').addEventListener('click', () => playCoin('tails'));
 
     // Тюнинг
     function loadTuningSheet() {
       const container = document.getElementById('tuningListContainer');
       container.innerHTML = '';
-      const viableCars = playerData.garage.filter(c => !c.isJunk);
+      const viable = playerData.garage.filter(c => c.rarity !== 'junk');
 
-      if (viableCars.length === 0) {
-        container.innerHTML = '<div style="color:var(--text-sub); text-align:center; padding:30px;">В гараже нет подходящих авто!</div>';
+      if (viable.length === 0) {
+        container.innerHTML = '<div style="color:var(--text-sub); text-align:center; padding:30px;">В гараже нет машин для прокачки.</div>';
         return;
       }
 
       playerData.garage.forEach((item, idx) => {
-        if (item.isJunk) return;
+        if (item.rarity === 'junk') return;
         const meta = RARITY_SCHEME[item.rarity];
-        const upgradeCost = Math.round(item.price * 0.4);
         const card = document.createElement('div');
         card.className = 'glass-card';
         card.innerHTML = `
@@ -2035,13 +1888,11 @@
             </div>
             <div class="item-details-text">
               <strong>${item.name}</strong>
-              <div style="font-size:11px; color:var(--text-sub);">
-                Stage: ${item.stage || 0}/3 • ${item.hp} л.с.
-              </div>
+              <div style="font-size:11px; color:var(--text-sub);">Stage: ${item.stage || 0}/3 • ${item.hp} л.с.</div>
             </div>
           </div>
           <button class="btn-modal-action" data-tune-idx="${idx}" ${(item.stage || 0) >= 3 ? 'disabled' : ''}>
-            ${(item.stage || 0) >= 3 ? 'MAX' : `Stage ${(item.stage || 0) + 1} (${upgradeCost} ₽)`}
+            ${(item.stage || 0) >= 3 ? 'MAX' : `Stage ${(item.stage || 0) + 1} (400 ₽)`}
           </button>
         `;
         container.appendChild(card);
@@ -2049,60 +1900,62 @@
 
       container.querySelectorAll('button[data-tune-idx]').forEach(btn => {
         btn.addEventListener('click', (e) => {
-          const i = parseInt(e.target.dataset.tuneIdx);
+          const i = parseInt(e.target.dataset.tuneIdx, 10);
           const car = playerData.garage[i];
-          const cost = Math.round(car.price * 0.4);
-
-          if (playerData.balance < cost) { alert('Недостаточно рублей!'); return; }
-          playerData.balance -= cost;
+          if (playerData.balance < 400) { alert('Нужно 400 ₽!'); return; }
+          playerData.balance -= 400;
           car.stage = (car.stage || 0) + 1;
           car.hp = Math.round(car.hp * 1.2);
           car.price = Math.round(car.price * 1.45);
+          addXP(30);
           Haptic.success();
           syncDB();
-          refreshHUD();
           loadTuningSheet();
-          alert(`Тюнинг установлен! ${car.name} теперь выдаёт ${car.hp} л.с.!`);
         });
       });
     }
 
-    // Заезды
-    document.getElementById('btnStartPvpRace').addEventListener('click', () => {
-      const viable = playerData.garage.filter(c => !c.isJunk);
-      if (viable.length === 0) { alert('Нужна исправная машина из гаража!'); return; }
-      if (playerData.fuel < 1) { alert('Топливо на нуле! Подождите ⛽'); return; }
-      if (playerData.balance < 300) { alert('Нужно 300 ₽!'); return; }
+    // Гараж
+    function loadGarageSheet() {
+      const container = document.getElementById('garageContainer');
+      container.innerHTML = '';
 
-      playerData.fuel--;
-      playerData.balance -= 300;
-      refreshHUD();
-      syncDB();
-
-      const myCar = viable[Math.floor(Math.random() * viable.length)];
-      const botHp = Math.round(myCar.hp * (0.85 + Math.random() * 0.35));
-      const resCard = document.getElementById('pvpResultCard');
-      const verdict = document.getElementById('pvpVerdict');
-      const log = document.getElementById('pvpLog');
-
-      resCard.style.display = 'flex';
-
-      if (myCar.hp >= botHp) {
-        playerData.balance += 600;
-        verdict.textContent = "ПОБЕДА (+600 ₽)";
-        verdict.style.color = "var(--accent-emerald)";
-        log.innerHTML = `Ваш <strong>${myCar.name}</strong> (${myCar.hp} л.с.) обошёл соперника (${botHp} л.с.)!`;
-        Haptic.success();
-        AudioEngine.playWin('epic');
-      } else {
-        verdict.textContent = "ПОРАЖЕНИЕ (-300 ₽)";
-        verdict.style.color = "var(--accent-rose)";
-        log.innerHTML = `Соперник (${botHp} л.с.) оказался быстрее вашего <strong>${myCar.name}</strong> (${myCar.hp} л.с.).`;
-        Haptic.error();
+      if (playerData.garage.length === 0) {
+        container.innerHTML = '<div style="color:var(--text-sub); text-align:center; padding:35px;">Гараж пуст. Выбивайте машины!</div>';
+        return;
       }
-      refreshHUD();
-      syncDB();
-    });
+
+      playerData.garage.forEach((item, idx) => {
+        const meta = RARITY_SCHEME[item.rarity];
+        const card = document.createElement('div');
+        card.className = 'glass-card';
+        card.innerHTML = `
+          <div class="item-info-cluster">
+            <div class="item-thumbnail" style="border-color:${meta.color}66;">
+              <img src="${item.img}" alt="car">
+            </div>
+            <div class="item-details-text">
+              <strong style="color:${meta.color}">${item.name}</strong>
+              <div style="font-size:11px; color:var(--text-sub);">${meta.name} • ${item.hp} л.с.</div>
+            </div>
+          </div>
+          <button class="btn-modal-action danger" data-garage-idx="${idx}">Сдать (${item.price} ₽)</button>
+        `;
+        container.appendChild(card);
+      });
+
+      container.querySelectorAll('button[data-garage-idx]').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const i = parseInt(e.target.dataset.garageIdx, 10);
+          const sold = playerData.garage.splice(i, 1)[0];
+          playerData.balance += sold.price;
+          Haptic.medium();
+          syncDB();
+          refreshHUD();
+          loadGarageSheet();
+        });
+      });
+    }
 
     // Рынок
     function loadMarketSheet() {
@@ -2131,9 +1984,8 @@
 
       container.querySelectorAll('button[data-buy-lot]').forEach(btn => {
         btn.addEventListener('click', (e) => {
-          const i = parseInt(e.target.dataset.buyLot);
+          const i = parseInt(e.target.dataset.buyLot, 10);
           const lot = playerData.marketLots[i];
-
           if (playerData.balance < lot.price) { alert('Недостаточно средств!'); return; }
           playerData.balance -= lot.price;
           playerData.garage.push({
@@ -2141,86 +1993,33 @@
             rarity: lot.rarity,
             hp: lot.hp,
             accel: "3.2 с",
-            engine: "Тюнинг мотор",
+            engine: "Turbo",
             drive: "RWD",
             price: Math.round(lot.price * 0.95),
             img: lot.img,
-            sub: "Куплено на рынке",
-            country: "jp",
-            isJunk: false
+            sub: "Куплено на P2P рынке"
           });
-
           playerData.marketLots.splice(i, 1);
           Haptic.success();
           syncDB();
           refreshHUD();
           loadMarketSheet();
-          alert(`Успешно куплено! ${lot.name} в гараже.`);
         });
       });
     }
 
-    // Гараж
-    function loadGarageSheet() {
-      const container = document.getElementById('garageContainer');
-      container.innerHTML = '';
-
-      if (playerData.garage.length === 0) {
-        container.innerHTML = '<div style="color:var(--text-sub); text-align:center; padding:35px;">Гараж пуст. Выбивайте машины!</div>';
-        return;
-      }
-
-      playerData.garage.forEach((item, idx) => {
-        const meta = RARITY_SCHEME[item.rarity];
-        const card = document.createElement('div');
-        card.className = 'glass-card';
-        card.innerHTML = `
-          <div class="item-info-cluster">
-            <div class="item-thumbnail" style="border-color:${meta.color}66;">
-              <img src="${item.img}" alt="car">
-            </div>
-            <div class="item-details-text">
-              <strong style="color:${meta.color}">${item.name}</strong>
-              <div style="font-size:11px; color:var(--text-sub);">${meta.name} • ${item.hp} л.с. • ${item.accel}</div>
-            </div>
-          </div>
-          <button class="btn-modal-action danger" data-garage-idx="${idx}">Сдать (${item.price} ₽)</button>
-        `;
-        container.appendChild(card);
-      });
-
-      container.querySelectorAll('button[data-garage-idx]').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-          const i = parseInt(e.target.dataset.garageIdx);
-          const sold = playerData.garage.splice(i, 1)[0];
-          playerData.balance += sold.price;
-          Haptic.medium();
-          syncDB();
-          refreshHUD();
-          loadGarageSheet();
-        });
-      });
-    }
-
-    // Рефералы
     document.getElementById('btnShareReferral').addEventListener('click', () => {
-      playerData.totalFriends++;
-      playerData.balance += 60;
-      playerData.totalRefEarned += 60;
+      playerData.balance += 50;
+      addXP(30);
       Haptic.success();
-      syncDB();
-      refreshHUD();
-      alert('Бонус начислен! +50 ₽ за регистрацию и 10% с пополнения звёзд (+10 ₽ на баланс).');
+      alert('Бонус начислен: +50 ₽ и +30 XP!');
     });
 
-    // Загрузка сохранённого прогресса
+    // Загрузка сохранения при старте
     (async () => {
       const saved = await DB.load();
       if (saved) {
         playerData = { ...playerData, ...saved };
-        if (playerData.luckSeconds <= 0) {
-          luckRibbon.style.display = 'none';
-        }
       }
       refreshHUD();
     })();
