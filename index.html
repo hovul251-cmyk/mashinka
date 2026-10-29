@@ -1,4 +1,3 @@
-html
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -50,7 +49,6 @@ html
       overflow-x: hidden;
     }
 
-    /* Gacha Flash Overlay */
     #gachaFlash {
       position: fixed;
       inset: 0;
@@ -60,7 +58,6 @@ html
       transition: opacity 0.3s ease-out;
     }
 
-    /* Холст неоновых искр */
     #sparksCanvas {
       position: absolute;
       inset: 0;
@@ -79,12 +76,32 @@ html
       position: relative;
     }
 
+    /* Индикатор сохранения базы данных */
+    .db-sync-indicator {
+      position: absolute;
+      top: -6px;
+      right: 0;
+      font-size: 9px;
+      font-weight: 800;
+      color: var(--neon-cyan);
+      opacity: 0;
+      transition: opacity 0.25s ease;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      pointer-events: none;
+    }
+    .db-sync-indicator.visible {
+      opacity: 1;
+    }
+
     /* HUD */
     .hud-bar {
       display: flex;
       justify-content: space-between;
       align-items: center;
       padding: 4px 2px;
+      position: relative;
     }
 
     .hud-logo {
@@ -215,7 +232,7 @@ html
       border-color: var(--neon-pink);
     }
 
-    /* ЦЕНТРАЛЬНЫЙ БЛОК: СМЕНА РУЛЕТКА <-> КАРТОЧКА */
+    /* Центр арена */
     .center-stage-container {
       position: relative;
       min-height: 420px;
@@ -225,7 +242,6 @@ html
       perspective: 1000px;
     }
 
-    /* Горизонтальная рулетка со стрелкой по центру */
     .roulette-box {
       display: none;
       flex-direction: column;
@@ -266,7 +282,6 @@ html
       box-shadow: inset 0 0 25px rgba(0,0,0,0.9);
     }
 
-    /* Центральная стрелка/визор */
     .roulette-pointer {
       position: absolute;
       left: 50%;
@@ -357,7 +372,7 @@ html
       letter-spacing: 0.5px;
     }
 
-    /* Главная карточка машины */
+    /* Карточка авто */
     .stage-card {
       position: relative;
       background: var(--card-bg);
@@ -379,7 +394,6 @@ html
       display: none;
     }
 
-    /* 1. Голографический фойл-эффект */
     .stage-card.holo::after {
       content: '';
       position: absolute;
@@ -421,7 +435,6 @@ html
       color: var(--text-sub);
     }
 
-    /* 5. Scanline & CRT-сетка */
     .image-showcase {
       width: 100%;
       height: 180px;
@@ -821,6 +834,9 @@ html
 
   <div class="app-viewport">
 
+    <!-- Индикатор синхронизации БД -->
+    <div class="db-sync-indicator" id="dbSyncStatus">☁️ СОХРАНЕНО</div>
+
     <!-- HUD -->
     <header class="hud-bar">
       <div class="hud-logo">
@@ -993,7 +1009,7 @@ html
     </button>
   </nav>
 
-  <!-- Модалки (Кейсы, Монетка, Тюнинг, Заезды, Гараж, Маркет, Топ, Друзья) -->
+  <!-- Модальные окна -->
   <div class="modal-sheet" id="sheetCases">
     <div class="modal-head">
       <h2>Эксклюзивные контейнеры</h2>
@@ -1137,7 +1153,63 @@ html
       error: () => tg?.HapticFeedback?.notificationOccurred('error')
     };
 
-    // 2. Web Audio API синтезатор звука
+    // 2. ДВУХУРОВНЕВАЯ БАЗА ДАННЫХ (Telegram CloudStorage + LocalStorage)
+    const DB = {
+      KEY: 'mashinka_player_save_v1',
+      async save(data) {
+        const payload = JSON.stringify(data);
+        const syncLabel = document.getElementById('dbSyncStatus');
+        
+        // Показываем индикатор синхронизации
+        if (syncLabel) {
+          syncLabel.classList.add('visible');
+          setTimeout(() => syncLabel.classList.remove('visible'), 1200);
+        }
+
+        // 1. Сохранение в LocalStorage
+        try {
+          localStorage.setItem(this.KEY, payload);
+        } catch (e) {
+          console.warn('LocalStorage save failed:', e);
+        }
+
+        // 2. Сохранение в Telegram CloudStorage
+        if (tg?.CloudStorage?.setItem) {
+          tg.CloudStorage.setItem(this.KEY, payload, (err, stored) => {
+            if (err) console.warn('TG CloudStorage set error:', err);
+          });
+        }
+      },
+
+      async load() {
+        return new Promise((resolve) => {
+          // Если доступен Telegram CloudStorage
+          if (tg?.CloudStorage?.getItem) {
+            tg.CloudStorage.getItem(this.KEY, (err, val) => {
+              if (!err && val) {
+                try {
+                  return resolve(JSON.parse(val));
+                } catch (e) {}
+              }
+              // Фоллбек на LocalStorage
+              this.loadLocal(resolve);
+            });
+          } else {
+            this.loadLocal(resolve);
+          }
+        });
+      },
+
+      loadLocal(resolve) {
+        try {
+          const raw = localStorage.getItem(this.KEY);
+          if (raw) return resolve(JSON.parse(raw));
+        } catch (e) {}
+        resolve(null);
+      }
+    };
+
+    // 3. Web Audio API синтезатор звука
     const AudioEngine = {
       ctx: null,
       init() {
@@ -1179,7 +1251,7 @@ html
       }
     };
 
-    // 3. Неоновые частицы Canvas (Cyber Sparks)
+    // 4. Неоновые искры
     const Sparks = {
       canvas: document.getElementById('sparksCanvas'),
       ctx: null,
@@ -1238,7 +1310,6 @@ html
     };
     Sparks.init();
 
-    // 4. Картотека редкостей
     const RARITY_SCHEME = {
       junk: { name: 'Металлолом', color: '#64748b', glow: 'rgba(100, 116, 139, 0.25)', mult: '×0.05' },
       common: { name: 'Обычный', color: '#a78bfa', glow: 'rgba(167, 139, 250, 0.25)', mult: '×1.0' },
@@ -1254,7 +1325,6 @@ html
       { name: "Смятая рама после ДТП", rarity: "junk", hp: 5, accel: "Не едет", engine: "Отсутствует", drive: "Нет", price: 15, img: "https://images.unsplash.com/photo-1590362891991-f776e747a588?auto=format&fit=crop&w=800&q=80", sub: "Геометрия нарушена" }
     ];
 
-    // Каталог 100+ базовых авто (с модификациями более 600)
     const CARS_DATABASE = {
       ru: {
         countryName: 'Россия 🇷🇺',
@@ -1313,7 +1383,6 @@ html
       }
     };
 
-    // Формирование полного списка
     const EXPANDED_REGISTRY = [];
     const MOD_SPECS = [
       { tag: "Stock", hpMul: 1.0, prMul: 1.0 },
@@ -1343,21 +1412,23 @@ html
       });
     });
 
-    let balance = 1500;
-    let fuel = 5;
-    let garage = [];
+    // 5. СОСТОЯНИЕ ИГРОКА (ДАННЫЕ БАЗЫ ДАННЫХ)
+    let playerData = {
+      balance: 1500,
+      fuel: 5,
+      luckSeconds: 20 * 60,
+      totalFriends: 0,
+      totalRefEarned: 0,
+      garage: [],
+      marketLots: [
+        { id: 101, seller: "@smash_boy", name: "Mazda RX-7 [Stage 2+]", rarity: "rare", hp: 364, price: 950 },
+        { id: 102, seller: "@berlin_racer", name: "BMW M2 Competition", rarity: "rare", hp: 410, price: 1100 }
+      ]
+    };
+
     let currentCar = null;
     let selectedCountry = 'ru';
     let betMult = 1;
-    let luckActive = true;
-    let luckSeconds = 20 * 60;
-    let totalFriends = 0;
-    let totalRefEarned = 0;
-
-    let marketLots = [
-      { id: 101, seller: "@smash_boy", name: "Mazda RX-7 [Stage 2+]", rarity: "rare", hp: 364, price: 950 },
-      { id: 102, seller: "@berlin_racer", name: "BMW M2 Competition", rarity: "rare", hp: 410, price: 1100 }
-    ];
 
     const hudBalance = document.getElementById('hudBalance');
     const hudFuel = document.getElementById('hudFuel');
@@ -1388,23 +1459,33 @@ html
     const betSelect = document.getElementById('betSelect');
     const betLabel = document.getElementById('betLabel');
 
+    // Функция авто-сохранения в БД
+    function syncDB() {
+      DB.save(playerData);
+    }
+
+    // Восстановление топлива (каждые 3 минуты)
     setInterval(() => {
-      if (fuel < 5) {
-        fuel++;
-        hudFuel.textContent = fuel;
+      if (playerData.fuel < 5) {
+        playerData.fuel++;
+        hudFuel.textContent = playerData.fuel;
+        syncDB();
       }
     }, 180000);
 
+    // Таймер удачи новичка
     const timerInterval = setInterval(() => {
-      if (luckSeconds > 0) {
-        luckSeconds--;
-        const m = Math.floor(luckSeconds / 60);
-        const s = luckSeconds % 60;
+      if (playerData.luckSeconds > 0) {
+        playerData.luckSeconds--;
+        const m = Math.floor(playerData.luckSeconds / 60);
+        const s = playerData.luckSeconds % 60;
         luckTimer.textContent = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+        // Сохраняем таймер раз в 30 секунд
+        if (playerData.luckSeconds % 30 === 0) syncDB();
       } else {
-        luckActive = false;
         luckRibbon.style.display = 'none';
         clearInterval(timerInterval);
+        syncDB();
       }
     }, 1000);
 
@@ -1413,10 +1494,12 @@ html
     }
 
     function refreshHUD() {
-      hudBalance.textContent = balance.toLocaleString('ru-RU');
-      hudFuel.textContent = fuel;
+      hudBalance.textContent = playerData.balance.toLocaleString('ru-RU');
+      hudFuel.textContent = playerData.fuel;
       spinCostTag.textContent = `${calcSpinCost()} ₽`;
-      btnSpinNow.disabled = balance < calcSpinCost();
+      btnSpinNow.disabled = playerData.balance < calcSpinCost();
+      document.getElementById('refTotal').textContent = `${playerData.totalFriends} чел.`;
+      document.getElementById('refIncome').textContent = playerData.totalRefEarned;
     }
 
     countrySelect.addEventListener('change', (e) => {
@@ -1432,7 +1515,6 @@ html
       refreshHUD();
     });
 
-    // 4. Slot Counter (Анимация накручивания чисел)
     function animateValue(elem, start, end, duration, suffix = '') {
       let startTimestamp = null;
       const step = (timestamp) => {
@@ -1447,7 +1529,6 @@ html
       window.requestAnimationFrame(step);
     }
 
-    // 1. Голографический фойл и 3D-Tilt на гироскопе/таче
     function setupHoloTilt() {
       if (window.DeviceOrientationEvent) {
         window.addEventListener('deviceorientation', (e) => {
@@ -1475,7 +1556,6 @@ html
     }
     setupHoloTilt();
 
-    // 2. Вспышка Gacha Reveal
     function triggerGachaFlash(color) {
       gachaFlash.style.background = `radial-gradient(circle, ${color} 0%, rgba(5,2,8,0.95) 80%)`;
       gachaFlash.style.opacity = '0.9';
@@ -1491,7 +1571,7 @@ html
         return { ...junk, country: selectedCountry, isJunk: true };
       }
 
-      const luckMultiplier = (luckActive ? 2.5 : 1) + (betMult * 0.35);
+      const luckMultiplier = (playerData.luckSeconds > 0 ? 2.5 : 1) + (betMult * 0.35);
       const roll = Math.random() * 100;
       let targetTier = forcedTier || 'common';
 
@@ -1539,7 +1619,6 @@ html
       dispSub.textContent = item.sub;
       dispMult.textContent = meta.mult;
 
-      // 4. Анимация счетчиков чисел
       animateValue(dispSellPrice, 0, item.price, 350);
       if (item.isJunk) {
         specHp.textContent = `${item.hp} л.с.`;
@@ -1556,7 +1635,6 @@ html
       btnDirectSell.disabled = false;
     }
 
-    // Сборка ленты рулетки с картинками
     const ITEM_WIDTH = 140;
     const WINNING_INDEX = 24;
 
@@ -1583,19 +1661,19 @@ html
       }
     }
 
-    // МЕХАНИКА ПРОКРУТКИ: Появление рулетки по центру -> остановка на стрелке -> открытие карточки
+    // Запуск прокрута
     btnSpinNow.addEventListener('click', () => {
       const cost = calcSpinCost();
-      if (balance < cost) return;
+      if (playerData.balance < cost) return;
 
-      balance -= cost;
+      playerData.balance -= cost;
       refreshHUD();
+      syncDB();
 
       btnKeepGarage.disabled = true;
       btnDirectSell.disabled = true;
       btnSpinNow.disabled = true;
 
-      // Скрываем карточку, открываем барабан рулетки ровно по центру
       stageCard.classList.add('hidden');
       rouletteBox.classList.add('active');
 
@@ -1607,13 +1685,11 @@ html
       rouletteTape.style.transition = 'none';
       rouletteTape.style.transform = 'translateX(0px)';
 
-      // Расчет центра под визорную стрелку
       const centerScreen = wrapper.clientWidth / 2;
       const targetPos = (WINNING_INDEX * ITEM_WIDTH) + (ITEM_WIDTH / 2);
       const microJitter = (Math.random() - 0.5) * 40;
       const finalTranslate = -(targetPos - centerScreen + microJitter);
 
-      // Запуск плавной анимации остановки
       requestAnimationFrame(() => {
         setTimeout(() => {
           rouletteTape.style.transition = 'transform 4.5s cubic-bezier(0.12, 0.8, 0.16, 1)';
@@ -1621,7 +1697,6 @@ html
         }, 30);
       });
 
-      // Тактильные щелчки
       let ticks = 0;
       const tickTimer = setInterval(() => {
         if (ticks < 22) {
@@ -1633,9 +1708,7 @@ html
         }
       }, 190);
 
-      // Финал прокрута
       setTimeout(() => {
-        // Убираем рулетку, возвращаем карточку с эффектом вспышки
         rouletteBox.classList.remove('active');
         stageCard.classList.remove('hidden');
 
@@ -1654,32 +1727,34 @@ html
           AudioEngine.playWin('common');
         }
 
-        btnSpinNow.disabled = balance < calcSpinCost();
+        btnSpinNow.disabled = playerData.balance < calcSpinCost();
       }, 4700);
     });
 
     btnKeepGarage.addEventListener('click', () => {
       if (!currentCar) return;
-      garage.push(currentCar);
+      playerData.garage.push(currentCar);
       Haptic.success();
       btnKeepGarage.disabled = true;
       btnDirectSell.disabled = true;
       currentCar = null;
+      syncDB();
       refreshHUD();
       alert('Автомобиль успешно отправлен в гараж!');
     });
 
     btnDirectSell.addEventListener('click', () => {
       if (!currentCar) return;
-      balance += currentCar.price;
+      playerData.balance += currentCar.price;
       Haptic.medium();
       btnKeepGarage.disabled = true;
       btnDirectSell.disabled = true;
       currentCar = null;
+      syncDB();
       refreshHUD();
     });
 
-    // Навигация модалок
+    // Модальные экраны
     const sheets = {
       sheetGarage: document.getElementById('sheetGarage'),
       sheetMarket: document.getElementById('sheetMarket'),
@@ -1767,9 +1842,10 @@ html
 
     // Кейсы
     document.getElementById('btnOpenJdmBox').addEventListener('click', () => {
-      if (balance < 500) { alert('Нужно 500 ₽!'); return; }
-      balance -= 500;
+      if (playerData.balance < 500) { alert('Нужно 500 ₽!'); return; }
+      playerData.balance -= 500;
       refreshHUD();
+      syncDB();
       dismissSheets();
       currentCar = generateDrop('epic', 'jp');
       renderStage(currentCar);
@@ -1779,9 +1855,10 @@ html
     });
 
     document.getElementById('btnOpenSuperBox').addEventListener('click', () => {
-      if (balance < 1200) { alert('Нужно 1 200 ₽!'); return; }
-      balance -= 1200;
+      if (playerData.balance < 1200) { alert('Нужно 1 200 ₽!'); return; }
+      playerData.balance -= 1200;
       refreshHUD();
+      syncDB();
       dismissSheets();
       currentCar = generateDrop('legendary', 'it');
       renderStage(currentCar);
@@ -1792,9 +1869,10 @@ html
     });
 
     document.getElementById('btnOpenJunkyardBox').addEventListener('click', () => {
-      if (balance < 100) { alert('Нужно 100 ₽!'); return; }
-      balance -= 100;
+      if (playerData.balance < 100) { alert('Нужно 100 ₽!'); return; }
+      playerData.balance -= 100;
       refreshHUD();
+      syncDB();
       dismissSheets();
       currentCar = (Math.random() < 0.15) ? generateDrop('rare', 'ru') : JUNK_POOL[Math.floor(Math.random() * JUNK_POOL.length)];
       renderStage(currentCar);
@@ -1804,8 +1882,8 @@ html
 
     // Монетка
     function playCoin(choice) {
-      if (balance < 200) { alert('Нужно 200 ₽ для ставки!'); return; }
-      balance -= 200;
+      if (playerData.balance < 200) { alert('Нужно 200 ₽ для ставки!'); return; }
+      playerData.balance -= 200;
       Haptic.medium();
       const coin = document.getElementById('coinIcon');
       const status = document.getElementById('coinStatus');
@@ -1818,7 +1896,7 @@ html
         coin.textContent = resultSide === 'heads' ? '🦅' : '👑';
 
         if (win) {
-          balance += 400;
+          playerData.balance += 400;
           status.textContent = `Победа! Выпало то, что вы выбрали (+400 ₽)`;
           status.style.color = "var(--neon-pink)";
           Haptic.success();
@@ -1828,6 +1906,7 @@ html
           Haptic.error();
         }
         refreshHUD();
+        syncDB();
       }, 500);
     }
 
@@ -1838,14 +1917,14 @@ html
     function loadTuningSheet() {
       const container = document.getElementById('tuningListContainer');
       container.innerHTML = '';
-      const viableCars = garage.filter(c => !c.isJunk);
+      const viableCars = playerData.garage.filter(c => !c.isJunk);
 
       if (viableCars.length === 0) {
         container.innerHTML = '<div style="color:var(--text-sub); text-align:center; padding:30px;">В гараже нет подходящих авто!</div>';
         return;
       }
 
-      garage.forEach((item, idx) => {
+      playerData.garage.forEach((item, idx) => {
         if (item.isJunk) return;
         const upgradeCost = Math.round(item.price * 0.4);
         const card = document.createElement('div');
@@ -1867,15 +1946,16 @@ html
       container.querySelectorAll('button[data-tune-idx]').forEach(btn => {
         btn.addEventListener('click', (e) => {
           const i = parseInt(e.target.dataset.tuneIdx);
-          const car = garage[i];
+          const car = playerData.garage[i];
           const cost = Math.round(car.price * 0.4);
 
-          if (balance < cost) { alert('Недостаточно рублей!'); return; }
-          balance -= cost;
+          if (playerData.balance < cost) { alert('Недостаточно рублей!'); return; }
+          playerData.balance -= cost;
           car.stage = (car.stage || 0) + 1;
           car.hp = Math.round(car.hp * 1.2);
           car.price = Math.round(car.price * 1.45);
           Haptic.success();
+          syncDB();
           refreshHUD();
           loadTuningSheet();
           alert(`🔥 Тюнинг установлен! ${car.name} теперь выдаёт ${car.hp} л.с.!`);
@@ -1885,14 +1965,15 @@ html
 
     // Заезды
     document.getElementById('btnStartPvpRace').addEventListener('click', () => {
-      const viable = garage.filter(c => !c.isJunk);
+      const viable = playerData.garage.filter(c => !c.isJunk);
       if (viable.length === 0) { alert('Нужна исправная машина из гаража!'); return; }
-      if (fuel < 1) { alert('Топливо на нуле! Подождите ⛽'); return; }
-      if (balance < 300) { alert('Нужно 300 ₽!'); return; }
+      if (playerData.fuel < 1) { alert('Топливо на нуле! Подождите ⛽'); return; }
+      if (playerData.balance < 300) { alert('Нужно 300 ₽!'); return; }
 
-      fuel--;
-      balance -= 300;
+      playerData.fuel--;
+      playerData.balance -= 300;
       refreshHUD();
+      syncDB();
 
       const myCar = viable[Math.floor(Math.random() * viable.length)];
       const botHp = Math.round(myCar.hp * (0.85 + Math.random() * 0.35));
@@ -1903,7 +1984,7 @@ html
       resCard.style.display = 'flex';
 
       if (myCar.hp >= botHp) {
-        balance += 600;
+        playerData.balance += 600;
         verdict.textContent = "🏆 ПОБЕДА (+600 ₽)";
         verdict.style.color = "var(--neon-pink)";
         log.innerHTML = `Ваш <strong>${myCar.name}</strong> (${myCar.hp} л.с.) обошёл соперника (${botHp} л.с.)!`;
@@ -1916,6 +1997,7 @@ html
         Haptic.error();
       }
       refreshHUD();
+      syncDB();
     });
 
     // Рынок
@@ -1923,7 +2005,7 @@ html
       const container = document.getElementById('marketListContainer');
       container.innerHTML = '';
 
-      marketLots.forEach((lot, idx) => {
+      playerData.marketLots.forEach((lot, idx) => {
         const meta = RARITY_SCHEME[lot.rarity];
         const card = document.createElement('div');
         card.className = 'glass-card';
@@ -1941,11 +2023,11 @@ html
       container.querySelectorAll('button[data-buy-lot]').forEach(btn => {
         btn.addEventListener('click', (e) => {
           const i = parseInt(e.target.dataset.buyLot);
-          const lot = marketLots[i];
+          const lot = playerData.marketLots[i];
 
-          if (balance < lot.price) { alert('Недостаточно средств!'); return; }
-          balance -= lot.price;
-          garage.push({
+          if (playerData.balance < lot.price) { alert('Недостаточно средств!'); return; }
+          playerData.balance -= lot.price;
+          playerData.garage.push({
             name: lot.name,
             rarity: lot.rarity,
             hp: lot.hp,
@@ -1959,8 +2041,9 @@ html
             isJunk: false
           });
 
-          marketLots.splice(i, 1);
+          playerData.marketLots.splice(i, 1);
           Haptic.success();
+          syncDB();
           refreshHUD();
           loadMarketSheet();
           alert(`Успешно куплено! ${lot.name} в гараже.`);
@@ -1973,12 +2056,12 @@ html
       const container = document.getElementById('garageContainer');
       container.innerHTML = '';
 
-      if (garage.length === 0) {
+      if (playerData.garage.length === 0) {
         container.innerHTML = '<div style="color:var(--text-sub); text-align:center; padding:35px;">Гараж пуст. Выбивайте машины!</div>';
         return;
       }
 
-      garage.forEach((item, idx) => {
+      playerData.garage.forEach((item, idx) => {
         const meta = RARITY_SCHEME[item.rarity];
         const card = document.createElement('div');
         card.className = 'glass-card';
@@ -1995,9 +2078,10 @@ html
       container.querySelectorAll('button[data-garage-idx]').forEach(btn => {
         btn.addEventListener('click', (e) => {
           const i = parseInt(e.target.dataset.garageIdx);
-          const sold = garage.splice(i, 1)[0];
-          balance += sold.price;
+          const sold = playerData.garage.splice(i, 1)[0];
+          playerData.balance += sold.price;
           Haptic.medium();
+          syncDB();
           refreshHUD();
           loadGarageSheet();
         });
@@ -2006,17 +2090,26 @@ html
 
     // Рефералы
     document.getElementById('btnShareReferral').addEventListener('click', () => {
-      totalFriends++;
-      balance += 60;
-      totalRefEarned += 60;
-      document.getElementById('refTotal').textContent = `${totalFriends} чел.`;
-      document.getElementById('refIncome').textContent = totalRefEarned;
+      playerData.totalFriends++;
+      playerData.balance += 60;
+      playerData.totalRefEarned += 60;
       Haptic.success();
+      syncDB();
       refreshHUD();
       alert('Бонус начислен! +50 ₽ за регистрацию и 10% с пополнения звёзд (+10 ₽ на баланс).');
     });
 
-    refreshHUD();
+    // Загрузка сохранённого прогресса из базы данных при запуске
+    (async () => {
+      const saved = await DB.load();
+      if (saved) {
+        playerData = { ...playerData, ...saved };
+        if (playerData.luckSeconds <= 0) {
+          luckRibbon.style.display = 'none';
+        }
+      }
+      refreshHUD();
+    })();
   </script>
 </body>
 </html>
