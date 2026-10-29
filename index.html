@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Mashinka</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    :root {
+      --bg: #07090e;
+      --card-bg: #0f1422;
+      --card-border: #1b233a;
+      --cyan: #00f0ff;
+      --cyan-glow: rgba(0, 240, 255, 0.35);
+      --purple: #8b5cf6;
+      --gold: #f59e0b;
+      --red: #ef4444;
+      --text-main: #f3f4f6;
+      --text-muted: #94a3b8;
+    }
+
+    * {
+      box-sizing: border-box;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text-main);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      padding: 16px;
+      overflow-x: hidden;
+    }
+
+    .app-container {
+      width: 100%;
+      max-width: 440px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    /* Шапка */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 4px;
+    }
+
+    .brand {
+      font-size: 20px;
+      font-weight: 800;
+      letter-spacing: 1.5px;
+      color: var(--cyan);
+      text-shadow: 0 0 12px var(--cyan-glow);
+    }
+
+    .stats-bar {
+      display: flex;
+      gap: 8px;
+    }
+
+    .pill-badge {
+      background: rgba(15, 20, 34, 0.85);
+      border: 1px solid var(--card-border);
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      backdrop-filter: blur(10px);
+    }
+
+    .pill-badge.balance {
+      border-color: rgba(0, 240, 255, 0.3);
+      color: var(--cyan);
+    }
+
+    /* Карточка с машиной */
+    .car-stage {
+      position: relative;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 24px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+      transition: border-color 0.3s ease, box-shadow 0.3s ease;
+      overflow: hidden;
+    }
+
+    .car-stage::before {
+      content: "";
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle at center, var(--rarity-glow, transparent) 0%, transparent 60%);
+      opacity: 0.15;
+      pointer-events: none;
+    }
+
+    .rarity-tag {
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      padding: 4px 10px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.05);
+      margin-bottom: 8px;
+      border: 1px solid currentColor;
+    }
+
+    .car-title {
+      font-size: 20px;
+      font-weight: 800;
+      text-align: center;
+      margin-bottom: 2px;
+    }
+
+    .car-price {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+    }
+
+    .image-viewport {
+      width: 100%;
+      height: 190px;
+      border-radius: 16px;
+      overflow: hidden;
+      background: #000;
+      position: relative;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .image-viewport img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.4s ease, opacity 0.3s ease;
+    }
+
+    /* Спецификация авто */
+    .specs-grid {
+      width: 100%;
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+      margin-top: 14px;
+    }
+
+    .spec-item {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(255, 255, 255, 0.04);
+      border-radius: 10px;
+      padding: 8px 10px;
+    }
+
+    .spec-item .label {
+      font-size: 10px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      margin-bottom: 2px;
+    }
+
+    .spec-item .value {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    /* Блок решений: В гараж / Продать */
+    .decision-panel {
+      display: flex;
+      gap: 10px;
+      width: 100%;
+      margin-top: 14px;
+    }
+
+    .btn-action {
+      flex: 1;
+      padding: 12px;
+      border-radius: 12px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      border: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: transform 0.1s, opacity 0.2s;
+    }
+
+    .btn-action:active {
+      transform: scale(0.97);
+    }
+
+    .btn-action:disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .btn-garage {
+      background: rgba(139, 92, 246, 0.15);
+      border: 1px solid var(--purple);
+      color: var(--text-main);
+    }
+
+    .btn-sell {
+      background: rgba(239, 68, 68, 0.15);
+      border: 1px solid var(--red);
+      color: #fca5a5;
+    }
+
+    /* Главная кнопка крутки */
+    .spin-button {
+      width: 100%;
+      padding: 16px;
+      border-radius: 18px;
+      background: linear-gradient(135deg, #00f0ff 0%, #0077fe 100%);
+      color: #050b14;
+      font-size: 16px;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      border: none;
+      box-shadow: 0 4px 20px var(--cyan-glow);
+      cursor: pointer;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+      transition: transform 0.1s, box-shadow 0.2s;
+    }
+
+    .spin-button:active {
+      transform: scale(0.98);
+    }
+
+    .spin-button:disabled {
+      background: #1e293b;
+      color: #64748b;
+      box-shadow: none;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    /* Гараж модалка */
+    .garage-modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(7, 9, 14, 0.95);
+      backdrop-filter: blur(12px);
+      z-index: 100;
+      display: none;
+      flex-direction: column;
+      padding: 20px;
+    }
+
+    .garage-modal.open {
+      display: flex;
+    }
+
+    .garage-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .garage-list {
+      flex: 1;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      padding-bottom: 20px;
+    }
+
+    .garage-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      padding: 10px;
+    }
+
+    .garage-item img {
+      width: 58px;
+      height: 42px;
+      object-fit: cover;
+      border-radius: 8px;
+      margin-right: 12px;
+    }
+
+    .garage-info {
+      flex: 1;
+    }
+
+    .garage-info .name {
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .garage-info .meta {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .btn-sell-small {
+      background: rgba(239, 68, 68, 0.15);
+      border: 1px solid var(--red);
+      color: #fca5a5;
+      padding: 6px 10px;
+      border-radius: 8px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .close-btn {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 24px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="app-container">
+    <div class="header">
+      <div class="brand">MASHINKA</div>
+      <div class="stats-bar">
+        <div class="pill-badge" id="garageOpenBtn" style="cursor: pointer;">
+          🚗 <span id="garageCount">0</span>
+        </div>
+        <div class="pill-badge balance">
+          💰 <span id="balanceVal">50 000</span> ₽
+        </div>
+      </div>
+    </div>
+
+    <div class="car-stage" id="carStage">
+      <div class="rarity-tag" id="carRarity">ОБЫЧНЫЙ</div>
+      <div class="car-title" id="carName">Крутите рулетку</div>
+      <div class="car-price" id="carPrice">Цена: 0 ₽</div>
+
+      <div class="image-viewport">
+        <img id="carImage" src="https://images.unsplash.com/photo-1617814076367-b759c7d7e738?auto=format&fit=crop&w=800&q=80" alt="Автомобиль">
+      </div>
+
+      <div class="specs-grid">
+        <div class="spec-item">
+          <div class="label">Мощность</div>
+          <div class="value" id="specHp">—</div>
+        </div>
+        <div class="spec-item">
+          <div class="label">Разгон 0-100</div>
+          <div class="value" id="specAccel">—</div>
+        </div>
+        <div class="spec-item">
+          <div class="label">Двигатель</div>
+          <div class="value" id="specEngine">—</div>
+        </div>
+        <div class="spec-item">
+          <div class="label">Привод</div>
+          <div class="value" id="specDrive">—</div>
+        </div>
+      </div>
+
+      <div class="decision-panel">
+        <button class="btn-action btn-garage" id="saveBtn" disabled>В гараж</button>
+        <button class="btn-action btn-sell" id="sellBtn" disabled>Продать (+0 ₽)</button>
+      </div>
+    </div>
+
+    <button class="spin-button" id="spinBtn">
+      <span>Крутить (10 000 ₽)</span>
+    </button>
+  </div>
+
+  <!-- Модальное окно гаража -->
+  <div class="garage-modal" id="garageModal">
+    <div class="garage-header">
+      <h2>Мой гараж</h2>
+      <button class="close-btn" id="garageCloseBtn">&times;</button>
+    </div>
+    <div class="garage-list" id="garageList"></div>
+  </div>
+
+  <script>
+    if (window.Telegram && window.Telegram.WebApp) {
+      window.Telegram.WebApp.ready();
+      window.Telegram.WebApp.expand();
+    }
+
+    const RARITIES = {
+      common: { name: 'Обычный', color: '#94a3b8', glow: 'rgba(148, 163, 184, 0.4)' },
+      rare: { name: 'Редкий', color: '#00f0ff', glow: 'rgba(0, 240, 255, 0.5)' },
+      epic: { name: 'Эпический', color: '#8b5cf6', glow: 'rgba(139, 92, 246, 0.5)' },
+      legendary: { name: 'Легендарный', color: '#f59e0b', glow: 'rgba(245, 158, 11, 0.5)' },
+      mythic: { name: 'Мифический', color: '#ef4444', glow: 'rgba(239, 68, 68, 0.6)' }
+    };
+
+    const CARS_POOL = [
+      { name: "Audi RS6 Avant", rarity: "common", hp: 600, accel: "3.6 с", engine: "4.0L V8 Twin-Turbo", drive: "AWD", price: 12000000, img: "https://images.unsplash.com/photo-1603584173870-7f23fdae1b7a?auto=format&fit=crop&w=800&q=80" },
+      { name: "BMW M3 Competition", rarity: "common", hp: 510, accel: "3.9 с", engine: "3.0L I6 Twin-Turbo", drive: "RWD", price: 10500000, img: "https://images.unsplash.com/photo-1555215695-3004980ad54e?auto=format&fit=crop&w=800&q=80" },
+      { name: "Toyota Supra MK4", rarity: "rare", hp: 330, accel: "4.6 с", engine: "3.0L 2JZ-GTE", drive: "RWD", price: 8000000, img: "https://images.unsplash.com/photo-1617814076367-b759c7d7e738?auto=format&fit=crop&w=800&q=80" },
+      { name: "Mazda RX-7 Spirit R", rarity: "rare", hp: 280, accel: "5.0 с", engine: "1.3L Twin-Rotary", drive: "RWD", price: 7500000, img: "https://images.unsplash.com/photo-1552519507-da3b142c6e3d?auto=format&fit=crop&w=800&q=80" },
+      { name: "Porsche 911 GT3 RS", rarity: "epic", hp: 525, accel: "3.2 с", engine: "4.0L Flat-6", drive: "RWD", price: 32000000, img: "https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=800&q=80" },
+      { name: "Nissan Skyline GT-R R34", rarity: "epic", hp: 280, accel: "4.8 с", engine: "2.6L RB26DETT", drive: "AWD", price: 18000000, img: "https://images.unsplash.com/photo-1616422285623-13ff0162193c?auto=format&fit=crop&w=800&q=80" },
+      { name: "Ferrari LaFerrari", rarity: "legendary", hp: 963, accel: "2.6 с", engine: "6.3L V12 Hybrid", drive: "RWD", price: 180000000, img: "https://images.unsplash.com/photo-1583121274602-3e2820c69888?auto=format&fit=crop&w=800&q=80" },
+      { name: "Mercedes-AMG ONE", rarity: "legendary", hp: 1063, accel: "2.9 с", engine: "1.6L V6 Turbo F1 Hybrid", drive: "AWD", price: 240000000, img: "https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?auto=format&fit=crop&w=800&q=80" },
+      { name: "Bugatti Chiron Super Sport", rarity: "mythic", hp: 1600, accel: "2.4 с", engine: "8.0L W16 Quad-Turbo", drive: "AWD", price: 350000000, img: "https://images.unsplash.com/photo-1544829099-b9a0c07fad1a?auto=format&fit=crop&w=800&q=80" }
+    ];
+
+    const SPIN_COST = 10000;
+    let balance = 50000;
+    let garage = [];
+    let currentCar = null;
+
+    const balanceEl = document.getElementById('balanceVal');
+    const garageCountEl = document.getElementById('garageCount');
+    const spinBtn = document.getElementById('spinBtn');
+    const saveBtn = document.getElementById('saveBtn');
+    const sellBtn = document.getElementById('sellBtn');
+    const carStage = document.getElementById('carStage');
+    const carRarity = document.getElementById('carRarity');
+    const carName = document.getElementById('carName');
+    const carPrice = document.getElementById('carPrice');
+    const carImage = document.getElementById('carImage');
+    const specHp = document.getElementById('specHp');
+    const specAccel = document.getElementById('specAccel');
+    const specEngine = document.getElementById('specEngine');
+    const specDrive = document.getElementById('specDrive');
+
+    const garageModal = document.getElementById('garageModal');
+    const garageOpenBtn = document.getElementById('garageOpenBtn');
+    const garageCloseBtn = document.getElementById('garageCloseBtn');
+    const garageList = document.getElementById('garageList');
+
+    function updateUI() {
+      balanceEl.textContent = balance.toLocaleString('ru-RU');
+      garageCountEl.textContent = garage.length;
+      spinBtn.disabled = balance < SPIN_COST;
+    }
+
+    function renderCar(car) {
+      const meta = RARITIES[car.rarity];
+      carRarity.textContent = meta.name;
+      carRarity.style.color = meta.color;
+      carRarity.style.borderColor = meta.color;
+
+      carStage.style.borderColor = meta.color;
+      carStage.style.setProperty('--rarity-glow', meta.glow);
+
+      carName.textContent = car.name;
+      carPrice.textContent = `Рыночная оценка: ${car.price.toLocaleString('ru-RU')} ₽`;
+      carImage.src = car.img;
+
+      specHp.textContent = car.hp + ' л.с.';
+      specAccel.textContent = car.accel;
+      specEngine.textContent = car.engine;
+      specDrive.textContent = car.drive;
+
+      const sellValue = Math.round(car.price * 0.8);
+      sellBtn.textContent = `Продать (+${sellValue.toLocaleString('ru-RU')} ₽)`;
+
+      saveBtn.disabled = false;
+      sellBtn.disabled = false;
+    }
+
+    spinBtn.addEventListener('click', () => {
+      if (balance < SPIN_COST) return;
+      balance -= SPIN_COST;
+      updateUI();
+
+      saveBtn.disabled = true;
+      sellBtn.disabled = true;
+      spinBtn.disabled = true;
+
+      let counter = 0;
+      const interval = setInterval(() => {
+        const tempCar = CARS_POOL[Math.floor(Math.random() * CARS_POOL.length)];
+        carName.textContent = tempCar.name;
+        carImage.src = tempCar.img;
+        counter++;
+
+        if (counter > 8) {
+          clearInterval(interval);
+          currentCar = CARS_POOL[Math.floor(Math.random() * CARS_POOL.length)];
+          renderCar(currentCar);
+          spinBtn.disabled = balance < SPIN_COST;
+        }
+      }, 100);
+    });
+
+    saveBtn.addEventListener('click', () => {
+      if (!currentCar) return;
+      garage.push(currentCar);
+      saveBtn.disabled = true;
+      sellBtn.disabled = true;
+      currentCar = null;
+      updateUI();
+    });
+
+    sellBtn.addEventListener('click', () => {
+      if (!currentCar) return;
+      const sellValue = Math.round(currentCar.price * 0.8);
+      balance += sellValue;
+      saveBtn.disabled = true;
+      sellBtn.disabled = true;
+      currentCar = null;
+      updateUI();
+    });
+
+    garageOpenBtn.addEventListener('click', () => {
+      garageList.innerHTML = '';
+      if (garage.length === 0) {
+        garageList.innerHTML = '<div style="color: #64748b; text-align: center; margin-top: 30px;">Гараж пуст. Крутите рулетку!</div>';
+      } else {
+        garage.forEach((item, index) => {
+          const meta = RARITIES[item.rarity];
+          const itemEl = document.createElement('div');
+          itemEl.className = 'garage-item';
+          itemEl.innerHTML = `
+            <img src="${item.img}" alt="${item.name}">
+            <div class="garage-info">
+              <div class="name" style="color: ${meta.color}">${item.name}</div>
+              <div class="meta">${meta.name} • ${item.hp} л.с.</div>
+            </div>
+            <button class="btn-sell-small" data-index="${index}">Продать</button>
+          `;
+          garageList.appendChild(itemEl);
+        });
+
+        document.querySelectorAll('.btn-sell-small').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            const idx = parseInt(e.target.dataset.index);
+            const soldCar = garage.splice(idx, 1)[0];
+            balance += Math.round(soldCar.price * 0.8);
+            updateUI();
+            garageOpenBtn.click();
+          });
+        });
+      }
+      garageModal.classList.add('open');
+    });
+
+    garageCloseBtn.addEventListener('click', () => {
+      garageModal.classList.remove('open');
+    });
+
+    updateUI();
+  </script>
+</body>
+</html>
