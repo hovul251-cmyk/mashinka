@@ -49,7 +49,6 @@
       gap: 10px;
     }
 
-    /* Верхняя строка меню */
     .row-chips {
       display: flex;
       gap: 6px;
@@ -112,7 +111,6 @@
       box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
     }
 
-    /* Ряд действий */
     .row-subactions {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
@@ -132,14 +130,8 @@
       justify-content: center;
       gap: 4px;
       cursor: pointer;
-      transition: background 0.15s;
     }
 
-    .btn-subaction:active {
-      background: #202742;
-    }
-
-    /* Баннер временной удачи */
     .banner-luck {
       background: linear-gradient(90deg, #332005 0%, #171b30 100%);
       border: 1px solid rgba(255, 145, 0, 0.4);
@@ -182,7 +174,6 @@
       border-radius: 8px;
     }
 
-    /* Блок дисплея машины */
     .machine-display-box {
       background: var(--card-bg);
       border: 1px solid var(--card-border);
@@ -193,6 +184,7 @@
       align-items: center;
       position: relative;
       box-shadow: 0 12px 35px rgba(0, 0, 0, 0.6);
+      transition: border-color 0.25s;
     }
 
     .display-header-stats {
@@ -335,7 +327,6 @@
       margin-top: 6px;
     }
 
-    /* Настройки страны и ставки */
     .bet-settings-row {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -367,7 +358,6 @@
       cursor: pointer;
     }
 
-    /* Кнопка "Крутить ещё" */
     .btn-main-spin {
       background: linear-gradient(180deg, var(--accent-orange) 0%, var(--accent-orange-dark) 100%);
       color: #120900;
@@ -403,7 +393,6 @@
       font-size: 13px;
     }
 
-    /* Нижняя панель */
     .bottom-bar {
       position: fixed;
       bottom: 12px;
@@ -443,7 +432,6 @@
       color: var(--accent-orange);
     }
 
-    /* Модальные окна */
     .modal-overlay {
       position: fixed;
       inset: 0;
@@ -506,8 +494,6 @@
 <body>
 
   <div class="app-container">
-    
-    <!-- Верхняя строка -->
     <div class="row-chips">
       <div class="chip-switch">
         <button id="tabPlate">Номера</button>
@@ -517,26 +503,23 @@
       <div class="chip-balance">💰 <span id="topBalance">1 500</span> ₽</div>
     </div>
 
-    <!-- Ряд кнопок -->
     <div class="row-subactions">
       <button class="btn-subaction" id="btnCoupon">🎟️ Купон</button>
       <button class="btn-subaction" id="btnTrade">💱 Обмен</button>
       <button class="btn-subaction" id="btnTransfer">💸 Перевод</button>
     </div>
 
-    <!-- Баннер временной удачи x5 на 20 мин -->
     <div class="banner-luck" id="bannerLuck">
       <div class="banner-left">
         <span class="icon">🍀</span>
         <div class="banner-text">
           <div class="title">Бонус новичка: Удача х5</div>
-          <div class="sub">Повышенный шанс на спорткары</div>
+          <div class="sub">Повышает шансы, но неудача всё ещё возможна</div>
         </div>
       </div>
       <div class="timer-badge" id="luckTimer">20:00</div>
     </div>
 
-    <!-- Центральный дисплей -->
     <div class="machine-display-box" id="carBox">
       <div class="display-header-stats">
         <span id="displayRarity">Обычный</span>
@@ -575,7 +558,6 @@
       <div class="sell-info-label" id="sellNotice">Эта машина продастся за 180 ₽</div>
     </div>
 
-    <!-- Настройки: Страна и Ставка -->
     <div class="bet-settings-row">
       <div class="select-pill" style="position:relative;">
         <span id="labelCountry">🇷🇺 Россия</span>
@@ -601,15 +583,12 @@
       </div>
     </div>
 
-    <!-- Кнопка "Крутить ещё" -->
     <button class="btn-main-spin" id="spinMainBtn">
       <span>Крутить ещё</span>
       <span class="cost-badge" id="spinCostBadge">150 ₽</span>
     </button>
-
   </div>
 
-  <!-- Приподнятая нижняя панель -->
   <div class="bottom-bar">
     <button class="nav-tab active" id="tabPlay">
       <span class="icon">▷</span>
@@ -633,7 +612,6 @@
     </button>
   </div>
 
-  <!-- Модалка: Гараж -->
   <div class="modal-overlay" id="garageModal">
     <div class="modal-top">
       <h2>Мой Гараж</h2>
@@ -642,7 +620,6 @@
     <div id="garageItemsContainer"></div>
   </div>
 
-  <!-- Модалка: Рефералы (Друзья) -->
   <div class="modal-overlay" id="friendsModal">
     <div class="modal-top">
       <h2>Реферальная программа</h2>
@@ -652,7 +629,7 @@
       <strong>Приглашай друзей и зарабатывай:</strong>
       <div style="font-size:12px; color:var(--text-muted); line-height:1.4;">
         • +50 ₽ сразу за каждого приглашённого друга<br>
-        • 10% с каждого пополнения Telegram Stars твоим другом на твой игровой баланс
+        • 10% с каждого пополнения Telegram Stars твоим другом на игровой баланс
       </div>
       <button class="btn-action-small" id="btnInviteFriend" style="width:100%; padding:10px; margin-top:6px; background:#ff9100; color:#120900;">Скопировать ссылку приглашения</button>
     </div>
@@ -665,19 +642,17 @@
     </div>
   </div>
 
-  <!-- Модалка: Обмен машин -->
   <div class="modal-overlay" id="tradeModal">
     <div class="modal-top">
       <h2>Биржа обмена авто</h2>
       <button class="modal-close" id="closeTrade">&times;</button>
     </div>
     <div style="font-size:12px; color:var(--text-muted); margin-bottom:12px;">
-      Здесь вы можете обменять свой автомобиль на предложения других игроков:
+      Обменяйте автомобиль из гаража на предложения других игроков:
     </div>
     <div id="tradeListContainer"></div>
   </div>
 
-  <!-- Модалка: Профиль и настройки -->
   <div class="modal-overlay" id="moreModal">
     <div class="modal-top">
       <h2>Профиль и Настройки</h2>
@@ -707,14 +682,21 @@
     }
 
     const RARITIES = {
-      common: { name: 'Обычный', color: '#94a3b8', mult: 'x1.0', weight: 68 },
-      rare: { name: 'Редкий', color: '#00e5ff', mult: 'x1.6', weight: 23 },
-      epic: { name: 'Эпический', color: '#b388ff', mult: 'x2.8', weight: 7.2 },
-      legendary: { name: 'Легендарный', color: '#ffb300', mult: 'x6.0', weight: 1.6 },
-      mythic: { name: 'Мифический', color: '#ff1744', mult: 'x15.0', weight: 0.2 }
+      junk: { name: 'Металлолом', color: '#64748b', mult: 'x0.05' },
+      common: { name: 'Обычный', color: '#94a3b8', mult: 'x1.0' },
+      rare: { name: 'Редкий', color: '#00e5ff', mult: 'x1.6' },
+      epic: { name: 'Эпический', color: '#b388ff', mult: 'x2.8' },
+      legendary: { name: 'Легендарный', color: '#ffb300', mult: 'x6.0' },
+      mythic: { name: 'Мифический', color: '#ff1744', mult: 'x15.0' }
     };
 
-    // Генерация базы из 200+ автомобилей по странам
+    const JUNK_ITEMS = [
+      { name: "Ржавый кузов ВАЗ-2101", rarity: "junk", baseHp: 15, basePrice: 10, engine: "Двигатель заклинен", drive: "Нет привода", img: "https://images.unsplash.com/photo-1558981403-c5f9899a28bc?auto=format&fit=crop&w=800&q=80", desc: "Сгнившее железо без колёс" },
+      { name: "Сгоревший остов седана", rarity: "junk", baseHp: 0, basePrice: 5, engine: "Выгорел дотла", drive: "Нет", img: "https://images.unsplash.com/photo-1563720223185-11003d516935?auto=format&fit=crop&w=800&q=80", desc: "Только на сдачу в пункт приёма чермета" },
+      { name: "Битый кусок рамы на кирпичах", rarity: "junk", baseHp: 5, basePrice: 15, engine: "Отсутствует", drive: "Нет", img: "https://images.unsplash.com/photo-1590362891991-f776e747a588?auto=format&fit=crop&w=800&q=80", desc: "Двигатель сняли ещё в 2004 году" },
+      { name: "Груда смятого металлолома", rarity: "junk", baseHp: 0, basePrice: 8, engine: "Металлолом", drive: "Нет", img: "https://images.unsplash.com/photo-1517524008697-84bbe3c3fd98?auto=format&fit=crop&w=800&q=80", desc: "Не подлежит восстановлению" }
+    ];
+
     const COUNTRY_DATA = {
       ru: {
         name: 'Россия 🇷🇺',
@@ -787,7 +769,6 @@
       }
     };
 
-    // Динамическое расширение пула до 200+ уникальных модификаций (Stage 1-3, Special Edition)
     const GENERATED_CARS = [];
     const SUFFIXES = ["Sport Edition", "Stage 1", "Stage 2 Tuning", "Black Badge", "Track Edition", "CS Lightweight"];
 
@@ -810,18 +791,16 @@
       });
     });
 
-    // Состояние игры
     let balance = 1500;
     let garage = [];
     let currentCar = null;
     let selectedCountry = 'ru';
     let betMultiplier = 1;
     let luckActive = true;
-    let luckTimeLeft = 20 * 60; // 20 минут таймер
+    let luckTimeLeft = 20 * 60;
     let refCount = 0;
     let refEarned = 0;
 
-    // DOM Элементы
     const topBalanceEl = document.getElementById('topBalance');
     const profBalEl = document.getElementById('profBal');
     const spinMainBtn = document.getElementById('spinMainBtn');
@@ -833,6 +812,7 @@
     const bannerLuck = document.getElementById('bannerLuck');
     const luckTimerEl = document.getElementById('luckTimer');
 
+    const carBox = document.getElementById('carBox');
     const btnGarageSave = document.getElementById('btnGarageSave');
     const btnSellDirect = document.getElementById('btnSellDirect');
     const displayRarity = document.getElementById('displayRarity');
@@ -848,7 +828,6 @@
     const multVal = document.getElementById('multVal');
     const sellNotice = document.getElementById('sellNotice');
 
-    // Таймер удачи новичка (20 минут)
     const luckInterval = setInterval(() => {
       if (luckTimeLeft > 0) {
         luckTimeLeft--;
@@ -873,7 +852,6 @@
       spinMainBtn.disabled = balance < getSpinCost();
     }
 
-    // Слушатели настроек страны и ставки
     selectCountry.addEventListener('change', (e) => {
       selectedCountry = e.target.value;
       labelCountry.textContent = COUNTRY_DATA[selectedCountry].name;
@@ -885,35 +863,56 @@
       updateUI();
     });
 
-    // Генерация случайного авто с учетом страны, ставки и удачи x5
     function rollCar() {
-      let luckBoost = luckActive ? 5 : 1;
-      let betBonus = betMultiplier * 1.5;
+      // 1. Гарантированный базовый шанс на металлолом (14-22%), даже при высокой ставке
+      const junkFloor = Math.max(14, 22 - betMultiplier);
+      const isJunk = (Math.random() * 100) < junkFloor;
+
+      if (isJunk) {
+        const junk = JUNK_ITEMS[Math.floor(Math.random() * JUNK_ITEMS.length)];
+        return {
+          name: junk.name,
+          rarity: "junk",
+          hp: junk.baseHp,
+          accel: "Не едет",
+          engine: junk.engine,
+          drive: junk.drive,
+          sellPrice: junk.basePrice,
+          img: junk.img,
+          country: selectedCountry,
+          isJunk: true
+        };
+      }
+
+      // 2. Распределение шансов: 45% остаётся на обычные машины даже при x10 и удаче
+      let luckBoost = luckActive ? 2.5 : 1;
+      let betBonus = betMultiplier * 0.4;
       let totalLuckFactor = luckBoost + betBonus;
 
       const rand = Math.random() * 100;
       let targetRarity = 'common';
 
-      if (rand < (0.2 * totalLuckFactor * 0.15)) targetRarity = 'mythic';
-      else if (rand < (1.6 * totalLuckFactor * 0.25)) targetRarity = 'legendary';
-      else if (rand < (7.2 * totalLuckFactor * 0.35)) targetRarity = 'epic';
-      else if (rand < 28.0) targetRarity = 'rare';
+      if (rand < (0.15 * totalLuckFactor)) targetRarity = 'mythic';
+      else if (rand < (1.2 * totalLuckFactor)) targetRarity = 'legendary';
+      else if (rand < (5.5 * totalLuckFactor)) targetRarity = 'epic';
+      else if (rand < 22.0) targetRarity = 'rare';
       else targetRarity = 'common';
 
       const pool = GENERATED_CARS.filter(c => c.country === selectedCountry && c.rarity === targetRarity);
       const chosen = pool.length > 0 ? pool[Math.floor(Math.random() * pool.length)] : GENERATED_CARS.filter(c => c.country === selectedCountry)[0];
 
-      // Рандомизация показателей машины (зависит от ставки и удачи)
-      const bonusPct = (Math.random() * 0.15 + (betMultiplier * 0.05) + (luckActive ? 0.1 : 0));
-      const finalHp = Math.round(chosen.baseHp * (1 + bonusPct));
-      const finalAccel = (Math.max(2.1, 10.5 - (finalHp / 110))).toFixed(1);
-      const finalPrice = Math.round(chosen.basePrice * (1 + bonusPct) * betMultiplier);
+      // Случайный разброс характеристик (может выдать плохие параметры)
+      const hpRollVariance = (Math.random() * 0.45) - 0.18;
+      const finalHp = Math.max(30, Math.round(chosen.baseHp * (1 + hpRollVariance)));
+      const finalAccel = (Math.max(2.1, 10.8 - (finalHp / 105))).toFixed(1);
+      const finalPrice = Math.round(chosen.basePrice * (1 + hpRollVariance * 0.5) * betMultiplier);
 
       return {
         ...chosen,
         hp: finalHp,
         accel: `${finalAccel} с`,
-        sellPrice: finalPrice
+        sellPrice: Math.max(20, finalPrice),
+        isJunk: false
       };
     }
 
@@ -929,21 +928,24 @@
       badgeRarity.style.borderColor = meta.color;
       carImg.src = car.img;
 
-      specHp.textContent = `${car.hp} л.с.`;
+      specHp.textContent = car.isJunk ? `${car.hp} л.с.` : `${car.hp} л.с.`;
       specAccel.textContent = car.accel;
       specEngine.textContent = car.engine;
       specDrive.textContent = car.drive;
 
-      multBrand.textContent = `Страна: ${COUNTRY_DATA[car.country].name}`;
+      multBrand.textContent = car.isJunk ? "Состояние: Не на ходу (Утиль)" : `Страна: ${COUNTRY_DATA[car.country].name}`;
       multVal.textContent = meta.mult;
-      sellNotice.textContent = `Эта машина продастся за ${car.sellPrice} ₽`;
-      btnSellDirect.textContent = `Продать (+${car.sellPrice} ₽)`;
+      sellNotice.textContent = car.isJunk ? `Металлолом принимается всего за ${car.sellPrice} ₽` : `Эта машина продастся за ${car.sellPrice} ₽`;
+      btnSellDirect.textContent = `Сдать на чермет (+${car.sellPrice} ₽)`;
+      if (!car.isJunk) {
+        btnSellDirect.textContent = `Продать (+${car.sellPrice} ₽)`;
+      }
 
+      carBox.style.borderColor = meta.color;
       btnGarageSave.disabled = false;
       btnSellDirect.disabled = false;
     }
 
-    // Вращение
     spinMainBtn.addEventListener('click', () => {
       const cost = getSpinCost();
       if (balance < cost) return;
@@ -977,7 +979,7 @@
       btnGarageSave.disabled = true;
       btnSellDirect.disabled = true;
       currentCar = null;
-      alert('Автомобиль успешно сохранён в гараж!');
+      alert('Добавлено в гараж!');
     });
 
     btnSellDirect.addEventListener('click', () => {
@@ -989,7 +991,6 @@
       updateUI();
     });
 
-    // Навигация и модалки
     const garageModal = document.getElementById('garageModal');
     const friendsModal = document.getElementById('friendsModal');
     const tradeModal = document.getElementById('tradeModal');
@@ -1069,26 +1070,20 @@
       garageModal.classList.add('open');
     }
 
-    // Реферальная система (Пункт 5)
     document.getElementById('btnInviteFriend').addEventListener('click', () => {
       refCount++;
       balance += 50;
       refEarned += 50;
-
-      // Симуляция: друг пополнил 50 Stars (1 Star = ~2 ₽, 10% = 10 ₽)
-      const starsReplenished = 50;
-      const refBonusFromStars = Math.round(starsReplenished * 2 * 0.10);
+      const refBonusFromStars = Math.round(50 * 2 * 0.10);
       balance += refBonusFromStars;
       refEarned += refBonusFromStars;
 
       document.getElementById('refCount').textContent = `${refCount} чел.`;
       document.getElementById('refEarned').textContent = refEarned;
       updateUI();
-
       alert(`Друг приглашён!\n+50 ₽ за регистрацию друга\n+10% с пополнения звезд (+${refBonusFromStars} ₽ начислены на баланс игры)`);
     });
 
-    // Система обмена между игроками (Пункт 6)
     function openTrade() {
       const box = document.getElementById('tradeListContainer');
       box.innerHTML = '';
@@ -1122,7 +1117,7 @@
         b.addEventListener('click', (e) => {
           const tradeIdx = parseInt(e.target.dataset.tradeId);
           const offered = dummyOffers[tradeIdx];
-          const myCar = garage.pop(); // Отдаем последнее авто
+          const myCar = garage.pop();
 
           garage.push({
             name: offered.name,
@@ -1133,7 +1128,8 @@
             drive: "AWD",
             sellPrice: Math.round(myCar.sellPrice * 1.15),
             img: "https://images.unsplash.com/photo-1555215695-3004980ad54e?auto=format&fit=crop&w=800&q=80",
-            country: "de"
+            country: "de",
+            isJunk: false
           });
 
           alert(`Успешный обмен!\nВы отдали: ${myCar.name}\nВы получили: ${offered.name}`);
