@@ -3,19 +3,21 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>Perekup Wars - Mini App Beta</title>
+  <title>CyberMiner - DataCenter Wars</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
     :root {
-      --bg: #0b0e14;
-      --card: #151a24;
-      --border: rgba(255, 255, 255, 0.08);
-      --accent: #38bdf8;
-      --accent-red: #ef4444;
-      --accent-green: #10b981;
-      --accent-amber: #f59e0b;
-      --text: #f1f5f9;
-      --text-sub: #94a3b8;
+      --bg-dark: #06080d;
+      --panel-bg: rgba(13, 17, 26, 0.85);
+      --panel-border: rgba(16, 229, 153, 0.18);
+      --neon-green: #10e599;
+      --neon-cyan: #06b6d4;
+      --neon-purple: #a855f7;
+      --neon-rose: #f43f5e;
+      --neon-amber: #f59e0b;
+      --text-main: #f8fafc;
+      --text-dim: #64748b;
+      --font-mono: "SF Mono", "Fira Code", monospace;
     }
 
     * {
@@ -23,21 +25,26 @@
       margin: 0;
       padding: 0;
       user-select: none;
+      -webkit-user-select: none;
       -webkit-tap-highlight-color: transparent;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     }
 
     body {
-      background: var(--bg);
-      color: var(--text);
+      background-color: var(--bg-dark);
+      background-image: 
+        radial-gradient(circle at 50% 0%, rgba(6, 182, 212, 0.12) 0%, transparent 60%),
+        linear-gradient(180deg, #090d16 0%, var(--bg-dark) 100%);
+      color: var(--text-main);
       min-height: 100vh;
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 10px 10px 70px 10px;
+      padding: 10px 10px calc(65px + env(safe-area-inset-bottom, 10px)) 10px;
+      overflow-x: hidden;
     }
 
-    .app-container {
+    .terminal-container {
       width: 100%;
       max-width: 440px;
       display: flex;
@@ -45,256 +52,425 @@
       gap: 10px;
     }
 
-    /* HUD */
-    .hud {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 10px 14px;
-    }
-    .hud-title { font-weight: 900; font-size: 15px; color: var(--accent); }
-    .hud-balance { font-weight: 800; font-size: 14px; color: var(--accent-green); }
-
-    /* Экраны */
-    .view { display: none; flex-direction: column; gap: 10px; }
-    .view.active { display: flex; }
-
-    .card {
-      background: var(--card);
-      border: 1px solid var(--border);
+    /* Верхний HUD - Терминал статуса */
+    .terminal-header {
+      background: var(--panel-bg);
+      border: 1px solid var(--panel-border);
+      backdrop-filter: blur(16px);
       border-radius: 14px;
-      padding: 12px;
+      padding: 12px 14px;
       display: flex;
       flex-direction: column;
       gap: 8px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
     }
 
-    .btn {
-      background: rgba(255, 255, 255, 0.06);
-      border: 1px solid var(--border);
-      color: #fff;
-      padding: 10px;
-      border-radius: 10px;
-      font-weight: 800;
-      font-size: 12px;
-      cursor: pointer;
-      text-align: center;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
+    .top-telemetry {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
-    .btn:active { transform: scale(0.98); }
-    .btn.primary { background: var(--accent); color: #000; border: none; }
-    .btn.danger { background: rgba(239, 68, 68, 0.2); border-color: var(--accent-red); color: #fca5a5; }
-    .btn.green { background: rgba(16, 185, 129, 0.2); border-color: var(--accent-green); color: #6ee7b7; }
 
-    /* Список авто */
-    .car-row {
+    .terminal-brand {
       display: flex;
       align-items: center;
-      justify-content: space-between;
-      background: rgba(255, 255, 255, 0.03);
-      border: 1px solid var(--border);
-      padding: 8px;
-      border-radius: 10px;
+      gap: 8px;
     }
-    .car-info { display: flex; flex-direction: column; gap: 2px; }
-    .car-name { font-weight: 800; font-size: 13px; }
-    .car-sub { font-size: 10px; color: var(--text-sub); }
 
-    /* Гоночный трек драг-рейсинга */
-    .race-track {
-      background: #06080c;
-      border: 1px solid var(--border);
+    .status-pulse {
+      width: 8px;
+      height: 8px;
+      background: var(--neon-green);
+      border-radius: 50%;
+      box-shadow: 0 0 10px var(--neon-green);
+      animation: pulse 1.8s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.85); }
+    }
+
+    .terminal-title {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: 1.5px;
+      color: #fff;
+    }
+
+    .wallet-badge {
+      background: rgba(16, 229, 153, 0.1);
+      border: 1px solid var(--neon-green);
+      padding: 4px 10px;
+      border-radius: 8px;
+      font-family: var(--font-mono);
+      font-weight: 800;
+      font-size: 13px;
+      color: var(--neon-green);
+      box-shadow: 0 0 12px rgba(16, 229, 153, 0.2);
+    }
+
+    .rig-stats-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+      background: rgba(0, 0, 0, 0.35);
+      padding: 6px 10px;
+      border-radius: 8px;
+      font-size: 11px;
+    }
+
+    /* Кибер-кнопки со скошенным срезом */
+    .cyber-btn {
+      position: relative;
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.01) 100%);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: #fff;
+      padding: 12px 14px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      cursor: pointer;
+      clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .cyber-btn:active {
+      transform: scale(0.97);
+    }
+
+    .cyber-btn.neon-green {
+      background: linear-gradient(135deg, rgba(16, 229, 153, 0.2), rgba(6, 182, 212, 0.1));
+      border: 1px solid var(--neon-green);
+      color: var(--neon-green);
+      box-shadow: 0 0 14px rgba(16, 229, 153, 0.25);
+    }
+
+    .cyber-btn.neon-purple {
+      background: linear-gradient(135deg, rgba(168, 85, 247, 0.25), rgba(244, 63, 94, 0.15));
+      border: 1px solid var(--neon-purple);
+      color: #e9d5ff;
+      box-shadow: 0 0 14px rgba(168, 85, 247, 0.3);
+    }
+
+    .cyber-btn.neon-rose {
+      background: linear-gradient(135deg, rgba(244, 63, 94, 0.2), rgba(244, 63, 94, 0.05));
+      border: 1px solid var(--neon-rose);
+      color: #fca5a5;
+    }
+
+    /* Экраны приложения */
+    .module-screen {
+      display: none;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .module-screen.active { display: flex; }
+
+    .cyber-panel {
+      background: var(--panel-bg);
+      border: 1px solid var(--panel-border);
+      backdrop-filter: blur(20px);
+      border-radius: 14px;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    /* Карточки оборудования в стойке ЦОД */
+    .rig-slot {
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid rgba(255, 255, 255, 0.07);
+      border-radius: 10px;
+      padding: 10px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .rig-slot::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 3px;
+      background: var(--slot-color, var(--neon-cyan));
+    }
+
+    .rig-icon {
+      width: 50px;
+      height: 50px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 26px;
+      flex-shrink: 0;
+    }
+
+    .rig-info {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .rig-title {
+      font-size: 13px;
+      font-weight: 800;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      color: #fff;
+    }
+
+    .rig-metrics {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--text-dim);
+    }
+
+    /* Модуль распаковки поставок (Дроп чипов) */
+    .crate-display {
+      background: radial-gradient(circle at center, rgba(6, 182, 212, 0.15) 0%, transparent 70%);
+      border: 1px dashed rgba(6, 182, 212, 0.3);
       border-radius: 12px;
+      padding: 24px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .chip-reveal-box {
+      display: none;
+      flex-direction: column;
+      gap: 10px;
+      background: rgba(0, 0, 0, 0.5);
+      border: 1px solid var(--neon-cyan);
+      border-radius: 12px;
+      padding: 14px;
+      box-shadow: 0 0 20px rgba(6, 182, 212, 0.2);
+    }
+
+    /* PVP Терминал Хеш-Баттла */
+    .battle-track {
+      background: #030508;
+      border: 1px solid var(--panel-border);
+      border-radius: 10px;
       padding: 12px;
       display: flex;
       flex-direction: column;
-      gap: 12px;
-      position: relative;
-    }
-    .race-lane {
-      position: relative;
-      height: 28px;
-      background: rgba(255, 255, 255, 0.04);
-      border-radius: 6px;
-      display: flex;
-      align-items: center;
-      overflow: hidden;
-    }
-    .race-car-indicator {
-      position: absolute;
-      left: 0%;
-      font-size: 18px;
-      transition: left 2.5s cubic-bezier(0.2, 0.8, 0.3, 1);
-    }
-    .finish-line {
-      position: absolute;
-      right: 10px;
-      top: 0;
-      bottom: 0;
-      width: 4px;
-      background: repeating-linear-gradient(0deg, #fff, #fff 4px, #000 4px, #000 8px);
+      gap: 10px;
+      font-family: var(--font-mono);
     }
 
-    /* Навигация снизу */
-    .navbar {
+    .battle-progress-bar {
+      height: 18px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 4px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .battle-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--neon-cyan), var(--neon-green));
+      transition: width 2.2s cubic-bezier(0.1, 0.8, 0.2, 1);
+    }
+
+    /* Нижняя навигация Cyber-Dock */
+    .cyber-dock {
       position: fixed;
-      bottom: 8px;
+      bottom: calc(6px + env(safe-area-inset-bottom, 6px));
       left: 50%;
       transform: translateX(-50%);
       width: calc(100% - 20px);
       max-width: 440px;
       height: 52px;
-      background: rgba(21, 26, 36, 0.95);
-      backdrop-filter: blur(15px);
-      border: 1px solid var(--border);
+      background: rgba(10, 14, 22, 0.95);
+      backdrop-filter: blur(25px);
+      border: 1px solid var(--panel-border);
       border-radius: 16px;
       display: grid;
       grid-template-columns: repeat(4, 1fr);
       padding: 4px;
       z-index: 100;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.7);
     }
-    .nav-btn {
+
+    .dock-node {
       background: none;
       border: none;
-      color: var(--text-sub);
+      color: var(--text-dim);
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
       gap: 2px;
+      font-family: var(--font-mono);
       font-size: 9px;
       font-weight: 700;
       cursor: pointer;
     }
-    .nav-btn.active { color: var(--accent); }
-    .nav-btn span:first-child { font-size: 16px; }
+    .dock-node.active {
+      color: var(--neon-green);
+    }
+    .dock-node span:first-child { font-size: 16px; }
   </style>
 </head>
 <body>
 
-  <div class="app-container">
-    <!-- Шапка -->
-    <header class="hud">
-      <div>
-        <div class="hud-title">🏎️ PEREKUP WARS</div>
-        <div style="font-size: 10px; color: var(--text-sub);" id="playerTag">@player</div>
+  <div class="terminal-container">
+
+    <!-- Верхний статус ЦОД -->
+    <header class="terminal-header">
+      <div class="top-telemetry">
+        <div class="terminal-brand">
+          <div class="status-pulse"></div>
+          <span class="terminal-title">CYBER_MINER // V3.2</span>
+        </div>
+        <div class="wallet-badge">⚡ <span id="cryptoBalance">1,500</span> USDT</div>
       </div>
-      <div class="hud-balance">💰 <span id="balanceVal">1 500</span> ₽</div>
+      <div class="rig-stats-row">
+        <div>ХЕШРЕЙТ: <b style="color:var(--neon-green);" id="totalHashrate">0 MH/s</b></div>
+        <div>ДОХОД: <b style="color:var(--neon-cyan);" id="incomePerSec">+0.0 USDT/с</b></div>
+      </div>
     </header>
 
-    <!-- 1. Экран Рулетки / Дропа -->
-    <section class="view active" id="viewGacha">
-      <div class="card" style="text-align: center; padding: 20px 10px;">
-        <div style="font-size: 40px; margin-bottom: 8px;">📦</div>
-        <h3 style="font-size: 16px;">Контейнер Перекупа</h3>
-        <p style="font-size: 11px; color: var(--text-sub); margin-bottom: 12px;">Выбей тачку для гаража или продажи</p>
-        <button class="btn primary" id="btnSpinBox">Крутить контейнер (300 ₽)</button>
+    <!-- 1. ЭКРАН: СТОЙКА ЦОД (ФЕРМА) -->
+    <main class="module-screen active" id="screenFarm">
+      <div class="cyber-panel">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <strong style="font-family:var(--font-mono); font-size:12px;">СЕРВЕРНАЯ СТОЙКА (<span id="installedRigsCount">0</span>/6)</strong>
+          <button class="cyber-btn neon-green" id="btnClaimPassive" style="padding:6px 10px; font-size:10px;">Снять прибыль</button>
+        </div>
+        <div id="rigListContainer" style="display:flex; flex-direction:column; gap:8px;"></div>
       </div>
 
-      <div class="card" id="dropResultCard" style="display: none;">
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-          <span style="font-size: 10px; font-weight: 800; color: var(--accent);" id="dropRarity">РЕДКОСТЬ</span>
-          <span style="font-size: 11px; font-weight: 800; color: var(--accent-green);" id="dropPrice">+0 ₽</span>
-        </div>
-        <h2 style="font-size: 16px;" id="dropTitle">—</h2>
-        <div style="font-size: 11px; color: var(--text-sub);" id="dropSpecs">Мощность: 0 л.с. • 0-100: 0 с</div>
-        <div style="display: flex; gap: 8px; margin-top: 6px;">
-          <button class="btn green" style="flex:1;" id="btnKeepDrop">Забрать в гараж</button>
-          <button class="btn" style="flex:1;" id="btnSellDrop">Продать</button>
+      <div class="cyber-panel">
+        <strong style="font-family:var(--font-mono); font-size:12px; color:var(--neon-cyan);">🛡️ СИСТЕМА БЕЗОПАСНОСТИ ЦОД</strong>
+        <p style="font-size:11px; color:var(--text-dim);">Файрвол блокирует попытки других хакеров похитить ваши чипы.</p>
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <span style="font-size:11px; font-family:var(--font-mono);" id="firewallLevelText">Файрвол: v1.0 (30% защиты)</span>
+          <button class="cyber-btn neon-purple" id="btnUpgradeFirewall" style="padding:8px 12px; font-size:10px;">Апгрейд (600 USDT)</button>
         </div>
       </div>
-    </section>
+    </main>
 
-    <!-- 2. Экран Гаража и Сигнализации -->
-    <section class="view" id="viewGarage">
-      <div class="card">
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-          <div>
-            <strong>Сигнализация StarLine</strong>
-            <div style="font-size: 10px; color: var(--text-sub);" id="alarmStatus">Защита от угона: 30%</div>
+    <!-- 2. ЭКРАН: МАРКЕТ ПОСТАВОК (ДРОП ЧИПОВ) -->
+    <section class="module-screen" id="screenMarket">
+      <div class="cyber-panel">
+        <div class="crate-display">
+          <div style="font-size:42px;">📦</div>
+          <h3 style="font-size:15px; font-family:var(--font-mono);">КОНТЕЙНЕР ASIC & GPU</h3>
+          <p style="font-size:11px; color:var(--text-dim);">Случайная поставка вычислительного оборудования с шансом выбить топовый серверный чип.</p>
+          <button class="cyber-btn neon-green" id="btnOrderCrate" style="width:100%; margin-top:8px;">
+            Заказать поставку (300 USDT)
+          </button>
+        </div>
+
+        <div class="chip-reveal-box" id="chipRevealBox">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span style="font-family:var(--font-mono); font-size:10px; font-weight:800;" id="revealedRarity">ЛЕГЕНДАРНЫЙ</span>
+            <span style="color:var(--neon-green); font-family:var(--font-mono); font-size:11px;" id="revealedValue">+0 USDT</span>
           </div>
-          <button class="btn green" id="btnUpgradeAlarm">Улучшить (500 ₽)</button>
+          <h3 style="font-size:16px; color:#fff;" id="revealedTitle">—</h3>
+          <div style="font-size:11px; color:var(--text-dim); font-family:var(--font-mono);" id="revealedSpecs">Хешрейт: 0 MH/s • Потребление: 0W</div>
+          <div style="display:flex; gap:8px; margin-top:6px;">
+            <button class="cyber-btn neon-green" style="flex:1;" id="btnInstallRig">Монтировать в стойку</button>
+            <button class="cyber-btn" style="flex:1;" id="btnLiquidateRig">Продать на лом</button>
+          </div>
         </div>
-      </div>
-
-      <div class="card">
-        <strong>Мой гараж (<span id="garageCount">0</span>)</strong>
-        <div id="garageList" style="display: flex; flex-direction: column; gap: 6px; margin-top: 6px;"></div>
       </div>
     </section>
 
-    <!-- 3. Экран Драг-рейсинга (PVP) -->
-    <section class="view" id="viewPvp">
-      <div class="card">
-        <strong>Вызов на 402 метра</strong>
-        <p style="font-size: 11px; color: var(--text-sub);">Выбери авто и брось вызов сопернику. Победитель забирает банк!</p>
-        
-        <select id="raceCarSelect" style="background:#0b0e14; color:#fff; border:1px solid var(--border); padding:8px; border-radius:8px; font-size:11px;"></select>
-        
-        <div style="display: flex; gap: 6px;">
-          <button class="btn primary" style="flex: 2;" id="btnStartRace">Гонка с ботом (200 ₽)</button>
-          <button class="btn" style="flex: 1;" id="btnSharePvP">Вызов другу 👥</button>
-        </div>
-      </div>
+    <!-- 3. ЭКРАН: ХЕШ-БАТТЛ (PVP РЕЙД) -->
+    <section class="module-screen" id="screenBattle">
+      <div class="cyber-panel">
+        <strong style="font-family:var(--font-mono); font-size:12px;">⚡ СОРЕВНОВАНИЕ ПУЛОВ (402ms БИТВА)</strong>
+        <p style="font-size:11px; color:var(--text-dim);">Состязание за нахождение валидного блока транзакций. Победитель забирает весь банк эмиссии!</p>
 
-      <div class="race-track" id="raceTrack">
-        <div class="finish-line"></div>
-        <div style="font-size: 10px; color: var(--text-sub);">Вы:</div>
-        <div class="race-lane">
-          <div class="race-car-indicator" id="carPlayer">🏎️</div>
+        <div style="display:flex; gap:8px;">
+          <button class="cyber-btn neon-green" style="flex:2;" id="btnRunHashBattle">Бросить вызов пулу (250 USDT)</button>
+          <button class="cyber-btn" style="flex:1;" id="btnShareDuelLink">Вызов 👥</button>
         </div>
-        <div style="font-size: 10px; color: var(--text-sub);">Соперник:</div>
-        <div class="race-lane">
-          <div class="race-car-indicator" id="carOpponent">🚙</div>
+
+        <div class="battle-track" style="margin-top:8px;">
+          <div style="font-size:10px; color:var(--neon-green);">ВАШ ПУЛ [ХЕШ-ПОТОК]:</div>
+          <div class="battle-progress-bar">
+            <div class="battle-fill" id="myBattleFill"></div>
+          </div>
+          <div style="font-size:10px; color:var(--neon-rose); margin-top:6px;">СОПЕРНИК [ХЕШ-ПОТОК]:</div>
+          <div class="battle-progress-bar">
+            <div class="battle-fill" id="enemyBattleFill" style="background:linear-gradient(90deg, var(--neon-purple), var(--neon-rose));"></div>
+          </div>
         </div>
+        <div id="battleResultBanner" style="text-align:center; font-family:var(--font-mono); font-size:12px; font-weight:800;"></div>
       </div>
-      <div id="raceBanner" style="text-align: center; font-size: 12px; font-weight: 800;"></div>
     </section>
 
-    <!-- 4. Экран Угона / Криминала -->
-    <section class="view" id="viewHeist">
-      <div class="card">
-        <strong style="color: var(--accent-red);">🚨 Ночной Угон</strong>
-        <p style="font-size: 11px; color: var(--text-sub);">
-          Попытайся вскрыть гараж случайного игрока или друга. Если сработает сигнализация — штраф полиции!
+    <!-- 4. ЭКРАН: ВЗЛОМ СЕТИ (ХАКИНГ ЧУЖИХ ФЕРМ) -->
+    <section class="module-screen" id="screenHack">
+      <div class="cyber-panel">
+        <strong style="color:var(--neon-rose); font-family:var(--font-mono); font-size:12px;">💀 ЭКСПЛОЙТ ЧУЖИХ СЕРВЕРОВ</strong>
+        <p style="font-size:11px; color:var(--text-dim);">
+          Просканируйте подсеть, найдите уязвимый ЦОД и украдите видеокарту из фермы другого майнера.
         </p>
-        <button class="btn danger" id="btnAttemptHeist">Искать жертву для угона</button>
+        <button class="cyber-btn neon-rose" id="btnScanTarget">Сканировать IP-диапазон</button>
       </div>
 
-      <div class="card" id="heistTargetCard" style="display: none;">
-        <div style="font-size: 11px; color: var(--text-sub);">Найден гараж игрока: <b id="heistVictimName">@racer</b></div>
-        <h3 id="heistCarName">BMW M4 CSL</h3>
-        <div style="font-size: 10px; color: var(--accent-amber);" id="heistAlarmInfo">Шанс обхода сигналки: 60%</div>
-        <div style="display:flex; gap: 6px; margin-top: 6px;">
-          <button class="btn danger" style="flex:1;" id="btnStealNow">Вскрыть отмычкой</button>
-          <button class="btn" style="flex:1;" id="btnCancelHeist">Уйти</button>
+      <div class="cyber-panel" id="hackTargetCard" style="display:none;">
+        <div style="font-size:10px; color:var(--text-dim); font-family:var(--font-mono);">
+          ЦЕЛЬ: <b id="targetIpAddress" style="color:var(--neon-cyan);">192.168.4.102</b> • ХОСТ: <b id="targetOwnerName">@crypto_whale</b>
+        </div>
+        <h3 id="targetHardwareTitle" style="color:#fff;">NVIDIA RTX 4090 OC</h3>
+        <div style="font-size:11px; font-family:var(--font-mono); color:var(--neon-amber);" id="targetBypassRate">
+          Шанс обхода файрвола: 55%
+        </div>
+        <div style="display:flex; gap:8px; margin-top:6px;">
+          <button class="cyber-btn neon-rose" style="flex:1;" id="btnExecuteHack">Взломать порт</button>
+          <button class="cyber-btn" style="flex:1;" id="btnAbortHack">Прервать</button>
         </div>
       </div>
-      <div id="heistBanner" style="text-align: center; font-size: 12px; font-weight: 800;"></div>
+      <div id="hackTerminalLog" style="text-align:center; font-family:var(--font-mono); font-size:12px; font-weight:800;"></div>
     </section>
+
   </div>
 
-  <!-- Нижний бар навигации -->
-  <nav class="navbar">
-    <button class="nav-btn active" data-view="viewGacha">
+  <!-- Нижний док-бар -->
+  <nav class="cyber-dock">
+    <button class="dock-node active" data-screen="screenFarm">
+      <span>🖥️</span>
+      <span>Стойка</span>
+    </button>
+    <button class="dock-node" data-screen="screenMarket">
       <span>📦</span>
       <span>Дроп</span>
     </button>
-    <button class="nav-btn" data-view="viewGarage">
-      <span>🚗</span>
-      <span>Гараж</span>
-    </button>
-    <button class="nav-btn" data-view="viewPvp">
+    <button class="dock-node" data-screen="screenBattle">
       <span>⚡</span>
-      <span>Драг PVP</span>
+      <span>Баттл</span>
     </button>
-    <button class="nav-btn" data-view="viewHeist">
+    <button class="dock-node" data-screen="screenHack">
       <span>🥷</span>
-      <span>Угон</span>
+      <span>Взлом</span>
     </button>
   </nav>
 
@@ -307,263 +483,299 @@
 
     const Haptic = {
       light: () => tg?.HapticFeedback?.impactOccurred('light'),
+      medium: () => tg?.HapticFeedback?.impactOccurred('medium'),
       success: () => tg?.HapticFeedback?.notificationOccurred('success'),
       error: () => tg?.HapticFeedback?.notificationOccurred('error')
     };
 
-    // Каталог машин
-    const CARS_POOL = [
-      { name: "Lada 2107 Turbo", hp: 160, accel: 7.2, price: 250, rarity: "Обычный" },
-      { name: "Toyota Chaser Tourer V", hp: 280, accel: 5.6, price: 650, rarity: "Редкий" },
-      { name: "Nissan Silvia S15", hp: 320, accel: 4.8, price: 1100, rarity: "Эпик" },
-      { name: "BMW M4 CSL", hp: 550, accel: 3.7, price: 2400, rarity: "Легендарный" },
-      { name: "Porsche 911 GT3 RS", hp: 525, accel: 3.2, price: 3800, rarity: "Легендарный" },
-      { name: "Lamborghini Revuelto", hp: 1015, accel: 2.5, price: 6500, rarity: "Мифический" }
+    // БАЗОВЫЙ ПУЛ ВЫЧИСЛИТЕЛЬНОГО ОБОРУДОВАНИЯ
+    // [Название, Редкость, Хешрейт MH/s, Стоимость USDT, Энергия, Шина, Иконка, Описание]
+    const HARDWARE_CATALOG = [
+      ["NVIDIA GTX 1660 Super", "common", 31, 220, "125W", "PCIe 3.0", "📼", "Бюджетный кремний для старта"],
+      ["AMD Radeon RX 6700 XT", "common", 47, 340, "180W", "PCIe 4.0", "📼", "Надежный рабочий риг"],
+      ["NVIDIA RTX 3080 Ti", "rare", 90, 750, "290W", "PCIe 4.0", "💽", "Мощная карта на GDDR6X"],
+      ["Antminer S19 Pro ASIC", "rare", 110, 1100, "3250W", "SHA-256", "⚡", "Специализированный крипто-комбайн"],
+      ["NVIDIA RTX 4090 OC", "legendary", 185, 2600, "450W", "PCIe 4.0", "💎", "Флагманский GPU для майнинга и ИИ"],
+      ["NVIDIA H100 Tensor Core", "mythic", 450, 6800, "700W", "SXM5", "🪐", "Сверхмощный чип для дата-центров"]
     ];
 
-    // Игрок
-    const user = tg?.initDataUnsafe?.user || { id: 101, first_name: "Перекуп", username: "perekup_pro" };
-    let player = {
-      username: user.username ? `@${user.username}` : user.first_name,
+    const tgUser = tg?.initDataUnsafe?.user || { id: 701, first_name: "NetRunner", username: "cyber_miner" };
+
+    let state = {
+      userTag: tgUser.username ? `@${tgUser.username}` : tgUser.first_name,
       balance: 1500,
-      alarmLevel: 1, // 30% защиты
-      garage: [
-        { name: "Lada 2107 Turbo", hp: 160, accel: 7.2, price: 250, rarity: "Обычный" }
+      firewallLevel: 1, // 30% защиты
+      passivePot: 0,
+      racks: [
+        { name: "NVIDIA GTX 1660 Super", rarity: "common", hashrate: 31, value: 220, icon: "📼", power: "125W" }
       ]
     };
 
-    let currentPendingDrop = null;
-    let currentHeistTarget = null;
-    let isRacing = false;
+    let pendingDrop = null;
+    let currentHackTarget = null;
+    let isBattling = false;
 
-    function updateHUD() {
-      document.getElementById('playerTag').textContent = player.username;
-      document.getElementById('balanceVal').textContent = player.balance.toLocaleString('ru-RU');
-      document.getElementById('garageCount').textContent = player.garage.length;
-      document.getElementById('alarmStatus').textContent = `Защита от угона: ${player.alarmLevel * 30}%`;
+    function refreshTelemetry() {
+      document.getElementById('cryptoBalance').textContent = Math.floor(state.balance).toLocaleString('ru-RU');
+      document.getElementById('installedRigsCount').textContent = state.racks.length;
+
+      const totalHash = state.racks.reduce((acc, r) => acc + r.hashrate, 0);
+      document.getElementById('totalHashrate').textContent = `${totalHash} MH/s`;
+
+      const perSec = (totalHash * 0.05).toFixed(1);
+      document.getElementById('incomePerSec').textContent = `+${perSec} USDT/с`;
+      document.getElementById('firewallLevelText').textContent = `Файрвол: v${state.firewallLevel}.0 (${state.firewallLevel * 30}% защиты)`;
     }
 
-    // Навигация
-    document.querySelectorAll('.nav-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-        document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-        btn.classList.add('active');
-        document.getElementById(btn.dataset.view).classList.add('active');
-        Haptic.light();
-        renderGarage();
-      });
-    });
-
-    // 1. ДРОП / РУЛЕТКА
-    document.getElementById('btnSpinBox').addEventListener('click', () => {
-      if (player.balance < 300) {
-        Haptic.error();
-        alert('Недостаточно средств (нужно 300 ₽)!');
-        return;
+    // Пассивный доход каждую секунду
+    setInterval(() => {
+      const totalHash = state.racks.reduce((acc, r) => acc + r.hashrate, 0);
+      if (totalHash > 0) {
+        state.passivePot += totalHash * 0.05;
+        document.getElementById('btnClaimPassive').textContent = `Снять (+${Math.floor(state.passivePot)} USDT)`;
       }
-      player.balance -= 300;
-      Haptic.light();
+    }, 1000);
 
-      // Генерация случайной машины
-      const car = CARS_POOL[Math.floor(Math.random() * CARS_POOL.length)];
-      currentPendingDrop = { ...car };
-
-      document.getElementById('dropRarity').textContent = car.rarity.toUpperCase();
-      document.getElementById('dropTitle').textContent = car.name;
-      document.getElementById('dropPrice').textContent = `+${car.price} ₽`;
-      document.getElementById('dropSpecs').textContent = `Мощность: ${car.hp} л.с. • 0-100: ${car.accel} с`;
-      document.getElementById('dropResultCard').style.display = 'flex';
-      updateHUD();
-    });
-
-    document.getElementById('btnKeepDrop').addEventListener('click', () => {
-      if (!currentPendingDrop) return;
-      player.garage.push(currentPendingDrop);
-      currentPendingDrop = null;
-      document.getElementById('dropResultCard').style.display = 'none';
+    document.getElementById('btnClaimPassive').addEventListener('click', () => {
+      if (state.passivePot < 1) return;
+      state.balance += state.passivePot;
+      state.passivePot = 0;
+      document.getElementById('btnClaimPassive').textContent = 'Снять прибыль';
       Haptic.success();
-      updateHUD();
-      renderGarage();
+      refreshTelemetry();
     });
 
-    document.getElementById('btnSellDrop').addEventListener('click', () => {
-      if (!currentPendingDrop) return;
-      player.balance += currentPendingDrop.price;
-      currentPendingDrop = null;
-      document.getElementById('dropResultCard').style.display = 'none';
-      Haptic.light();
-      updateHUD();
+    // Навигация по док-панели
+    document.querySelectorAll('.dock-node').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.dock-node').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.module-screen').forEach(s => s.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById(btn.dataset.screen).classList.add('active');
+        Haptic.light();
+        renderServerRacks();
+      });
     });
 
-    // 2. ГАРАЖ И СИГНАЛКА
-    function renderGarage() {
-      const list = document.getElementById('garageList');
-      const select = document.getElementById('raceCarSelect');
-      list.innerHTML = '';
-      select.innerHTML = '';
+    // Рендер стойки оборудования
+    function renderServerRacks() {
+      const container = document.getElementById('rigListContainer');
+      container.innerHTML = '';
 
-      if (player.garage.length === 0) {
-        list.innerHTML = '<div style="font-size:11px; color:var(--text-sub);">В гараже пусто. Выбейте машину в дропе!</div>';
+      if (state.racks.length === 0) {
+        container.innerHTML = '<div style="font-size:11px; color:var(--text-dim); text-align:center; padding:18px;">Серверная стойка пуста. Распакуйте контейнер на Маркете!</div>';
         return;
       }
 
-      player.garage.forEach((c, idx) => {
-        // Заполнение списка
-        const row = document.createElement('div');
-        row.className = 'car-row';
-        row.innerHTML = `
-          <div class="car-info">
-            <span class="car-name">${c.name}</span>
-            <span class="car-sub">${c.hp} л.с. • ${c.accel}с • ${c.rarity}</span>
+      state.racks.forEach((rig, idx) => {
+        const item = document.createElement('div');
+        item.className = 'rig-slot';
+        item.innerHTML = `
+          <div class="rig-icon">${rig.icon}</div>
+          <div class="rig-info">
+            <span class="rig-title">${rig.name}</span>
+            <span class="rig-metrics">⚡ ${rig.hashrate} MH/s • ${rig.power} • Оценка: ${rig.value} USDT</span>
           </div>
-          <button class="btn" style="padding:4px 8px; font-size:10px;" data-sell="${idx}">Продать (${c.price} ₽)</button>
+          <button class="cyber-btn neon-rose" style="padding:4px 8px; font-size:9px;" data-sell-id="${idx}">Сдать</button>
         `;
-        list.appendChild(row);
-
-        // Заполнение селекта для гонок
-        const opt = document.createElement('option');
-        opt.value = idx;
-        opt.textContent = `${c.name} (${c.hp} л.с.)`;
-        select.appendChild(opt);
+        container.appendChild(item);
       });
 
-      list.querySelectorAll('button[data-sell]').forEach(b => {
-        b.addEventListener('click', () => {
-          const id = parseInt(b.dataset.sell, 10);
-          player.balance += player.garage[id].price;
-          player.garage.splice(id, 1);
+      container.querySelectorAll('button[data-sell-id]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const id = parseInt(btn.dataset.sellId, 10);
+          state.balance += state.racks[id].value;
+          state.racks.splice(id, 1);
           Haptic.light();
-          updateHUD();
-          renderGarage();
+          refreshTelemetry();
+          renderServerRacks();
         });
       });
     }
 
-    document.getElementById('btnUpgradeAlarm').addEventListener('click', () => {
-      if (player.alarmLevel >= 3) {
-        alert('Сигнализация уже максимального уровня!');
+    document.getElementById('btnUpgradeFirewall').addEventListener('click', () => {
+      if (state.firewallLevel >= 3) {
+        alert('Установлен максимальный квантовый файрвол!');
         return;
       }
-      if (player.balance < 500) {
+      if (state.balance < 600) {
         Haptic.error();
-        alert('Нужно 500 ₽!');
+        alert('Недостаточно средств (нужно 600 USDT)!');
         return;
       }
-      player.balance -= 500;
-      player.alarmLevel++;
+      state.balance -= 600;
+      state.firewallLevel++;
       Haptic.success();
-      updateHUD();
+      refreshTelemetry();
     });
 
-    // 3. ДРАГ-РЕЙСИНГ
-    document.getElementById('btnStartRace').addEventListener('click', () => {
-      if (isRacing) return;
-      if (player.garage.length === 0) {
-        alert('У вас нет машины для заезда!');
+    // ДРОП / ПОСТАВКА ОБОРУДОВАНИЯ
+    document.getElementById('btnOrderCrate').addEventListener('click', () => {
+      if (state.balance < 300) {
+        Haptic.error();
+        alert('Недостаточно USDT!');
         return;
       }
-      if (player.balance < 200) {
-        alert('Ставка на заезд — 200 ₽!');
+      state.balance -= 300;
+      refreshTelemetry();
+      Haptic.medium();
+
+      const roll = Math.random() * 100;
+      let raw;
+      if (roll < 3) raw = HARDWARE_CATALOG[5];
+      else if (roll < 12) raw = HARDWARE_CATALOG[4];
+      else if (roll < 35) raw = HARDWARE_CATALOG[2];
+      else raw = HARDWARE_CATALOG[Math.floor(Math.random() * 2)];
+
+      pendingDrop = {
+        name: raw[0],
+        rarity: raw[1],
+        hashrate: raw[2],
+        value: raw[3],
+        power: raw[4],
+        icon: raw[6]
+      };
+
+      document.getElementById('revealedRarity').textContent = pendingDrop.rarity.toUpperCase();
+      document.getElementById('revealedTitle').textContent = `${pendingDrop.icon} ${pendingDrop.name}`;
+      document.getElementById('revealedValue').textContent = `+${pendingDrop.value} USDT`;
+      document.getElementById('revealedSpecs').textContent = `Хешрейт: ${pendingDrop.hashrate} MH/s • ${pendingDrop.power}`;
+      document.getElementById('chipRevealBox').style.display = 'flex';
+    });
+
+    document.getElementById('btnInstallRig').addEventListener('click', () => {
+      if (!pendingDrop) return;
+      if (state.racks.length >= 6) {
+        alert('В серверной стойке нет свободных слотов (макс 6)!');
+        return;
+      }
+      state.racks.push(pendingDrop);
+      pendingDrop = null;
+      document.getElementById('chipRevealBox').style.display = 'none';
+      Haptic.success();
+      refreshTelemetry();
+      renderServerRacks();
+    });
+
+    document.getElementById('btnLiquidateRig').addEventListener('click', () => {
+      if (!pendingDrop) return;
+      state.balance += pendingDrop.value;
+      pendingDrop = null;
+      document.getElementById('chipRevealBox').style.display = 'none';
+      Haptic.light();
+      refreshTelemetry();
+    });
+
+    // ХЕШ-БАТТЛ (PVP)
+    document.getElementById('btnRunHashBattle').addEventListener('click', () => {
+      if (isBattling) return;
+      if (state.racks.length === 0) {
+        alert('В стойке нет чипов для вычислений!');
+        return;
+      }
+      if (state.balance < 250) {
+        alert('Ставка на баттл — 250 USDT!');
         return;
       }
 
-      const myCar = player.garage[parseInt(document.getElementById('raceCarSelect').value, 10) || 0];
-      const botCar = CARS_POOL[Math.floor(Math.random() * CARS_POOL.length)];
+      isBattling = true;
+      state.balance -= 250;
+      refreshTelemetry();
 
-      isRacing = true;
-      player.balance -= 200;
-      updateHUD();
+      const myFill = document.getElementById('myBattleFill');
+      const enemyFill = document.getElementById('enemyBattleFill');
+      const banner = document.getElementById('battleResultBanner');
 
-      const pCarEl = document.getElementById('carPlayer');
-      const oCarEl = document.getElementById('carOpponent');
-      const banner = document.getElementById('raceBanner');
-      banner.textContent = `Заезд: ${myCar.name} против ${botCar.name}...`;
+      banner.textContent = 'Майнинг пулы соревнуются за блок...';
+      myFill.style.width = '0%';
+      enemyFill.style.width = '0%';
 
-      pCarEl.style.left = '0%';
-      oCarEl.style.left = '0%';
-
-      // Расчет победы по мощности и ускорению
-      const myScore = myCar.hp / myCar.accel + (Math.random() * 20);
-      const botScore = botCar.hp / botCar.accel + (Math.random() * 20);
-      const isWin = myScore >= botScore;
+      const myHash = state.racks.reduce((a, b) => a + b.hashrate, 0);
+      const enemyHash = 50 + Math.random() * 250;
+      const isWin = (myHash + Math.random() * 80) >= enemyHash;
 
       setTimeout(() => {
-        pCarEl.style.left = isWin ? '85%' : '65%';
-        oCarEl.style.left = isWin ? '65%' : '85%';
+        myFill.style.width = isWin ? '100%' : '65%';
+        enemyFill.style.width = isWin ? '60%' : '100%';
       }, 50);
 
       setTimeout(() => {
-        isRacing = false;
+        isBattling = false;
         if (isWin) {
-          player.balance += 400;
-          banner.innerHTML = `<span style="color:var(--accent-green)">🏆 ПОБЕДА! +400 ₽</span>`;
+          state.balance += 500;
+          banner.innerHTML = `<span style="color:var(--neon-green)">🏆 БЛОК НАЙДЕН! Выигрыш: +500 USDT</span>`;
           Haptic.success();
         } else {
-          banner.innerHTML = `<span style="color:var(--accent-red)">❌ ПОРАЖЕНИЕ! -200 ₽</span>`;
+          banner.innerHTML = `<span style="color:var(--neon-rose)">❌ ПУЛ ПРОИГРАЛ! -250 USDT</span>`;
           Haptic.error();
         }
-        updateHUD();
-      }, 2600);
+        refreshTelemetry();
+      }, 2300);
     });
 
-    // Виральный шеринг дуэли в Telegram
-    document.getElementById('btnSharePvP').addEventListener('click', () => {
-      const myCar = player.garage[0]?.name || "своей тачке";
-      const text = encodeURIComponent(`Я вызываю тебя на драг-рейсинг 402м на ${myCar}! Сможешь обогнать? 🏎️💨`);
-      const shareUrl = `https://t.me/share/url?url=https://t.me/YourBotUsername?startapp=duel_${user.id}&text=${text}`;
-      if (tg?.openTelegramLink) tg.openTelegramLink(shareUrl);
-      else window.open(shareUrl, '_blank');
+    document.getElementById('btnShareDuelLink').addEventListener('click', () => {
+      const text = encodeURIComponent(`Мой дата-центр выдает ${document.getElementById('totalHashrate').textContent}! Бросаю вызов твоему пулу ⚡`);
+      const url = `https://t.me/share/url?url=https://t.me/CyberMinerBot?startapp=pool_${tgUser.id}&text=${text}`;
+      if (tg?.openTelegramLink) tg.openTelegramLink(url);
+      else window.open(url, '_blank');
     });
 
-    // 4. КРИМИНАЛ / УГОН
-    document.getElementById('btnAttemptHeist').addEventListener('click', () => {
-      const targetCar = CARS_POOL[Math.floor(Math.random() * (CARS_POOL.length - 1)) + 1];
-      const botVictims = ["@drag_king", "@turbo_vlad", "@night_rider", "@jdm_family"];
-      currentHeistTarget = {
-        victim: botVictims[Math.floor(Math.random() * botVictims.length)],
-        car: targetCar,
-        alarmChance: Math.floor(Math.random() * 40) + 30 // 30-70% защита
+    // ВЗЛОМ ФЕРМ
+    document.getElementById('btnScanTarget').addEventListener('click', () => {
+      const sample = HARDWARE_CATALOG[Math.floor(Math.random() * 4) + 2];
+      const botVictims = ["@hash_king", "@satoshis_node", "@crypto_baron", "@dark_miner"];
+
+      currentHackTarget = {
+        ip: `192.168.${Math.floor(Math.random()*89+10)}.${Math.floor(Math.random()*250+1)}`,
+        owner: botVictims[Math.floor(Math.random() * botVictims.length)],
+        hardware: { name: sample[0], rarity: sample[1], hashrate: sample[2], value: sample[3], power: sample[4], icon: sample[6] },
+        firewallRate: Math.floor(Math.random() * 40) + 30
       };
 
-      document.getElementById('heistVictimName').textContent = currentHeistTarget.victim;
-      document.getElementById('heistCarName').textContent = currentHeistTarget.car.name;
-      document.getElementById('heistAlarmInfo').textContent = `Шанс обойти сигнализацию: ${100 - currentHeistTarget.alarmChance}%`;
-      document.getElementById('heistTargetCard').style.display = 'flex';
-      document.getElementById('heistBanner').textContent = '';
+      document.getElementById('targetIpAddress').textContent = currentHackTarget.ip;
+      document.getElementById('targetOwnerName').textContent = currentHackTarget.owner;
+      document.getElementById('targetHardwareTitle').textContent = `${currentHackTarget.hardware.icon} ${currentHackTarget.hardware.name}`;
+      document.getElementById('targetBypassRate').textContent = `Шанс обхода файрвола: ${100 - currentHackTarget.firewallRate}%`;
+      document.getElementById('hackTargetCard').style.display = 'flex';
+      document.getElementById('hackTerminalLog').textContent = '';
       Haptic.light();
     });
 
-    document.getElementById('btnStealNow').addEventListener('click', () => {
-      if (!currentHeistTarget) return;
+    document.getElementById('btnExecuteHack').addEventListener('click', () => {
+      if (!currentHackTarget) return;
       const roll = Math.random() * 100;
-      const success = roll > currentHeistTarget.alarmChance;
+      const success = roll > currentHackTarget.firewallRate;
 
       if (success) {
-        player.garage.push(currentHeistTarget.car);
-        document.getElementById('heistBanner').innerHTML = `<span style="color:var(--accent-green)">✅ УГОН УДАЛСЯ! ${currentHeistTarget.car.name} теперь в вашем гараже!</span>`;
+        if (state.racks.length < 6) {
+          state.racks.push(currentHackTarget.hardware);
+          document.getElementById('hackTerminalLog').innerHTML = `<span style="color:var(--neon-green)">✅ ЭКСПЛОЙТ УСПЕШЕН! ${currentHackTarget.hardware.name} перенесен в вашу стойку!</span>`;
+        } else {
+          state.balance += currentHackTarget.hardware.value;
+          document.getElementById('hackTerminalLog').innerHTML = `<span style="color:var(--neon-green)">✅ Стойка полна! Чип продан на бирже за +${currentHackTarget.hardware.value} USDT!</span>`;
+        }
         Haptic.success();
       } else {
-        const fine = 300;
-        player.balance = Math.max(0, player.balance - fine);
-        document.getElementById('heistBanner').innerHTML = `<span style="color:var(--accent-red)">🚨 СРАБОТАЛА СИРЕНА! Полиция выписала штраф -${fine} ₽!</span>`;
+        const fine = 350;
+        state.balance = Math.max(0, state.balance - fine);
+        document.getElementById('hackTerminalLog').innerHTML = `<span style="color:var(--neon-rose)">🚨 СРАБОТАЛ IDS! Системный штраф за взлом: -${fine} USDT!</span>`;
         Haptic.error();
       }
 
-      currentHeistTarget = null;
-      document.getElementById('heistTargetCard').style.display = 'none';
-      updateHUD();
-      renderGarage();
+      currentHackTarget = null;
+      document.getElementById('hackTargetCard').style.display = 'none';
+      refreshTelemetry();
+      renderServerRacks();
     });
 
-    document.getElementById('btnCancelHeist').addEventListener('click', () => {
-      currentHeistTarget = null;
-      document.getElementById('heistTargetCard').style.display = 'none';
+    document.getElementById('btnAbortHack').addEventListener('click', () => {
+      currentHackTarget = null;
+      document.getElementById('hackTargetCard').style.display = 'none';
     });
 
-    // Старт
-    updateHUD();
-    renderGarage();
+    // Инициализация при старте
+    refreshTelemetry();
+    renderServerRacks();
   </script>
 </body>
 </html>
