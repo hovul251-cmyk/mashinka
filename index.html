@@ -3,20 +3,18 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>CyberMiner - DataCenter Wars</title>
+  <title>CyberMiner Pro</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
     :root {
-      --bg-dark: #05070b;
-      --panel-bg: rgba(11, 15, 25, 0.82);
-      --panel-border: rgba(16, 229, 153, 0.22);
+      --bg-dark: #04070c;
+      --card-bg: rgba(7, 14, 22, 0.78);
+      --neon-cyan: #00f2fe;
       --neon-green: #10e599;
-      --neon-cyan: #06b6d4;
-      --neon-purple: #a855f7;
+      --neon-purple: #7928ca;
       --neon-rose: #f43f5e;
-      --neon-amber: #f59e0b;
       --text-main: #f8fafc;
-      --text-dim: #64748b;
+      --text-dim: #718096;
       --font-mono: "SF Mono", "Fira Code", monospace;
     }
 
@@ -32,658 +30,466 @@
 
     body {
       background-color: var(--bg-dark);
+      background-image: 
+        radial-gradient(circle at 50% 12%, rgba(0, 242, 254, 0.12) 0%, transparent 65%),
+        linear-gradient(rgba(0, 242, 254, 0.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 242, 254, 0.035) 1px, transparent 1px);
+      background-size: 100% 100%, 28px 28px, 28px 28px;
       color: var(--text-main);
       min-height: 100vh;
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 8px 10px calc(65px + env(safe-area-inset-bottom, 8px)) 10px;
+      padding: 12px 14px calc(76px + env(safe-area-inset-bottom, 10px)) 14px;
       overflow-x: hidden;
       position: relative;
     }
 
-    /* Анимированная 3D-сетка на фоне */
-    .bg-grid-plane {
-      position: fixed;
-      inset: 0;
-      background: 
-        linear-gradient(to bottom, rgba(5,7,11,0.2) 0%, var(--bg-dark) 90%),
-        linear-gradient(rgba(6, 182, 212, 0.07) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(6, 182, 212, 0.07) 1px, transparent 1px);
-      background-size: 100% 100%, 32px 32px, 32px 32px;
-      z-index: -2;
-      animation: gridDrift 20s linear infinite;
-    }
-
-    @keyframes gridDrift {
-      0% { background-position: 0 0, 0 0, 0 0; }
-      100% { background-position: 0 0, 0 64px, 64px 0; }
-    }
-
-    /* Неоновые градиентные сферы сзади */
-    .ambient-glow {
-      position: fixed;
-      width: 280px;
-      height: 280px;
-      border-radius: 50%;
-      background: radial-gradient(circle, rgba(16, 229, 153, 0.12) 0%, transparent 70%);
-      top: -60px;
-      left: 50%;
-      transform: translateX(-50%);
-      z-index: -1;
-      filter: blur(40px);
-      animation: ambientBreathe 6s ease-in-out infinite alternate;
-    }
-
-    @keyframes ambientBreathe {
-      0% { transform: translateX(-50%) scale(0.9); opacity: 0.6; }
-      100% { transform: translateX(-50%) scale(1.3); opacity: 1; }
-    }
-
-    .terminal-container {
+    .app-viewport {
       width: 100%;
-      max-width: 440px;
+      max-width: 420px;
       display: flex;
       flex-direction: column;
-      gap: 10px;
-      position: relative;
+      align-items: center;
+      gap: 12px;
     }
 
-    /* Бегущая строка мемпула */
-    .mempool-ticker {
-      width: 100%;
-      overflow: hidden;
-      white-space: nowrap;
-      background: rgba(0, 0, 0, 0.6);
-      border: 1px solid rgba(255, 255, 255, 0.06);
-      border-radius: 6px;
-      padding: 3px 0;
+    /* 1. Верхняя кнопка "НОВОСТИ" */
+    .top-pill-capsule {
+      width: 82%;
+      max-width: 320px;
+      height: 38px;
+      background: rgba(10, 18, 28, 0.85);
+      border: 1px solid rgba(0, 242, 254, 0.35);
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 16px rgba(0, 242, 254, 0.15), inset 0 0 8px rgba(0, 242, 254, 0.1);
+      cursor: pointer;
+      position: relative;
+      transition: all 0.25s ease;
+    }
+    .top-pill-capsule:active {
+      transform: scale(0.97);
+      border-color: var(--neon-cyan);
+      box-shadow: 0 0 20px rgba(0, 242, 254, 0.3);
+    }
+    .top-pill-text {
       font-family: var(--font-mono);
-      font-size: 9px;
+      font-size: 11px;
+      letter-spacing: 2px;
+      font-weight: 800;
       color: var(--neon-cyan);
-    }
-    .ticker-content {
-      display: inline-block;
-      animation: tickerRun 22s linear infinite;
-    }
-    @keyframes tickerRun {
-      0% { transform: translateX(100%); }
-      100% { transform: translateX(-100%); }
+      text-transform: uppercase;
     }
 
-    /* Верхний HUD */
-    .terminal-header {
-      background: var(--panel-bg);
-      border: 1px solid var(--panel-border);
-      backdrop-filter: blur(20px);
-      border-radius: 14px;
-      padding: 12px 14px;
+    /* 2. Капсула БАЛАНСА прямо под новостями */
+    .balance-capsule {
+      width: 76%;
+      max-width: 290px;
+      height: 40px;
+      background: rgba(5, 18, 20, 0.85);
+      border: 1.5px solid var(--neon-green);
+      border-radius: 22px;
       display: flex;
-      flex-direction: column;
+      align-items: center;
+      justify-content: center;
       gap: 8px;
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6), inset 0 0 16px rgba(16, 229, 153, 0.05);
+      box-shadow: 0 0 20px rgba(16, 229, 153, 0.28), inset 0 0 12px rgba(16, 229, 153, 0.12);
       position: relative;
-      overflow: hidden;
     }
-
-    .terminal-header::after {
-      content: '';
-      position: absolute;
-      top: -50%;
-      left: -60%;
-      width: 40%;
-      height: 200%;
-      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.04), transparent);
-      transform: rotate(25deg);
-      animation: cardSheen 8s infinite ease-in-out;
-    }
-    @keyframes cardSheen {
-      0%, 75% { left: -60%; }
-      100% { left: 160%; }
-    }
-
-    .top-telemetry {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .terminal-brand {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .status-pulse {
-      width: 8px;
-      height: 8px;
-      background: var(--neon-green);
+    .crypto-coin-badge {
+      width: 22px;
+      height: 22px;
       border-radius: 50%;
-      box-shadow: 0 0 12px var(--neon-green);
-      animation: pulse 1.6s infinite ease-in-out;
+      background: var(--neon-green);
+      color: #03120c;
+      font-weight: 900;
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 10px var(--neon-green);
     }
-
-    @keyframes pulse {
-      0%, 100% { opacity: 1; transform: scale(1); box-shadow: 0 0 12px var(--neon-green); }
-      50% { opacity: 0.3; transform: scale(0.8); box-shadow: 0 0 4px var(--neon-green); }
-    }
-
-    .terminal-title {
+    .balance-title-num {
       font-family: var(--font-mono);
       font-size: 13px;
       font-weight: 800;
-      letter-spacing: 1.5px;
       color: #fff;
+      letter-spacing: 0.5px;
     }
 
-    .wallet-badge-wrap {
-      position: relative;
-    }
-
-    .wallet-badge {
-      background: rgba(16, 229, 153, 0.12);
-      border: 1px solid var(--neon-green);
-      padding: 5px 11px;
-      border-radius: 8px;
-      font-family: var(--font-mono);
-      font-weight: 800;
-      font-size: 13px;
-      color: var(--neon-green);
-      box-shadow: 0 0 15px rgba(16, 229, 153, 0.25);
-      transition: transform 0.15s ease;
-    }
-
-    .floating-coin-text {
+    /* Всплывающий текст дохода (+USDT) */
+    .floating-income {
       position: absolute;
-      top: -12px;
-      right: 0;
+      top: -14px;
+      right: 8px;
       font-family: var(--font-mono);
       font-size: 11px;
       font-weight: 900;
       color: var(--neon-green);
       pointer-events: none;
-      animation: floatUpFade 1.2s forwards ease-out;
+      animation: floatIncome 1.1s forwards ease-out;
     }
-    @keyframes floatUpFade {
-      0% { opacity: 0; transform: translateY(4px) scale(0.8); }
+    @keyframes floatIncome {
+      0% { opacity: 0; transform: translateY(4px) scale(0.85); }
       20% { opacity: 1; transform: translateY(-4px) scale(1.1); }
-      100% { opacity: 0; transform: translateY(-24px) scale(0.9); }
+      100% { opacity: 0; transform: translateY(-22px) scale(0.9); }
     }
 
-    .rig-stats-row {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
+    /* 3. Центр: Слайдер с картой и неоновыми стрелками по бокам */
+    .hero-slider-wrap {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
       gap: 6px;
-      background: rgba(0, 0, 0, 0.45);
-      padding: 6px 10px;
-      border-radius: 8px;
-      font-size: 11px;
-      border: 1px solid rgba(255, 255, 255, 0.04);
+      margin-top: 2px;
     }
 
-    .cyber-btn {
-      position: relative;
-      background: linear-gradient(135deg, rgba(255, 255, 255, 0.06) 0%, rgba(255, 255, 255, 0.01) 100%);
-      border: 1px solid rgba(255, 255, 255, 0.15);
-      color: #fff;
-      padding: 12px 14px;
-      font-family: var(--font-mono);
-      font-size: 12px;
-      font-weight: 800;
-      text-transform: uppercase;
-      letter-spacing: 1px;
+    .arrow-btn {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      background: rgba(8, 16, 24, 0.85);
+      border: 1.5px solid rgba(0, 242, 254, 0.45);
+      color: var(--neon-cyan);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
       cursor: pointer;
-      clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
-      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      overflow: hidden;
-    }
-
-    .cyber-btn::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: -100%;
-      width: 60%;
-      height: 100%;
-      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.25), transparent);
-      transform: skewX(-20deg);
-      transition: left 0.5s ease;
-    }
-
-    .cyber-btn:hover::before, .cyber-btn:active::before {
-      left: 140%;
-    }
-
-    .cyber-btn:active {
-      transform: scale(0.96);
-    }
-
-    .cyber-btn.neon-green {
-      background: linear-gradient(135deg, rgba(16, 229, 153, 0.22), rgba(6, 182, 212, 0.12));
-      border: 1px solid var(--neon-green);
-      color: var(--neon-green);
-      box-shadow: 0 0 16px rgba(16, 229, 153, 0.28);
-    }
-
-    .cyber-btn.neon-purple {
-      background: linear-gradient(135deg, rgba(168, 85, 247, 0.25), rgba(244, 63, 94, 0.15));
-      border: 1px solid var(--neon-purple);
-      color: #f3e8ff;
-      box-shadow: 0 0 16px rgba(168, 85, 247, 0.35);
-    }
-
-    .cyber-btn.neon-rose {
-      background: linear-gradient(135deg, rgba(244, 63, 94, 0.22), rgba(244, 63, 94, 0.05));
-      border: 1px solid var(--neon-rose);
-      color: #fca5a5;
-      box-shadow: 0 0 14px rgba(244, 63, 94, 0.25);
-    }
-
-    .module-screen {
-      display: none;
-      flex-direction: column;
-      gap: 10px;
-      animation: screenFadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-    }
-    .module-screen.active { display: flex; }
-
-    @keyframes screenFadeIn {
-      from { opacity: 0; transform: translateY(6px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    .cyber-panel {
-      background: var(--panel-bg);
-      border: 1px solid var(--panel-border);
-      backdrop-filter: blur(20px);
-      border-radius: 14px;
-      padding: 14px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.45);
-    }
-
-    .rig-slot {
-      background: rgba(6, 10, 16, 0.65);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      border-radius: 10px;
-      padding: 10px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      position: relative;
-      overflow: hidden;
-      transition: transform 0.2s ease, border-color 0.2s ease;
-    }
-
-    .rig-slot:hover {
-      border-color: rgba(16, 229, 153, 0.4);
-      transform: translateY(-2px);
-    }
-
-    .rig-slot::before {
-      content: '';
-      position: absolute;
-      left: 0;
-      top: 0;
-      bottom: 0;
-      width: 3.5px;
-      background: var(--neon-cyan);
-      box-shadow: 0 0 8px var(--neon-cyan);
-    }
-
-    .rig-icon-box {
-      width: 50px;
-      height: 50px;
-      border-radius: 8px;
-      background: rgba(255, 255, 255, 0.03);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      position: relative;
+      box-shadow: 0 0 14px rgba(0, 242, 254, 0.2);
+      transition: all 0.2s ease;
       flex-shrink: 0;
     }
-
-    .fan-rotator {
-      position: absolute;
-      inset: 2px;
-      border: 1.5px dashed rgba(6, 182, 212, 0.6);
-      border-radius: 50%;
-      animation: spinFan 1.8s linear infinite;
+    .arrow-btn:active {
+      transform: scale(0.9);
+      border-color: var(--neon-cyan);
+      box-shadow: 0 0 20px rgba(0, 242, 254, 0.45);
     }
 
+    /* Главная неоновая карточка видеокарты */
+    .gpu-main-card {
+      flex: 1;
+      background: var(--card-bg);
+      backdrop-filter: blur(25px);
+      border: 1.5px solid var(--neon-cyan);
+      border-radius: 22px;
+      padding: 16px 14px 18px 14px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      box-shadow: 0 0 26px rgba(0, 242, 254, 0.22), inset 0 0 16px rgba(0, 242, 254, 0.08);
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* 3D Витрина видеокарты с крутящимися кулерами */
+    .gpu-3d-stage {
+      width: 100%;
+      height: 165px;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      perspective: 800px;
+      margin-bottom: 4px;
+    }
+
+    .gpu-3d-body {
+      width: 220px;
+      height: 125px;
+      background: linear-gradient(135deg, #0b1320 0%, #151f30 100%);
+      border: 1.5px solid rgba(0, 242, 254, 0.6);
+      border-radius: 16px;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: space-around;
+      padding: 10px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8), 0 0 24px rgba(0, 242, 254, 0.35);
+      animation: hoverGpu 4s ease-in-out infinite alternate;
+      transform-style: preserve-3d;
+    }
+    @keyframes hoverGpu {
+      0% { transform: translateY(0px) rotateX(10deg) rotateY(-8deg); }
+      100% { transform: translateY(-8px) rotateX(12deg) rotateY(6deg); }
+    }
+
+    .gpu-fan {
+      width: 68px;
+      height: 68px;
+      border-radius: 50%;
+      background: radial-gradient(circle, #050b14 30%, #101c2e 100%);
+      border: 2px dashed var(--neon-cyan);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      box-shadow: 0 0 15px rgba(0, 242, 254, 0.4);
+    }
+    .gpu-fan::after {
+      content: '';
+      position: absolute;
+      inset: 6px;
+      border: 2px dotted rgba(121, 40, 202, 0.85);
+      border-radius: 50%;
+      animation: spinFan 1.4s linear infinite;
+    }
+    .gpu-fan-center {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #00f2fe;
+      box-shadow: 0 0 8px #00f2fe;
+      z-index: 2;
+    }
     @keyframes spinFan {
       0% { transform: rotate(0deg); }
       100% { transform: rotate(360deg); }
     }
 
-    .rig-info {
-      flex: 1;
-      min-width: 0;
-      display: flex;
-      flex-direction: column;
-      gap: 3px;
-    }
-
-    .rig-title {
-      font-size: 13px;
-      font-weight: 800;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
+    /* Название и спецификации */
+    .gpu-name-title {
+      font-size: 18px;
+      font-weight: 900;
+      letter-spacing: 1px;
       color: #fff;
-    }
-
-    .rig-metrics {
-      font-family: var(--font-mono);
-      font-size: 10px;
-      color: var(--text-dim);
-    }
-
-    .crate-display {
-      background: radial-gradient(circle at center, rgba(6, 182, 212, 0.18) 0%, transparent 70%);
-      border: 1px dashed rgba(6, 182, 212, 0.35);
-      border-radius: 12px;
-      padding: 24px;
+      margin-top: 6px;
+      text-transform: uppercase;
       text-align: center;
+    }
+
+    .specs-list {
+      width: 100%;
       display: flex;
       flex-direction: column;
-      align-items: center;
+      gap: 5px;
+      margin: 10px 0 14px 0;
+      padding: 0 10px;
+    }
+    .spec-line {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      font-family: var(--font-mono);
+    }
+    .spec-label { color: var(--text-dim); }
+    .spec-val { color: #fff; font-weight: 700; }
+
+    /* Кнопки внутри карточки (Забрать / Продать) */
+    .card-actions-row {
+      width: 100%;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
       gap: 8px;
     }
 
-    .crate-floating-icon {
-      font-size: 46px;
-      animation: floatCrate 3.5s ease-in-out infinite;
-      filter: drop-shadow(0 10px 14px rgba(6, 182, 212, 0.3));
-    }
-
-    @keyframes floatCrate {
-      0%, 100% { transform: translateY(0px) rotate(0deg); }
-      50% { transform: translateY(-10px) rotate(2deg); }
-    }
-
-    .crate-floating-icon.opening {
-      animation: crateShakeOpen 0.6s cubic-bezier(0.36, 0.07, 0.19, 0.97) infinite;
-    }
-
-    @keyframes crateShakeOpen {
-      10%, 90% { transform: translate3d(-2px, 0, 0); }
-      20%, 80% { transform: translate3d(3px, 0, 0); }
-      30%, 50%, 70% { transform: translate3d(-5px, 0, 0); }
-      40%, 60% { transform: translate3d(5px, 0, 0); }
-    }
-
-    .chip-reveal-box {
-      display: none;
-      flex-direction: column;
-      gap: 10px;
-      background: rgba(0, 0, 0, 0.6);
-      border: 1px solid var(--neon-cyan);
-      border-radius: 12px;
-      padding: 14px;
-      box-shadow: 0 0 25px rgba(6, 182, 212, 0.3);
-      animation: revealCard 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.28);
-    }
-
-    @keyframes revealCard {
-      from { transform: scale(0.85); opacity: 0; }
-      to { transform: scale(1); opacity: 1; }
-    }
-
-    .battle-track {
-      background: #030508;
-      border: 1px solid var(--panel-border);
-      border-radius: 10px;
-      padding: 12px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
+    .card-btn {
+      height: 42px;
+      border-radius: 22px;
       font-family: var(--font-mono);
-    }
-
-    .battle-progress-bar {
-      height: 20px;
-      background: rgba(255, 255, 255, 0.05);
-      border-radius: 5px;
-      overflow: hidden;
-      position: relative;
-    }
-
-    .battle-fill {
-      height: 100%;
-      width: 0%;
-      background: linear-gradient(90deg, var(--neon-cyan), var(--neon-green));
-      box-shadow: 0 0 10px var(--neon-green);
-      transition: width 2.2s cubic-bezier(0.1, 0.8, 0.2, 1);
-      position: relative;
-    }
-
-    .battle-fill::after {
-      content: '';
-      position: absolute;
-      top: 0; right: 0; bottom: 0; width: 8px;
-      background: #fff;
-      filter: blur(2px);
-    }
-
-    .scan-beam-box {
-      position: relative;
-      overflow: hidden;
-    }
-
-    .scan-beam-box::before {
-      content: '';
-      position: absolute;
-      left: 0;
-      right: 0;
-      height: 2px;
-      background: linear-gradient(90deg, transparent, var(--neon-rose), transparent);
-      box-shadow: 0 0 12px var(--neon-rose);
-      top: 0;
-      animation: scanLaser 2s linear infinite;
-      z-index: 10;
-      pointer-events: none;
-    }
-
-    @keyframes scanLaser {
-      0% { top: 0%; opacity: 0; }
-      20% { opacity: 1; }
-      80% { opacity: 1; }
-      100% { top: 100%; opacity: 0; }
-    }
-
-    .cyber-dock {
-      position: fixed;
-      bottom: calc(6px + env(safe-area-inset-bottom, 6px));
-      left: 50%;
-      transform: translateX(-50%);
-      width: calc(100% - 20px);
-      max-width: 440px;
-      height: 52px;
-      background: rgba(9, 13, 20, 0.94);
-      backdrop-filter: blur(25px);
-      border: 1px solid var(--panel-border);
-      border-radius: 16px;
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      padding: 4px;
-      z-index: 100;
-      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.7);
-    }
-
-    .dock-node {
-      background: none;
-      border: none;
-      color: var(--text-dim);
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: lowercase;
+      cursor: pointer;
       display: flex;
-      flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 2px;
-      font-family: var(--font-mono);
-      font-size: 9px;
+      transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .btn-claim-coins {
+      background: rgba(16, 229, 153, 0.15);
+      border: 1.5px solid var(--neon-green);
+      color: #fff;
+      box-shadow: 0 0 14px rgba(16, 229, 153, 0.3);
+    }
+    .btn-sell-card {
+      background: rgba(121, 40, 202, 0.2);
+      border: 1.5px solid #a855f7;
+      color: #e9d5ff;
+      box-shadow: 0 0 14px rgba(168, 85, 247, 0.25);
+    }
+
+    /* 4. Нижнее меню с мягкой анимацией увеличения и осветления */
+    .bottom-capsule-dock {
+      position: fixed;
+      bottom: calc(10px + env(safe-area-inset-bottom, 8px));
+      left: 50%;
+      transform: translateX(-50%);
+      width: calc(100% - 24px);
+      max-width: 410px;
+      height: 52px;
+      background: rgba(8, 14, 22, 0.92);
+      backdrop-filter: blur(25px);
+      border: 1px solid rgba(0, 242, 254, 0.25);
+      border-radius: 28px;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      padding: 4px;
+      gap: 6px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8), 0 0 16px rgba(0, 242, 254, 0.12);
+      z-index: 100;
+    }
+
+    /* Анимация нажатия нижней кнопки: плавно увеличивается, светлеет, затем возвращается */
+    .dock-pill-btn {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.07);
+      border-radius: 24px;
+      color: var(--text-dim);
+      font-size: 11px;
       font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
       cursor: pointer;
-      transition: all 0.2s ease;
+      transition: transform 0.32s cubic-bezier(0.34, 1.56, 0.64, 1),
+                  background 0.3s ease,
+                  color 0.3s ease,
+                  border-color 0.3s ease,
+                  box-shadow 0.3s ease;
+      will-change: transform;
     }
-    .dock-node.active {
-      color: var(--neon-green);
-      transform: translateY(-2px);
+
+    /* При нажатии: плавно становится больше, светлеет фон и неон */
+    .dock-pill-btn:active, .dock-pill-btn.pulse-active {
+      transform: scale(1.08);
+      background: rgba(0, 242, 254, 0.18);
+      color: #ffffff;
+      border-color: var(--neon-cyan);
+      box-shadow: 0 0 18px rgba(0, 242, 254, 0.45);
+      filter: brightness(1.3);
     }
-    .dock-node span:first-child { font-size: 16px; }
+
+    .dock-pill-btn.active {
+      background: rgba(0, 242, 254, 0.12);
+      color: #fff;
+      border-color: rgba(0, 242, 254, 0.4);
+    }
+
+    /* Модальное окно (Новости / Настройки / Меню) */
+    .modal-sheet {
+      position: fixed;
+      inset: 0;
+      background: rgba(4, 7, 12, 0.95);
+      backdrop-filter: blur(20px);
+      z-index: 200;
+      display: none;
+      flex-direction: column;
+      padding: 16px;
+      overflow-y: auto;
+    }
+    .modal-sheet.active { display: flex; }
+    .modal-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 12px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      margin-bottom: 12px;
+    }
+    .btn-close {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: #fff;
+      font-size: 16px;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
 
-  <div class="bg-grid-plane"></div>
-  <div class="ambient-glow"></div>
+  <div class="app-viewport">
 
-  <div class="terminal-container">
-
-    <div class="mempool-ticker">
-      <div class="ticker-content" id="mempoolTickerText">
-        [BLOCK #891230] 0.042 BTC → Pool #4 • [HASH 928 TH/s] • [GAS: 12 Gwei] • [DIFF +2.4%] • [TRANSACTION VERIFIED]
-      </div>
+    <!-- 1. Верхняя кнопка "НОВОСТИ" -->
+    <div class="top-pill-capsule" id="btnOpenNews">
+      <span class="top-pill-text">НОВОСТИ</span>
     </div>
 
-    <header class="terminal-header">
-      <div class="top-telemetry">
-        <div class="terminal-brand">
-          <div class="status-pulse"></div>
-          <span class="terminal-title">CYBER_MINER // V3.2</span>
-        </div>
-        <div class="wallet-badge-wrap">
-          <div class="wallet-badge" id="walletBadge">⚡ <span id="cryptoBalance">1,500</span> USDT</div>
-          <div id="floatingCoinContainer"></div>
-        </div>
-      </div>
-      <div class="rig-stats-row">
-        <div>ХЕШРЕЙТ: <b style="color:var(--neon-green);" id="totalHashrate">0 MH/s</b></div>
-        <div>ДОХОД: <b style="color:var(--neon-cyan);" id="incomePerSec">+0.0 USDT/с</b></div>
-      </div>
-    </header>
+    <!-- 2. БАЛАНС под новостями -->
+    <div class="balance-capsule">
+      <div class="crypto-coin-badge">₮</div>
+      <span class="balance-title-num">БАЛАНС: <span id="balanceText">1,500</span> USDT</span>
+      <div id="floatingCoinContainer"></div>
+    </div>
 
-    <main class="module-screen active" id="screenFarm">
-      <div class="cyber-panel">
-        <div style="display:flex; justify-content:space-between; align-items:center;">
-          <strong style="font-family:var(--font-mono); font-size:12px;">СЕРВЕРНАЯ СТОЙКА (<span id="installedRigsCount">0</span>/6)</strong>
-          <button class="cyber-btn neon-green" id="btnClaimPassive" style="padding:6px 12px; font-size:10px;">Снять прибыль</button>
-        </div>
-        <div id="rigListContainer" style="display:flex; flex-direction:column; gap:8px;"></div>
-      </div>
+    <!-- 3. Центральный блок: стрелка влево + карточка видеокарты + стрелка вправо -->
+    <div class="hero-slider-wrap">
+      <button class="arrow-btn" id="btnPrevGpu">&#10094;</button>
 
-      <div class="cyber-panel">
-        <strong style="font-family:var(--font-mono); font-size:12px; color:var(--neon-cyan);">🛡️ КВАНТОВЫЙ ФАЙРВОЛ ЦОД</strong>
-        <p style="font-size:11px; color:var(--text-dim);">Файрвол нейтрализует вторжения хакеров в вашу локальную подсеть.</p>
-        <div style="display:flex; justify-content:space-between; align-items:center;">
-          <span style="font-size:11px; font-family:var(--font-mono);" id="firewallLevelText">Файрвол: v1.0 (30% защиты)</span>
-          <button class="cyber-btn neon-purple" id="btnUpgradeFirewall" style="padding:8px 12px; font-size:10px;">Апгрейд (600 USDT)</button>
-        </div>
-      </div>
-    </main>
-
-    <section class="module-screen" id="screenMarket">
-      <div class="cyber-panel">
-        <div class="crate-display">
-          <div class="crate-floating-icon" id="crateIcon">📦</div>
-          <h3 style="font-size:15px; font-family:var(--font-mono);">КОНТЕЙНЕР ASIC & GPU</h3>
-          <p style="font-size:11px; color:var(--text-dim);">Случайная поставка вычислительного оборудования с шансом выбить топовый серверный чип.</p>
-          <button class="cyber-btn neon-green" id="btnOrderCrate" style="width:100%; margin-top:8px;">
-            Заказать поставку (300 USDT)
-          </button>
-        </div>
-
-        <div class="chip-reveal-box" id="chipRevealBox">
-          <div style="display:flex; justify-content:space-between; align-items:center;">
-            <span style="font-family:var(--font-mono); font-size:10px; font-weight:800;" id="revealedRarity">ЛЕГЕНДАРНЫЙ</span>
-            <span style="color:var(--neon-green); font-family:var(--font-mono); font-size:11px;" id="revealedValue">+0 USDT</span>
-          </div>
-          <h3 style="font-size:16px; color:#fff;" id="revealedTitle">—</h3>
-          <div style="font-size:11px; color:var(--text-dim); font-family:var(--font-mono);" id="revealedSpecs">Хешрейт: 0 MH/s • Потребление: 0W</div>
-          <div style="display:flex; gap:8px; margin-top:6px;">
-            <button class="cyber-btn neon-green" style="flex:1;" id="btnInstallRig">Монтировать в стойку</button>
-            <button class="cyber-btn" style="flex:1;" id="btnLiquidateRig">Продать на лом</button>
+      <main class="gpu-main-card">
+        <!-- 3D витрина видеокарты -->
+        <div class="gpu-3d-stage">
+          <div class="gpu-3d-body">
+            <div class="gpu-fan"><div class="gpu-fan-center"></div></div>
+            <div class="gpu-fan"><div class="gpu-fan-center"></div></div>
           </div>
         </div>
-      </div>
-    </section>
 
-    <section class="module-screen" id="screenBattle">
-      <div class="cyber-panel">
-        <strong style="font-family:var(--font-mono); font-size:12px;">⚡ ДРАГ-ГОНКА ПУЛОВ (БИТВА ЗА БЛОК)</strong>
-        <p style="font-size:11px; color:var(--text-dim);">Состязание за нахождение валидного блока транзакций. Победитель забирает весь банк эмиссии!</p>
+        <h2 class="gpu-name-title" id="gpuCardTitle">RTX 4090 CYBER</h2>
 
-        <div style="display:flex; gap:8px;">
-          <button class="cyber-btn neon-green" style="flex:2;" id="btnRunHashBattle">Бросить вызов пулу (250 USDT)</button>
-          <button class="cyber-btn" style="flex:1;" id="btnShareDuelLink">Вызов 👥</button>
-        </div>
-
-        <div class="battle-track" style="margin-top:8px;">
-          <div style="font-size:10px; color:var(--neon-green);">ВАШ ПУЛ [ВЫЧИСЛЕНИЯ]:</div>
-          <div class="battle-progress-bar">
-            <div class="battle-fill" id="myBattleFill"></div>
+        <div class="specs-list">
+          <div class="spec-line">
+            <span class="spec-label">Хешрейт:</span>
+            <span class="spec-val" id="specHashrate">185 MH/s</span>
           </div>
-          <div style="font-size:10px; color:var(--neon-rose); margin-top:6px;">ПУЛ СОПЕРНИКА [ВЫЧИСЛЕНИЯ]:</div>
-          <div class="battle-progress-bar">
-            <div class="battle-fill" id="enemyBattleFill" style="background:linear-gradient(90deg, var(--neon-purple), var(--neon-rose));"></div>
+          <div class="spec-line">
+            <span class="spec-label">Потребление:</span>
+            <span class="spec-val" id="specPower">450W</span>
+          </div>
+          <div class="spec-line">
+            <span class="spec-label">Температура:</span>
+            <span class="spec-val" id="specTemp">64°C</span>
+          </div>
+          <div class="spec-line">
+            <span class="spec-label">Эмиссия:</span>
+            <span class="spec-val" style="color:var(--neon-green);" id="specIncome">+0.5 USDT/с</span>
           </div>
         </div>
-        <div id="battleResultBanner" style="text-align:center; font-family:var(--font-mono); font-size:12px; font-weight:800;"></div>
-      </div>
-    </section>
 
-    <section class="module-screen" id="screenHack">
-      <div class="cyber-panel">
-        <strong style="color:var(--neon-rose); font-family:var(--font-mono); font-size:12px;">💀 ЭКСПЛОЙТ ЧУЖИХ СЕРВЕРОВ</strong>
-        <p style="font-size:11px; color:var(--text-dim);">
-          Просканируйте подсеть, найдите уязвимый ЦОД и украдите видеокарту из фермы другого майнера.
-        </p>
-        <button class="cyber-btn neon-rose" id="btnScanTarget">Сканировать IP-диапазон</button>
-      </div>
+        <div class="card-actions-row">
+          <button class="card-btn btn-claim-coins" id="btnCollectIncome">забрать монеты</button>
+          <button class="card-btn btn-sell-card" id="btnSellCard">продать карту</button>
+        </div>
+      </main>
 
-      <div class="cyber-panel scan-beam-box" id="hackTargetCard" style="display:none;">
-        <div style="font-size:10px; color:var(--text-dim); font-family:var(--font-mono);">
-          ЦЕЛЬ: <b id="targetIpAddress" style="color:var(--neon-cyan);">192.168.4.102</b> • ХОСТ: <b id="targetOwnerName">@crypto_whale</b>
-        </div>
-        <h3 id="targetHardwareTitle" style="color:#fff;">NVIDIA RTX 4090 OC</h3>
-        <div style="font-size:11px; font-family:var(--font-mono); color:var(--neon-amber);" id="targetBypassRate">
-          Шанс обхода файрвола: 55%
-        </div>
-        <div style="display:flex; gap:8px; margin-top:6px;">
-          <button class="cyber-btn neon-rose" style="flex:1;" id="btnExecuteHack">Взломать порт</button>
-          <button class="cyber-btn" style="flex:1;" id="btnAbortHack">Прервать</button>
-        </div>
-      </div>
-      <div id="hackTerminalLog" style="text-align:center; font-family:var(--font-mono); font-size:12px; font-weight:800;"></div>
-    </section>
+      <button class="arrow-btn" id="btnNextGpu">&#10095;</button>
+    </div>
 
   </div>
 
-  <nav class="cyber-dock">
-    <button class="dock-node active" data-screen="screenFarm">
-      <span>🖥️</span>
-      <span>Стойка</span>
+  <!-- 4. Нижнее меню: Профиль | Меню | Настройки с плавной анимацией нажатия -->
+  <nav class="bottom-capsule-dock">
+    <button class="dock-pill-btn" id="dockBtnProfile">
+      <span>👤</span>
+      <span>профиль</span>
     </button>
-    <button class="dock-node" data-screen="screenMarket">
-      <span>📦</span>
-      <span>Дроп</span>
+    <button class="dock-pill-btn active" id="dockBtnMenu">
+      <span>▦</span>
+      <span>меню</span>
     </button>
-    <button class="dock-node" data-screen="screenBattle">
-      <span>⚡</span>
-      <span>Баттл</span>
-    </button>
-    <button class="dock-node" data-screen="screenHack">
-      <span>🥷</span>
-      <span>Взлом</span>
+    <button class="dock-pill-btn" id="dockBtnSettings">
+      <span>⚙️</span>
+      <span>настройки</span>
     </button>
   </nav>
+
+  <!-- Модальное окно для разделов -->
+  <div class="modal-sheet" id="infoModal">
+    <div class="modal-head">
+      <h3 id="modalTitle" style="color:var(--neon-cyan);">Раздел</h3>
+      <button class="btn-close" id="btnCloseModal">&times;</button>
+    </div>
+    <div id="modalContent" style="font-size:13px; color:var(--text-dim); line-height:1.6;"></div>
+  </div>
 
   <script>
     const tg = window.Telegram?.WebApp;
@@ -695,314 +501,142 @@
     const Haptic = {
       light: () => tg?.HapticFeedback?.impactOccurred('light'),
       medium: () => tg?.HapticFeedback?.impactOccurred('medium'),
-      success: () => tg?.HapticFeedback?.notificationOccurred('success'),
-      error: () => tg?.HapticFeedback?.notificationOccurred('error')
+      success: () => tg?.HapticFeedback?.notificationOccurred('success')
     };
 
-    const HARDWARE_CATALOG = [
-      ["NVIDIA GTX 1660 Super", "common", 31, 220, "125W", "PCIe 3.0", "📼", "Бюджетный кремний для старта"],
-      ["AMD Radeon RX 6700 XT", "common", 47, 340, "180W", "PCIe 4.0", "📼", "Надежный рабочий риг"],
-      ["NVIDIA RTX 3080 Ti", "rare", 90, 750, "290W", "PCIe 4.0", "💽", "Мощная карта на GDDR6X"],
-      ["Antminer S19 Pro ASIC", "rare", 110, 1100, "3250W", "SHA-256", "⚡", "Специализированный крипто-комбайн"],
-      ["NVIDIA RTX 4090 OC", "legendary", 185, 2600, "450W", "PCIe 4.0", "💎", "Флагманский GPU для майнинга и ИИ"],
-      ["NVIDIA H100 Tensor Core", "mythic", 450, 6800, "700W", "SXM5", "🪐", "Сверхмощный чип для дата-центров"]
+    // Каталог видеокарт
+    const GPU_INVENTORY = [
+      { name: "RTX 4090 CYBER", hashrate: "185 MH/s", power: "450W", temp: "64°C", rate: 0.8, price: 2600 },
+      { name: "RTX 3080 TI PRO", hashrate: "95 MH/s", power: "320W", temp: "68°C", rate: 0.4, price: 950 },
+      { name: "H100 TENSOR 80G", hashrate: "460 MH/s", power: "700W", temp: "58°C", rate: 2.2, price: 6800 },
+      { name: "RX 6700 XT PULSE", hashrate: "48 MH/s", power: "180W", temp: "62°C", rate: 0.2, price: 340 }
     ];
 
-    const tgUser = tg?.initDataUnsafe?.user || { id: 701, first_name: "NetRunner", username: "cyber_miner" };
+    let currentCardIndex = 0;
+    let balance = 1500;
+    let accumulatedIncome = 0;
 
-    let state = {
-      userTag: tgUser.username ? `@${tgUser.username}` : tgUser.first_name,
-      balance: 1500,
-      firewallLevel: 1,
-      passivePot: 0,
-      racks: [
-        { name: "NVIDIA GTX 1660 Super", rarity: "common", hashrate: 31, value: 220, icon: "📼", power: "125W" }
-      ]
-    };
+    function renderActiveCard() {
+      const card = GPU_INVENTORY[currentCardIndex];
+      document.getElementById('gpuCardTitle').textContent = card.name;
+      document.getElementById('specHashrate').textContent = card.hashrate;
+      document.getElementById('specPower').textContent = card.power;
+      document.getElementById('specTemp').textContent = card.temp;
+      document.getElementById('specIncome').textContent = `+${card.rate} USDT/с`;
+      document.getElementById('btnSellCard').textContent = `продать (${card.price}$)`;
+    }
 
-    let pendingDrop = null;
-    let currentHackTarget = null;
-    let isBattling = false;
+    function updateBalanceUI() {
+      document.getElementById('balanceText').textContent = Math.floor(balance).toLocaleString('ru-RU');
+    }
 
-    function spawnFloatingIncome(amount) {
+    function showIncomeFloat(amount) {
       if (amount <= 0) return;
-      const container = document.getElementById('floatingCoinContainer');
+      const wrap = document.getElementById('floatingCoinContainer');
       const el = document.createElement('div');
-      el.className = 'floating-coin-text';
+      el.className = 'floating-income';
       el.textContent = `+${amount} USDT`;
-      container.appendChild(el);
-      setTimeout(() => el.remove(), 1200);
+      wrap.appendChild(el);
+      setTimeout(() => el.remove(), 1100);
     }
 
-    function refreshTelemetry() {
-      document.getElementById('cryptoBalance').textContent = Math.floor(state.balance).toLocaleString('ru-RU');
-      document.getElementById('installedRigsCount').textContent = state.racks.length;
-
-      const totalHash = state.racks.reduce((acc, r) => acc + r.hashrate, 0);
-      document.getElementById('totalHashrate').textContent = `${totalHash} MH/s`;
-
-      const perSec = (totalHash * 0.05).toFixed(1);
-      document.getElementById('incomePerSec').textContent = `+${perSec} USDT/с`;
-      document.getElementById('firewallLevelText').textContent = `Файрвол: v${state.firewallLevel}.0 (${state.firewallLevel * 30}% защиты)`;
-    }
-
+    // Пассивное начисление монет
     setInterval(() => {
-      const totalHash = state.racks.reduce((acc, r) => acc + r.hashrate, 0);
-      if (totalHash > 0) {
-        state.passivePot += totalHash * 0.05;
-        document.getElementById('btnClaimPassive').textContent = `Снять (+${Math.floor(state.passivePot)} USDT)`;
-      }
+      const currentRate = GPU_INVENTORY[currentCardIndex].rate;
+      accumulatedIncome += currentRate;
+      document.getElementById('btnCollectIncome').textContent = `забрать (+${accumulatedIncome.toFixed(1)})`;
     }, 1000);
 
-    document.getElementById('btnClaimPassive').addEventListener('click', () => {
-      if (state.passivePot < 1) return;
-      const claimed = Math.floor(state.passivePot);
-      state.balance += claimed;
-      state.passivePot = 0;
-      document.getElementById('btnClaimPassive').textContent = 'Снять прибыль';
-      spawnFloatingIncome(claimed);
+    // Сбор накопленных монет
+    document.getElementById('btnCollectIncome').addEventListener('click', () => {
+      if (accumulatedIncome < 1) return;
+      const claimed = Math.floor(accumulatedIncome);
+      balance += claimed;
+      accumulatedIncome = 0;
+      document.getElementById('btnCollectIncome').textContent = 'забрать монеты';
+      showIncomeFloat(claimed);
       Haptic.success();
-      refreshTelemetry();
+      updateBalanceUI();
     });
 
-    document.querySelectorAll('.dock-node').forEach(btn => {
-      btn.addEventListener('click', () => {
-        document.querySelectorAll('.dock-node').forEach(b => b.classList.remove('active'));
-        document.querySelectorAll('.module-screen').forEach(s => s.classList.remove('active'));
-        btn.classList.add('active');
-        document.getElementById(btn.dataset.screen).classList.add('active');
-        Haptic.light();
-        renderServerRacks();
-      });
+    // Продажа текущей карты
+    document.getElementById('btnSellCard').addEventListener('click', () => {
+      const card = GPU_INVENTORY[currentCardIndex];
+      balance += card.price;
+      showIncomeFloat(card.price);
+      Haptic.medium();
+      updateBalanceUI();
     });
 
-    function renderServerRacks() {
-      const container = document.getElementById('rigListContainer');
-      container.innerHTML = '';
+    // Переключение видеокарт стрелками
+    document.getElementById('btnNextGpu').addEventListener('click', () => {
+      currentCardIndex = (currentCardIndex + 1) % GPU_INVENTORY.length;
+      Haptic.light();
+      renderActiveCard();
+    });
 
-      if (state.racks.length === 0) {
-        container.innerHTML = '<div style="font-size:11px; color:var(--text-dim); text-align:center; padding:18px;">Серверная стойка пуста. Распакуйте контейнер на Маркете!</div>';
-        return;
-      }
+    document.getElementById('btnPrevGpu').addEventListener('click', () => {
+      currentCardIndex = (currentCardIndex - 1 + GPU_INVENTORY.length) % GPU_INVENTORY.length;
+      Haptic.light();
+      renderActiveCard();
+    });
 
-      state.racks.forEach((rig, idx) => {
-        const item = document.createElement('div');
-        item.className = 'rig-slot';
-        item.innerHTML = `
-          <div class="rig-icon-box">
-            <div class="fan-rotator"></div>
-            <span style="font-size:22px; z-index:2;">${rig.icon}</span>
-          </div>
-          <div class="rig-info">
-            <span class="rig-title">${rig.name}</span>
-            <span class="rig-metrics">⚡ ${rig.hashrate} MH/s • ${rig.power} • Оценка: ${rig.value} USDT</span>
-          </div>
-          <button class="cyber-btn neon-rose" style="padding:4px 8px; font-size:9px;" data-sell-id="${idx}">Сдать</button>
-        `;
-        container.appendChild(item);
-      });
+    // Модальные окна
+    const modal = document.getElementById('infoModal');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalContent = document.getElementById('modalContent');
 
-      container.querySelectorAll('button[data-sell-id]').forEach(btn => {
-        btn.addEventListener('click', () => {
-          const id = parseInt(btn.dataset.sellId, 10);
-          state.balance += state.racks[id].value;
-          state.racks.splice(id, 1);
-          Haptic.light();
-          refreshTelemetry();
-          renderServerRacks();
-        });
-      });
+    function openModal(title, html) {
+      modalTitle.textContent = title;
+      modalContent.innerHTML = html;
+      modal.classList.add('active');
+      Haptic.light();
     }
 
-    document.getElementById('btnUpgradeFirewall').addEventListener('click', () => {
-      if (state.firewallLevel >= 3) {
-        alert('Установлен максимальный квантовый файрвол!');
-        return;
-      }
-      if (state.balance < 600) {
-        Haptic.error();
-        alert('Недостаточно средств (нужно 600 USDT)!');
-        return;
-      }
-      state.balance -= 600;
-      state.firewallLevel++;
-      Haptic.success();
-      refreshTelemetry();
+    document.getElementById('btnCloseModal').addEventListener('click', () => {
+      modal.classList.remove('active');
     });
 
-    document.getElementById('btnOrderCrate').addEventListener('click', () => {
-      if (state.balance < 300) {
-        Haptic.error();
-        alert('Недостаточно USDT!');
-        return;
-      }
-      state.balance -= 300;
-      refreshTelemetry();
-
-      const crate = document.getElementById('crateIcon');
-      crate.classList.add('opening');
-      Haptic.medium();
-
-      setTimeout(() => {
-        crate.classList.remove('opening');
-
-        const roll = Math.random() * 100;
-        let raw;
-        if (roll < 3) raw = HARDWARE_CATALOG[5];
-        else if (roll < 12) raw = HARDWARE_CATALOG[4];
-        else if (roll < 35) raw = HARDWARE_CATALOG[2];
-        else raw = HARDWARE_CATALOG[Math.floor(Math.random() * 2)];
-
-        pendingDrop = {
-          name: raw[0],
-          rarity: raw[1],
-          hashrate: raw[2],
-          value: raw[3],
-          power: raw[4],
-          icon: raw[6]
-        };
-
-        document.getElementById('revealedRarity').textContent = pendingDrop.rarity.toUpperCase();
-        document.getElementById('revealedTitle').textContent = `${pendingDrop.icon} ${pendingDrop.name}`;
-        document.getElementById('revealedValue').textContent = `+${pendingDrop.value} USDT`;
-        document.getElementById('revealedSpecs').textContent = `Хешрейт: ${pendingDrop.hashrate} MH/s • ${pendingDrop.power}`;
-        document.getElementById('chipRevealBox').style.display = 'flex';
-        Haptic.success();
-      }, 700);
+    document.getElementById('btnOpenNews').addEventListener('click', () => {
+      openModal("СИСТЕМНЫЕ НОВОСТИ", `
+        <p>• <b>Патч v3.2:</b> Выпущен новый ASIC Antminer S21 с пониженным энергопотреблением.</p><br>
+        <p>• <b>Событие:</b> Удвоенный хешрейт на пуле в эти выходные!</p><br>
+        <p>• <b>Безопасность:</b> Не забывайте прокачивать квантовый файрвол для защиты от хакеров.</p>
+      `);
     });
 
-    document.getElementById('btnInstallRig').addEventListener('click', () => {
-      if (!pendingDrop) return;
-      if (state.racks.length >= 6) {
-        alert('В серверной стойке нет свободных слотов (макс 6)!');
-        return;
-      }
-      state.racks.push(pendingDrop);
-      pendingDrop = null;
-      document.getElementById('chipRevealBox').style.display = 'none';
-      Haptic.success();
-      refreshTelemetry();
-      renderServerRacks();
-    });
+    // Плавный отклик кнопок нижнего меню
+    const dockButtons = document.querySelectorAll('.dock-pill-btn');
+    dockButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        dockButtons.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
 
-    document.getElementById('btnLiquidateRig').addEventListener('click', () => {
-      if (!pendingDrop) return;
-      state.balance += pendingDrop.value;
-      pendingDrop = null;
-      document.getElementById('chipRevealBox').style.display = 'none';
-      Haptic.light();
-      refreshTelemetry();
-    });
+        // Принудительный триггер анимации увеличения и осветления
+        btn.classList.add('pulse-active');
+        setTimeout(() => btn.classList.remove('pulse-active'), 320);
 
-    document.getElementById('btnRunHashBattle').addEventListener('click', () => {
-      if (isBattling) return;
-      if (state.racks.length === 0) {
-        alert('В стойке нет чипов для вычислений!');
-        return;
-      }
-      if (state.balance < 250) {
-        alert('Ставка на баттл — 250 USDT!');
-        return;
-      }
+        Haptic.light();
 
-      isBattling = true;
-      state.balance -= 250;
-      refreshTelemetry();
-
-      const myFill = document.getElementById('myBattleFill');
-      const enemyFill = document.getElementById('enemyBattleFill');
-      const banner = document.getElementById('battleResultBanner');
-
-      banner.textContent = 'Майнинг пулы соревнуются за блок...';
-      myFill.style.width = '0%';
-      enemyFill.style.width = '0%';
-
-      const myHash = state.racks.reduce((a, b) => a + b.hashrate, 0);
-      const enemyHash = 50 + Math.random() * 250;
-      const isWin = (myHash + Math.random() * 80) >= enemyHash;
-
-      setTimeout(() => {
-        myFill.style.width = isWin ? '100%' : '65%';
-        enemyFill.style.width = isWin ? '60%' : '100%';
-      }, 50);
-
-      setTimeout(() => {
-        isBattling = false;
-        if (isWin) {
-          state.balance += 500;
-          banner.innerHTML = `<span style="color:var(--neon-green)">🏆 БЛОК НАЙДЕН! Выигрыш: +500 USDT</span>`;
-          spawnFloatingIncome(500);
-          Haptic.success();
-        } else {
-          banner.innerHTML = `<span style="color:var(--neon-rose)">❌ ПУЛ ПРОИГРАЛ! -250 USDT</span>`;
-          Haptic.error();
+        if (btn.id === 'dockBtnProfile') {
+          openModal("ПРОФИЛЬ МАЙНЕРА", `
+            <p>ID: <b>#701429</b></p>
+            <p>Статус: <b>Cyber-NetRunner</b></p>
+            <p>Всего добыто: <b>14,820 USDT</b></p>
+          `);
+        } else if (btn.id === 'dockBtnSettings') {
+          openModal("НАСТРОЙКИ", `
+            <p>• Тактильная отдача: <b>ВКЛ</b></p><br>
+            <p>• Качество графики: <b>ULTRA NEON</b></p><br>
+            <p>• Звук кулеров: <b>ВЫКЛ</b></p>
+          `);
         }
-        refreshTelemetry();
-      }, 2300);
+      });
     });
 
-    document.getElementById('btnShareDuelLink').addEventListener('click', () => {
-      const text = encodeURIComponent(`Мой дата-центр выдает ${document.getElementById('totalHashrate').textContent}! Бросаю вызов твоему пулу ⚡`);
-      const url = `https://t.me/share/url?url=https://t.me/CyberMinerBot?startapp=pool_${tgUser.id}&text=${text}`;
-      if (tg?.openTelegramLink) tg.openTelegramLink(url);
-      else window.open(url, '_blank');
-    });
-
-    document.getElementById('btnScanTarget').addEventListener('click', () => {
-      const sample = HARDWARE_CATALOG[Math.floor(Math.random() * 4) + 2];
-      const botVictims = ["@hash_king", "@satoshis_node", "@crypto_baron", "@dark_miner"];
-
-      currentHackTarget = {
-        ip: `192.168.${Math.floor(Math.random()*89+10)}.${Math.floor(Math.random()*250+1)}`,
-        owner: botVictims[Math.floor(Math.random() * botVictims.length)],
-        hardware: { name: sample[0], rarity: sample[1], hashrate: sample[2], value: sample[3], power: sample[4], icon: sample[6] },
-        firewallRate: Math.floor(Math.random() * 40) + 30
-      };
-
-      document.getElementById('targetIpAddress').textContent = currentHackTarget.ip;
-      document.getElementById('targetOwnerName').textContent = currentHackTarget.owner;
-      document.getElementById('targetHardwareTitle').textContent = `${currentHackTarget.hardware.icon} ${currentHackTarget.hardware.name}`;
-      document.getElementById('targetBypassRate').textContent = `Шанс обхода файрвола: ${100 - currentHackTarget.firewallRate}%`;
-      document.getElementById('hackTargetCard').style.display = 'flex';
-      document.getElementById('hackTerminalLog').textContent = '';
-      Haptic.light();
-    });
-
-    document.getElementById('btnExecuteHack').addEventListener('click', () => {
-      if (!currentHackTarget) return;
-      const roll = Math.random() * 100;
-      const success = roll > currentHackTarget.firewallRate;
-
-      if (success) {
-        if (state.racks.length < 6) {
-          state.racks.push(currentHackTarget.hardware);
-          document.getElementById('hackTerminalLog').innerHTML = `<span style="color:var(--neon-green)">✅ ЭКСПЛОЙТ УСПЕШЕН! ${currentHackTarget.hardware.name} перенесен в вашу стойку!</span>`;
-        } else {
-          state.balance += currentHackTarget.hardware.value;
-          document.getElementById('hackTerminalLog').innerHTML = `<span style="color:var(--neon-green)">✅ Стойка полна! Чип продан на бирже за +${currentHackTarget.hardware.value} USDT!</span>`;
-          spawnFloatingIncome(currentHackTarget.hardware.value);
-        }
-        Haptic.success();
-      } else {
-        const fine = 350;
-        state.balance = Math.max(0, state.balance - fine);
-        document.getElementById('hackTerminalLog').innerHTML = `<span style="color:var(--neon-rose)">🚨 СРАБОТАЛ IDS! Системный штраф за взлом: -${fine} USDT!</span>`;
-        Haptic.error();
-      }
-
-      currentHackTarget = null;
-      document.getElementById('hackTargetCard').style.display = 'none';
-      refreshTelemetry();
-      renderServerRacks();
-    });
-
-    document.getElementById('btnAbortHack').addEventListener('click', () => {
-      currentHackTarget = null;
-      document.getElementById('hackTargetCard').style.display = 'none';
-    });
-
-    refreshTelemetry();
-    renderServerRacks();
+    // Старт
+    renderActiveCard();
+    updateBalanceUI();
   </script>
 </body>
 </html>
