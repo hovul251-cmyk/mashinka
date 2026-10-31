@@ -7,9 +7,9 @@
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
     :root {
-      --bg-dark: #06080d;
-      --panel-bg: rgba(13, 17, 26, 0.85);
-      --panel-border: rgba(16, 229, 153, 0.18);
+      --bg-dark: #05070b;
+      --panel-bg: rgba(11, 15, 25, 0.82);
+      --panel-border: rgba(16, 229, 153, 0.22);
       --neon-green: #10e599;
       --neon-cyan: #06b6d4;
       --neon-purple: #a855f7;
@@ -32,16 +32,52 @@
 
     body {
       background-color: var(--bg-dark);
-      background-image: 
-        radial-gradient(circle at 50% 0%, rgba(6, 182, 212, 0.12) 0%, transparent 60%),
-        linear-gradient(180deg, #090d16 0%, var(--bg-dark) 100%);
       color: var(--text-main);
       min-height: 100vh;
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 10px 10px calc(65px + env(safe-area-inset-bottom, 10px)) 10px;
+      padding: 8px 10px calc(65px + env(safe-area-inset-bottom, 8px)) 10px;
       overflow-x: hidden;
+      position: relative;
+    }
+
+    /* Анимированная 3D-сетка на фоне */
+    .bg-grid-plane {
+      position: fixed;
+      inset: 0;
+      background: 
+        linear-gradient(to bottom, rgba(5,7,11,0.2) 0%, var(--bg-dark) 90%),
+        linear-gradient(rgba(6, 182, 212, 0.07) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(6, 182, 212, 0.07) 1px, transparent 1px);
+      background-size: 100% 100%, 32px 32px, 32px 32px;
+      z-index: -2;
+      animation: gridDrift 20s linear infinite;
+    }
+
+    @keyframes gridDrift {
+      0% { background-position: 0 0, 0 0, 0 0; }
+      100% { background-position: 0 0, 0 64px, 64px 0; }
+    }
+
+    /* Неоновые градиентные сферы сзади */
+    .ambient-glow {
+      position: fixed;
+      width: 280px;
+      height: 280px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(16, 229, 153, 0.12) 0%, transparent 70%);
+      top: -60px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: -1;
+      filter: blur(40px);
+      animation: ambientBreathe 6s ease-in-out infinite alternate;
+    }
+
+    @keyframes ambientBreathe {
+      0% { transform: translateX(-50%) scale(0.9); opacity: 0.6; }
+      100% { transform: translateX(-50%) scale(1.3); opacity: 1; }
     }
 
     .terminal-container {
@@ -50,19 +86,60 @@
       display: flex;
       flex-direction: column;
       gap: 10px;
+      position: relative;
     }
 
-    /* Верхний HUD - Терминал статуса */
+    /* Бегущая строка мемпула */
+    .mempool-ticker {
+      width: 100%;
+      overflow: hidden;
+      white-space: nowrap;
+      background: rgba(0, 0, 0, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 6px;
+      padding: 3px 0;
+      font-family: var(--font-mono);
+      font-size: 9px;
+      color: var(--neon-cyan);
+    }
+    .ticker-content {
+      display: inline-block;
+      animation: tickerRun 22s linear infinite;
+    }
+    @keyframes tickerRun {
+      0% { transform: translateX(100%); }
+      100% { transform: translateX(-100%); }
+    }
+
+    /* Верхний HUD */
     .terminal-header {
       background: var(--panel-bg);
       border: 1px solid var(--panel-border);
-      backdrop-filter: blur(16px);
+      backdrop-filter: blur(20px);
       border-radius: 14px;
       padding: 12px 14px;
       display: flex;
       flex-direction: column;
       gap: 8px;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6), inset 0 0 16px rgba(16, 229, 153, 0.05);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .terminal-header::after {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -60%;
+      width: 40%;
+      height: 200%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.04), transparent);
+      transform: rotate(25deg);
+      animation: cardSheen 8s infinite ease-in-out;
+    }
+    @keyframes cardSheen {
+      0%, 75% { left: -60%; }
+      100% { left: 160%; }
     }
 
     .top-telemetry {
@@ -82,13 +159,13 @@
       height: 8px;
       background: var(--neon-green);
       border-radius: 50%;
-      box-shadow: 0 0 10px var(--neon-green);
-      animation: pulse 1.8s infinite;
+      box-shadow: 0 0 12px var(--neon-green);
+      animation: pulse 1.6s infinite ease-in-out;
     }
 
     @keyframes pulse {
-      0%, 100% { opacity: 1; transform: scale(1); }
-      50% { opacity: 0.4; transform: scale(0.85); }
+      0%, 100% { opacity: 1; transform: scale(1); box-shadow: 0 0 12px var(--neon-green); }
+      50% { opacity: 0.3; transform: scale(0.8); box-shadow: 0 0 4px var(--neon-green); }
     }
 
     .terminal-title {
@@ -99,33 +176,55 @@
       color: #fff;
     }
 
+    .wallet-badge-wrap {
+      position: relative;
+    }
+
     .wallet-badge {
-      background: rgba(16, 229, 153, 0.1);
+      background: rgba(16, 229, 153, 0.12);
       border: 1px solid var(--neon-green);
-      padding: 4px 10px;
+      padding: 5px 11px;
       border-radius: 8px;
       font-family: var(--font-mono);
       font-weight: 800;
       font-size: 13px;
       color: var(--neon-green);
-      box-shadow: 0 0 12px rgba(16, 229, 153, 0.2);
+      box-shadow: 0 0 15px rgba(16, 229, 153, 0.25);
+      transition: transform 0.15s ease;
+    }
+
+    .floating-coin-text {
+      position: absolute;
+      top: -12px;
+      right: 0;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 900;
+      color: var(--neon-green);
+      pointer-events: none;
+      animation: floatUpFade 1.2s forwards ease-out;
+    }
+    @keyframes floatUpFade {
+      0% { opacity: 0; transform: translateY(4px) scale(0.8); }
+      20% { opacity: 1; transform: translateY(-4px) scale(1.1); }
+      100% { opacity: 0; transform: translateY(-24px) scale(0.9); }
     }
 
     .rig-stats-row {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 6px;
-      background: rgba(0, 0, 0, 0.35);
+      background: rgba(0, 0, 0, 0.45);
       padding: 6px 10px;
       border-radius: 8px;
       font-size: 11px;
+      border: 1px solid rgba(255, 255, 255, 0.04);
     }
 
-    /* Кибер-кнопки со скошенным срезом */
     .cyber-btn {
       position: relative;
-      background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.01) 100%);
-      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.06) 0%, rgba(255, 255, 255, 0.01) 100%);
+      border: 1px solid rgba(255, 255, 255, 0.15);
       color: #fff;
       padding: 12px 14px;
       font-family: var(--font-mono);
@@ -135,44 +234,67 @@
       letter-spacing: 1px;
       cursor: pointer;
       clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
-      transition: all 0.2s ease;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
       display: flex;
       align-items: center;
       justify-content: center;
       gap: 8px;
+      overflow: hidden;
+    }
+
+    .cyber-btn::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 60%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.25), transparent);
+      transform: skewX(-20deg);
+      transition: left 0.5s ease;
+    }
+
+    .cyber-btn:hover::before, .cyber-btn:active::before {
+      left: 140%;
     }
 
     .cyber-btn:active {
-      transform: scale(0.97);
+      transform: scale(0.96);
     }
 
     .cyber-btn.neon-green {
-      background: linear-gradient(135deg, rgba(16, 229, 153, 0.2), rgba(6, 182, 212, 0.1));
+      background: linear-gradient(135deg, rgba(16, 229, 153, 0.22), rgba(6, 182, 212, 0.12));
       border: 1px solid var(--neon-green);
       color: var(--neon-green);
-      box-shadow: 0 0 14px rgba(16, 229, 153, 0.25);
+      box-shadow: 0 0 16px rgba(16, 229, 153, 0.28);
     }
 
     .cyber-btn.neon-purple {
       background: linear-gradient(135deg, rgba(168, 85, 247, 0.25), rgba(244, 63, 94, 0.15));
       border: 1px solid var(--neon-purple);
-      color: #e9d5ff;
-      box-shadow: 0 0 14px rgba(168, 85, 247, 0.3);
+      color: #f3e8ff;
+      box-shadow: 0 0 16px rgba(168, 85, 247, 0.35);
     }
 
     .cyber-btn.neon-rose {
-      background: linear-gradient(135deg, rgba(244, 63, 94, 0.2), rgba(244, 63, 94, 0.05));
+      background: linear-gradient(135deg, rgba(244, 63, 94, 0.22), rgba(244, 63, 94, 0.05));
       border: 1px solid var(--neon-rose);
       color: #fca5a5;
+      box-shadow: 0 0 14px rgba(244, 63, 94, 0.25);
     }
 
-    /* Экраны приложения */
     .module-screen {
       display: none;
       flex-direction: column;
       gap: 10px;
+      animation: screenFadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
     }
     .module-screen.active { display: flex; }
+
+    @keyframes screenFadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
 
     .cyber-panel {
       background: var(--panel-bg);
@@ -183,12 +305,12 @@
       display: flex;
       flex-direction: column;
       gap: 10px;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.45);
     }
 
-    /* Карточки оборудования в стойке ЦОД */
     .rig-slot {
-      background: rgba(0, 0, 0, 0.4);
-      border: 1px solid rgba(255, 255, 255, 0.07);
+      background: rgba(6, 10, 16, 0.65);
+      border: 1px solid rgba(255, 255, 255, 0.08);
       border-radius: 10px;
       padding: 10px;
       display: flex;
@@ -196,6 +318,12 @@
       gap: 10px;
       position: relative;
       overflow: hidden;
+      transition: transform 0.2s ease, border-color 0.2s ease;
+    }
+
+    .rig-slot:hover {
+      border-color: rgba(16, 229, 153, 0.4);
+      transform: translateY(-2px);
     }
 
     .rig-slot::before {
@@ -204,21 +332,35 @@
       left: 0;
       top: 0;
       bottom: 0;
-      width: 3px;
-      background: var(--slot-color, var(--neon-cyan));
+      width: 3.5px;
+      background: var(--neon-cyan);
+      box-shadow: 0 0 8px var(--neon-cyan);
     }
 
-    .rig-icon {
+    .rig-icon-box {
       width: 50px;
       height: 50px;
       border-radius: 8px;
       background: rgba(255, 255, 255, 0.03);
-      border: 1px solid rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.1);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 26px;
+      position: relative;
       flex-shrink: 0;
+    }
+
+    .fan-rotator {
+      position: absolute;
+      inset: 2px;
+      border: 1.5px dashed rgba(6, 182, 212, 0.6);
+      border-radius: 50%;
+      animation: spinFan 1.8s linear infinite;
+    }
+
+    @keyframes spinFan {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
     }
 
     .rig-info {
@@ -244,10 +386,9 @@
       color: var(--text-dim);
     }
 
-    /* Модуль распаковки поставок (Дроп чипов) */
     .crate-display {
-      background: radial-gradient(circle at center, rgba(6, 182, 212, 0.15) 0%, transparent 70%);
-      border: 1px dashed rgba(6, 182, 212, 0.3);
+      background: radial-gradient(circle at center, rgba(6, 182, 212, 0.18) 0%, transparent 70%);
+      border: 1px dashed rgba(6, 182, 212, 0.35);
       border-radius: 12px;
       padding: 24px;
       text-align: center;
@@ -257,18 +398,45 @@
       gap: 8px;
     }
 
+    .crate-floating-icon {
+      font-size: 46px;
+      animation: floatCrate 3.5s ease-in-out infinite;
+      filter: drop-shadow(0 10px 14px rgba(6, 182, 212, 0.3));
+    }
+
+    @keyframes floatCrate {
+      0%, 100% { transform: translateY(0px) rotate(0deg); }
+      50% { transform: translateY(-10px) rotate(2deg); }
+    }
+
+    .crate-floating-icon.opening {
+      animation: crateShakeOpen 0.6s cubic-bezier(0.36, 0.07, 0.19, 0.97) infinite;
+    }
+
+    @keyframes crateShakeOpen {
+      10%, 90% { transform: translate3d(-2px, 0, 0); }
+      20%, 80% { transform: translate3d(3px, 0, 0); }
+      30%, 50%, 70% { transform: translate3d(-5px, 0, 0); }
+      40%, 60% { transform: translate3d(5px, 0, 0); }
+    }
+
     .chip-reveal-box {
       display: none;
       flex-direction: column;
       gap: 10px;
-      background: rgba(0, 0, 0, 0.5);
+      background: rgba(0, 0, 0, 0.6);
       border: 1px solid var(--neon-cyan);
       border-radius: 12px;
       padding: 14px;
-      box-shadow: 0 0 20px rgba(6, 182, 212, 0.2);
+      box-shadow: 0 0 25px rgba(6, 182, 212, 0.3);
+      animation: revealCard 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.28);
     }
 
-    /* PVP Терминал Хеш-Баттла */
+    @keyframes revealCard {
+      from { transform: scale(0.85); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
     .battle-track {
       background: #030508;
       border: 1px solid var(--panel-border);
@@ -281,9 +449,9 @@
     }
 
     .battle-progress-bar {
-      height: 18px;
+      height: 20px;
       background: rgba(255, 255, 255, 0.05);
-      border-radius: 4px;
+      border-radius: 5px;
       overflow: hidden;
       position: relative;
     }
@@ -292,10 +460,45 @@
       height: 100%;
       width: 0%;
       background: linear-gradient(90deg, var(--neon-cyan), var(--neon-green));
+      box-shadow: 0 0 10px var(--neon-green);
       transition: width 2.2s cubic-bezier(0.1, 0.8, 0.2, 1);
+      position: relative;
     }
 
-    /* Нижняя навигация Cyber-Dock */
+    .battle-fill::after {
+      content: '';
+      position: absolute;
+      top: 0; right: 0; bottom: 0; width: 8px;
+      background: #fff;
+      filter: blur(2px);
+    }
+
+    .scan-beam-box {
+      position: relative;
+      overflow: hidden;
+    }
+
+    .scan-beam-box::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--neon-rose), transparent);
+      box-shadow: 0 0 12px var(--neon-rose);
+      top: 0;
+      animation: scanLaser 2s linear infinite;
+      z-index: 10;
+      pointer-events: none;
+    }
+
+    @keyframes scanLaser {
+      0% { top: 0%; opacity: 0; }
+      20% { opacity: 1; }
+      80% { opacity: 1; }
+      100% { top: 100%; opacity: 0; }
+    }
+
     .cyber-dock {
       position: fixed;
       bottom: calc(6px + env(safe-area-inset-bottom, 6px));
@@ -304,7 +507,7 @@
       width: calc(100% - 20px);
       max-width: 440px;
       height: 52px;
-      background: rgba(10, 14, 22, 0.95);
+      background: rgba(9, 13, 20, 0.94);
       backdrop-filter: blur(25px);
       border: 1px solid var(--panel-border);
       border-radius: 16px;
@@ -328,25 +531,38 @@
       font-size: 9px;
       font-weight: 700;
       cursor: pointer;
+      transition: all 0.2s ease;
     }
     .dock-node.active {
       color: var(--neon-green);
+      transform: translateY(-2px);
     }
     .dock-node span:first-child { font-size: 16px; }
   </style>
 </head>
 <body>
 
+  <div class="bg-grid-plane"></div>
+  <div class="ambient-glow"></div>
+
   <div class="terminal-container">
 
-    <!-- Верхний статус ЦОД -->
+    <div class="mempool-ticker">
+      <div class="ticker-content" id="mempoolTickerText">
+        [BLOCK #891230] 0.042 BTC → Pool #4 • [HASH 928 TH/s] • [GAS: 12 Gwei] • [DIFF +2.4%] • [TRANSACTION VERIFIED]
+      </div>
+    </div>
+
     <header class="terminal-header">
       <div class="top-telemetry">
         <div class="terminal-brand">
           <div class="status-pulse"></div>
           <span class="terminal-title">CYBER_MINER // V3.2</span>
         </div>
-        <div class="wallet-badge">⚡ <span id="cryptoBalance">1,500</span> USDT</div>
+        <div class="wallet-badge-wrap">
+          <div class="wallet-badge" id="walletBadge">⚡ <span id="cryptoBalance">1,500</span> USDT</div>
+          <div id="floatingCoinContainer"></div>
+        </div>
       </div>
       <div class="rig-stats-row">
         <div>ХЕШРЕЙТ: <b style="color:var(--neon-green);" id="totalHashrate">0 MH/s</b></div>
@@ -354,19 +570,18 @@
       </div>
     </header>
 
-    <!-- 1. ЭКРАН: СТОЙКА ЦОД (ФЕРМА) -->
     <main class="module-screen active" id="screenFarm">
       <div class="cyber-panel">
         <div style="display:flex; justify-content:space-between; align-items:center;">
           <strong style="font-family:var(--font-mono); font-size:12px;">СЕРВЕРНАЯ СТОЙКА (<span id="installedRigsCount">0</span>/6)</strong>
-          <button class="cyber-btn neon-green" id="btnClaimPassive" style="padding:6px 10px; font-size:10px;">Снять прибыль</button>
+          <button class="cyber-btn neon-green" id="btnClaimPassive" style="padding:6px 12px; font-size:10px;">Снять прибыль</button>
         </div>
         <div id="rigListContainer" style="display:flex; flex-direction:column; gap:8px;"></div>
       </div>
 
       <div class="cyber-panel">
-        <strong style="font-family:var(--font-mono); font-size:12px; color:var(--neon-cyan);">🛡️ СИСТЕМА БЕЗОПАСНОСТИ ЦОД</strong>
-        <p style="font-size:11px; color:var(--text-dim);">Файрвол блокирует попытки других хакеров похитить ваши чипы.</p>
+        <strong style="font-family:var(--font-mono); font-size:12px; color:var(--neon-cyan);">🛡️ КВАНТОВЫЙ ФАЙРВОЛ ЦОД</strong>
+        <p style="font-size:11px; color:var(--text-dim);">Файрвол нейтрализует вторжения хакеров в вашу локальную подсеть.</p>
         <div style="display:flex; justify-content:space-between; align-items:center;">
           <span style="font-size:11px; font-family:var(--font-mono);" id="firewallLevelText">Файрвол: v1.0 (30% защиты)</span>
           <button class="cyber-btn neon-purple" id="btnUpgradeFirewall" style="padding:8px 12px; font-size:10px;">Апгрейд (600 USDT)</button>
@@ -374,11 +589,10 @@
       </div>
     </main>
 
-    <!-- 2. ЭКРАН: МАРКЕТ ПОСТАВОК (ДРОП ЧИПОВ) -->
     <section class="module-screen" id="screenMarket">
       <div class="cyber-panel">
         <div class="crate-display">
-          <div style="font-size:42px;">📦</div>
+          <div class="crate-floating-icon" id="crateIcon">📦</div>
           <h3 style="font-size:15px; font-family:var(--font-mono);">КОНТЕЙНЕР ASIC & GPU</h3>
           <p style="font-size:11px; color:var(--text-dim);">Случайная поставка вычислительного оборудования с шансом выбить топовый серверный чип.</p>
           <button class="cyber-btn neon-green" id="btnOrderCrate" style="width:100%; margin-top:8px;">
@@ -401,10 +615,9 @@
       </div>
     </section>
 
-    <!-- 3. ЭКРАН: ХЕШ-БАТТЛ (PVP РЕЙД) -->
     <section class="module-screen" id="screenBattle">
       <div class="cyber-panel">
-        <strong style="font-family:var(--font-mono); font-size:12px;">⚡ СОРЕВНОВАНИЕ ПУЛОВ (402ms БИТВА)</strong>
+        <strong style="font-family:var(--font-mono); font-size:12px;">⚡ ДРАГ-ГОНКА ПУЛОВ (БИТВА ЗА БЛОК)</strong>
         <p style="font-size:11px; color:var(--text-dim);">Состязание за нахождение валидного блока транзакций. Победитель забирает весь банк эмиссии!</p>
 
         <div style="display:flex; gap:8px;">
@@ -413,11 +626,11 @@
         </div>
 
         <div class="battle-track" style="margin-top:8px;">
-          <div style="font-size:10px; color:var(--neon-green);">ВАШ ПУЛ [ХЕШ-ПОТОК]:</div>
+          <div style="font-size:10px; color:var(--neon-green);">ВАШ ПУЛ [ВЫЧИСЛЕНИЯ]:</div>
           <div class="battle-progress-bar">
             <div class="battle-fill" id="myBattleFill"></div>
           </div>
-          <div style="font-size:10px; color:var(--neon-rose); margin-top:6px;">СОПЕРНИК [ХЕШ-ПОТОК]:</div>
+          <div style="font-size:10px; color:var(--neon-rose); margin-top:6px;">ПУЛ СОПЕРНИКА [ВЫЧИСЛЕНИЯ]:</div>
           <div class="battle-progress-bar">
             <div class="battle-fill" id="enemyBattleFill" style="background:linear-gradient(90deg, var(--neon-purple), var(--neon-rose));"></div>
           </div>
@@ -426,7 +639,6 @@
       </div>
     </section>
 
-    <!-- 4. ЭКРАН: ВЗЛОМ СЕТИ (ХАКИНГ ЧУЖИХ ФЕРМ) -->
     <section class="module-screen" id="screenHack">
       <div class="cyber-panel">
         <strong style="color:var(--neon-rose); font-family:var(--font-mono); font-size:12px;">💀 ЭКСПЛОЙТ ЧУЖИХ СЕРВЕРОВ</strong>
@@ -436,7 +648,7 @@
         <button class="cyber-btn neon-rose" id="btnScanTarget">Сканировать IP-диапазон</button>
       </div>
 
-      <div class="cyber-panel" id="hackTargetCard" style="display:none;">
+      <div class="cyber-panel scan-beam-box" id="hackTargetCard" style="display:none;">
         <div style="font-size:10px; color:var(--text-dim); font-family:var(--font-mono);">
           ЦЕЛЬ: <b id="targetIpAddress" style="color:var(--neon-cyan);">192.168.4.102</b> • ХОСТ: <b id="targetOwnerName">@crypto_whale</b>
         </div>
@@ -454,7 +666,6 @@
 
   </div>
 
-  <!-- Нижний док-бар -->
   <nav class="cyber-dock">
     <button class="dock-node active" data-screen="screenFarm">
       <span>🖥️</span>
@@ -488,8 +699,6 @@
       error: () => tg?.HapticFeedback?.notificationOccurred('error')
     };
 
-    // БАЗОВЫЙ ПУЛ ВЫЧИСЛИТЕЛЬНОГО ОБОРУДОВАНИЯ
-    // [Название, Редкость, Хешрейт MH/s, Стоимость USDT, Энергия, Шина, Иконка, Описание]
     const HARDWARE_CATALOG = [
       ["NVIDIA GTX 1660 Super", "common", 31, 220, "125W", "PCIe 3.0", "📼", "Бюджетный кремний для старта"],
       ["AMD Radeon RX 6700 XT", "common", 47, 340, "180W", "PCIe 4.0", "📼", "Надежный рабочий риг"],
@@ -504,7 +713,7 @@
     let state = {
       userTag: tgUser.username ? `@${tgUser.username}` : tgUser.first_name,
       balance: 1500,
-      firewallLevel: 1, // 30% защиты
+      firewallLevel: 1,
       passivePot: 0,
       racks: [
         { name: "NVIDIA GTX 1660 Super", rarity: "common", hashrate: 31, value: 220, icon: "📼", power: "125W" }
@@ -514,6 +723,16 @@
     let pendingDrop = null;
     let currentHackTarget = null;
     let isBattling = false;
+
+    function spawnFloatingIncome(amount) {
+      if (amount <= 0) return;
+      const container = document.getElementById('floatingCoinContainer');
+      const el = document.createElement('div');
+      el.className = 'floating-coin-text';
+      el.textContent = `+${amount} USDT`;
+      container.appendChild(el);
+      setTimeout(() => el.remove(), 1200);
+    }
 
     function refreshTelemetry() {
       document.getElementById('cryptoBalance').textContent = Math.floor(state.balance).toLocaleString('ru-RU');
@@ -527,7 +746,6 @@
       document.getElementById('firewallLevelText').textContent = `Файрвол: v${state.firewallLevel}.0 (${state.firewallLevel * 30}% защиты)`;
     }
 
-    // Пассивный доход каждую секунду
     setInterval(() => {
       const totalHash = state.racks.reduce((acc, r) => acc + r.hashrate, 0);
       if (totalHash > 0) {
@@ -538,14 +756,15 @@
 
     document.getElementById('btnClaimPassive').addEventListener('click', () => {
       if (state.passivePot < 1) return;
-      state.balance += state.passivePot;
+      const claimed = Math.floor(state.passivePot);
+      state.balance += claimed;
       state.passivePot = 0;
       document.getElementById('btnClaimPassive').textContent = 'Снять прибыль';
+      spawnFloatingIncome(claimed);
       Haptic.success();
       refreshTelemetry();
     });
 
-    // Навигация по док-панели
     document.querySelectorAll('.dock-node').forEach(btn => {
       btn.addEventListener('click', () => {
         document.querySelectorAll('.dock-node').forEach(b => b.classList.remove('active'));
@@ -557,7 +776,6 @@
       });
     });
 
-    // Рендер стойки оборудования
     function renderServerRacks() {
       const container = document.getElementById('rigListContainer');
       container.innerHTML = '';
@@ -571,7 +789,10 @@
         const item = document.createElement('div');
         item.className = 'rig-slot';
         item.innerHTML = `
-          <div class="rig-icon">${rig.icon}</div>
+          <div class="rig-icon-box">
+            <div class="fan-rotator"></div>
+            <span style="font-size:22px; z-index:2;">${rig.icon}</span>
+          </div>
           <div class="rig-info">
             <span class="rig-title">${rig.name}</span>
             <span class="rig-metrics">⚡ ${rig.hashrate} MH/s • ${rig.power} • Оценка: ${rig.value} USDT</span>
@@ -609,7 +830,6 @@
       refreshTelemetry();
     });
 
-    // ДРОП / ПОСТАВКА ОБОРУДОВАНИЯ
     document.getElementById('btnOrderCrate').addEventListener('click', () => {
       if (state.balance < 300) {
         Haptic.error();
@@ -618,29 +838,37 @@
       }
       state.balance -= 300;
       refreshTelemetry();
+
+      const crate = document.getElementById('crateIcon');
+      crate.classList.add('opening');
       Haptic.medium();
 
-      const roll = Math.random() * 100;
-      let raw;
-      if (roll < 3) raw = HARDWARE_CATALOG[5];
-      else if (roll < 12) raw = HARDWARE_CATALOG[4];
-      else if (roll < 35) raw = HARDWARE_CATALOG[2];
-      else raw = HARDWARE_CATALOG[Math.floor(Math.random() * 2)];
+      setTimeout(() => {
+        crate.classList.remove('opening');
 
-      pendingDrop = {
-        name: raw[0],
-        rarity: raw[1],
-        hashrate: raw[2],
-        value: raw[3],
-        power: raw[4],
-        icon: raw[6]
-      };
+        const roll = Math.random() * 100;
+        let raw;
+        if (roll < 3) raw = HARDWARE_CATALOG[5];
+        else if (roll < 12) raw = HARDWARE_CATALOG[4];
+        else if (roll < 35) raw = HARDWARE_CATALOG[2];
+        else raw = HARDWARE_CATALOG[Math.floor(Math.random() * 2)];
 
-      document.getElementById('revealedRarity').textContent = pendingDrop.rarity.toUpperCase();
-      document.getElementById('revealedTitle').textContent = `${pendingDrop.icon} ${pendingDrop.name}`;
-      document.getElementById('revealedValue').textContent = `+${pendingDrop.value} USDT`;
-      document.getElementById('revealedSpecs').textContent = `Хешрейт: ${pendingDrop.hashrate} MH/s • ${pendingDrop.power}`;
-      document.getElementById('chipRevealBox').style.display = 'flex';
+        pendingDrop = {
+          name: raw[0],
+          rarity: raw[1],
+          hashrate: raw[2],
+          value: raw[3],
+          power: raw[4],
+          icon: raw[6]
+        };
+
+        document.getElementById('revealedRarity').textContent = pendingDrop.rarity.toUpperCase();
+        document.getElementById('revealedTitle').textContent = `${pendingDrop.icon} ${pendingDrop.name}`;
+        document.getElementById('revealedValue').textContent = `+${pendingDrop.value} USDT`;
+        document.getElementById('revealedSpecs').textContent = `Хешрейт: ${pendingDrop.hashrate} MH/s • ${pendingDrop.power}`;
+        document.getElementById('chipRevealBox').style.display = 'flex';
+        Haptic.success();
+      }, 700);
     });
 
     document.getElementById('btnInstallRig').addEventListener('click', () => {
@@ -666,7 +894,6 @@
       refreshTelemetry();
     });
 
-    // ХЕШ-БАТТЛ (PVP)
     document.getElementById('btnRunHashBattle').addEventListener('click', () => {
       if (isBattling) return;
       if (state.racks.length === 0) {
@@ -704,6 +931,7 @@
         if (isWin) {
           state.balance += 500;
           banner.innerHTML = `<span style="color:var(--neon-green)">🏆 БЛОК НАЙДЕН! Выигрыш: +500 USDT</span>`;
+          spawnFloatingIncome(500);
           Haptic.success();
         } else {
           banner.innerHTML = `<span style="color:var(--neon-rose)">❌ ПУЛ ПРОИГРАЛ! -250 USDT</span>`;
@@ -720,7 +948,6 @@
       else window.open(url, '_blank');
     });
 
-    // ВЗЛОМ ФЕРМ
     document.getElementById('btnScanTarget').addEventListener('click', () => {
       const sample = HARDWARE_CATALOG[Math.floor(Math.random() * 4) + 2];
       const botVictims = ["@hash_king", "@satoshis_node", "@crypto_baron", "@dark_miner"];
@@ -753,6 +980,7 @@
         } else {
           state.balance += currentHackTarget.hardware.value;
           document.getElementById('hackTerminalLog').innerHTML = `<span style="color:var(--neon-green)">✅ Стойка полна! Чип продан на бирже за +${currentHackTarget.hardware.value} USDT!</span>`;
+          spawnFloatingIncome(currentHackTarget.hardware.value);
         }
         Haptic.success();
       } else {
@@ -773,7 +1001,6 @@
       document.getElementById('hackTargetCard').style.display = 'none';
     });
 
-    // Инициализация при старте
     refreshTelemetry();
     renderServerRacks();
   </script>
