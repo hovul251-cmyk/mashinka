@@ -48,7 +48,6 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      /* Уменьшен отступ снизу под компактное меню */
       padding: 8px 10px calc(58px + env(safe-area-inset-bottom, 6px)) 10px;
     }
 
@@ -157,7 +156,6 @@
       justify-content: center;
     }
 
-    /* Контейнер многополосной рулетки (1, 2 или 5 полос сверху вниз) */
     .multi-roulette-box {
       display: none;
       flex-direction: column;
@@ -234,7 +232,6 @@
       margin-top: 2px;
     }
 
-    /* Карточка показа выпавшей машины (по очереди) */
     .stage-card {
       position: relative;
       background: var(--card-bg);
@@ -276,7 +273,6 @@
       border-radius: 6px;
     }
 
-    /* Витрина машины без заднего фона */
     .image-showcase {
       width: 100%;
       flex: 1;
@@ -363,7 +359,7 @@
     .btn-garage { background: rgba(99, 102, 241, 0.18); border: 1px solid rgba(99, 102, 241, 0.4); color: #e0e7ff; }
     .btn-sell { background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.14); color: #cbd5e1; }
 
-    /* Панель спина (Без ставок, выбор режима x1 / x2 / x5 справа) */
+    /* Панель спина */
     .controls-panel {
       flex-shrink: 0;
     }
@@ -425,7 +421,7 @@
       color: #fff;
     }
 
-    /* 1. КОМПАКТНАЯ НИЖНЯЯ НАВИГАЦИЯ (не перекрывает кнопку крутить) */
+    /* Навигация */
     .dock-navigation {
       position: fixed;
       bottom: calc(4px + env(safe-area-inset-bottom, 4px));
@@ -461,7 +457,7 @@
     .dock-tab.active { color: var(--accent-primary); }
     .dock-tab.active .dock-icon { opacity: 1; }
 
-    /* Модальные окна */
+    /* Модалки */
     .modal-sheet {
       position: fixed;
       inset: 0;
@@ -582,7 +578,7 @@
     .menu-hub-title { font-size: 12px; font-weight: 800; color: #fff; }
     .menu-hub-sub { font-size: 9px; color: var(--text-sub); }
 
-    /* 3. НОВЫЙ АПГРЕЙДЕР: СЛЕВА ГАРАЖ, ПОСЕРЕДИНЕ КОЛЕСО, СПРАВА ЦЕЛЬ */
+    /* Апгрейдер */
     .upgrader-3col {
       display: grid;
       grid-template-columns: 1fr 125px 1fr;
@@ -701,7 +697,6 @@
       margin: 0 auto;
     }
 
-    /* Поля ставок и анимации в мини-играх */
     .bet-input-row {
       display: flex;
       align-items: center;
@@ -736,7 +731,7 @@
       justify-content: center;
     }
 
-    /* 4. Анимация слотов */
+    /* Слоты */
     .slots-reels {
       display: flex;
       justify-content: center;
@@ -766,7 +761,7 @@
       100% { transform: translateY(-4px); filter: blur(1px); }
     }
 
-    /* 5. Анимация 3D подбрасывания монетки */
+    /* Монетка */
     .coin-stage {
       height: 110px;
       display: flex;
@@ -798,7 +793,7 @@
       100% { transform: translateY(0) scale(1) rotateY(1440deg); }
     }
 
-    /* 6. Анимация броска костей */
+    /* Кости */
     .dice-stage {
       display: flex;
       justify-content: center;
@@ -828,7 +823,7 @@
       100% { transform: rotate(-12deg) translate(-3px, -2px); }
     }
 
-    /* 10. Сетка узлов тюнинга */
+    /* Тюнинг */
     .parts-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -870,13 +865,10 @@
       </div>
     </header>
 
-    <!-- Центральная сцена: Многополосная рулетка (x1/x2/x5) ИЛИ Карточка результата -->
+    <!-- Центральная сцена -->
     <div class="center-stage-container">
-
-      <!-- Многополосный барабан (1, 2 или 5 полос сверху вниз) -->
       <div class="multi-roulette-box" id="multiRouletteBox"></div>
 
-      <!-- Карточка показа выпавшей машины (по очереди) -->
       <main class="stage-card" id="stageCard">
         <div class="stage-meta">
           <span class="badge-rarity" id="dispRarity">ОБЫЧНЫЙ</span>
@@ -891,8 +883,8 @@
 
         <div class="vehicle-header">
           <div>
-            <div class="vehicle-title" id="dispTitle">Nissan Silvia S15</div>
-            <div class="vehicle-sub" id="dispSub">Купе без пробега</div>
+            <div class="vehicle-title" id="dispTitle">—</div>
+            <div class="vehicle-sub" id="dispSub">—</div>
           </div>
           <div style="text-align:right;">
             <span style="font-size:8px; color:var(--text-sub);">РЕДКОСТЬ</span>
@@ -903,30 +895,30 @@
         <div class="specs-matrix">
           <div class="spec-cell">
             <span class="lbl">Мощность</span>
-            <span class="val" id="specHp">250 л.с.</span>
+            <span class="val" id="specHp">0 л.с.</span>
           </div>
           <div class="spec-cell">
             <span class="lbl">0-100</span>
-            <span class="val" id="specAccel">5.5 с</span>
+            <span class="val" id="specAccel">0 с</span>
           </div>
           <div class="spec-cell">
             <span class="lbl">Мотор</span>
-            <span class="val" id="specEngine">2.0L Turbo</span>
+            <span class="val" id="specEngine">—</span>
           </div>
           <div class="spec-cell">
             <span class="lbl">Привод</span>
-            <span class="val" id="specDrive">RWD</span>
+            <span class="val" id="specDrive">—</span>
           </div>
         </div>
 
         <div class="stage-actions">
           <button class="btn-action-stage btn-garage" id="btnKeepGarage" disabled>📥 Оставить</button>
-          <button class="btn-action-stage btn-sell" id="btnDirectSell" disabled>💸 Продать (+180 ₽)</button>
+          <button class="btn-action-stage btn-sell" id="btnDirectSell" disabled>💸 Продать</button>
         </div>
       </main>
     </div>
 
-    <!-- Панель спина (Без ставок, справа выбор x1 / x2 / x5) -->
+    <!-- Панель спина -->
     <section class="controls-panel">
       <div class="spin-cluster-row">
         <button class="btn-spin-main" id="btnSpinNow">
@@ -953,7 +945,7 @@
 
   </div>
 
-  <!-- Компактная нижняя панель -->
+  <!-- Нижняя навигация -->
   <nav class="dock-navigation">
     <button class="dock-tab active" id="dockPlay">
       <span class="dock-icon">🎮</span>
@@ -977,7 +969,7 @@
     </button>
   </nav>
 
-  <!-- 1. ГЛАВНОЕ МЕНЮ -->
+  <!-- Модальные окна -->
   <div class="modal-sheet" id="sheetMenu">
     <div class="modal-head">
       <h2>Игровое Меню</h2>
@@ -1007,7 +999,6 @@
     </div>
   </div>
 
-  <!-- 2. ХАБ ВЫБОРА МИНИ-ИГР (Кнопки всех игр) -->
   <div class="modal-sheet" id="sheetGamesHub">
     <div class="modal-head">
       <h2>Выберите Мини-Игру</h2>
@@ -1037,21 +1028,16 @@
     </div>
   </div>
 
-  <!-- 2А. МИНИ-ИГРА: АПГРЕЙДЕР (Слева гараж, по центру колесо, справа цель) -->
   <div class="modal-sheet" id="sheetGameUpgrader">
     <div class="modal-head">
       <h2>Апгрейдер Машин</h2>
       <button class="btn-close-modal" data-close="sheetGameUpgrader">&times;</button>
     </div>
-
     <div class="upgrader-3col">
-      <!-- Слева: инвентарь игрока -->
       <div class="upg-column">
         <div class="upg-col-header">Ваш гараж</div>
         <div class="upg-scroll-list" id="upgLeftGarageList"></div>
       </div>
-
-      <!-- Посередине: колесо и стрелка -->
       <div class="upg-center-wheel">
         <div class="wheel-container">
           <div class="wheel-pointer-arm" id="wheelPointerArm">
@@ -1065,109 +1051,88 @@
           </div>
         </div>
       </div>
-
-      <!-- Справа: на что обменять -->
       <div class="upg-column">
         <div class="upg-col-header">Цель обмена</div>
         <div class="upg-scroll-list" id="upgRightTargetList"></div>
       </div>
     </div>
-
     <div class="game-result-banner" id="upgStatusBanner">
       Выберите слева свою машину и справа желаемую
     </div>
-
     <button class="btn-modal-action emerald" id="btnRunUpgrade" style="width:100%; padding:12px; margin-top:8px; font-size:13px;">
       КРУТИТЬ КОЛЕСО АПГРЕЙДА
     </button>
   </div>
 
-  <!-- 2Б. МИНИ-ИГРА: СЛОТЫ -->
   <div class="modal-sheet" id="sheetGameSlots">
     <div class="modal-head">
       <h2>Слоты 777</h2>
       <button class="btn-close-modal" data-close="sheetGameSlots">&times;</button>
     </div>
-
     <div class="slots-reels">
       <div class="slot-cell" id="slotReel1">🍒</div>
       <div class="slot-cell" id="slotReel2">💎</div>
       <div class="slot-cell" id="slotReel3">7️⃣</div>
     </div>
-
     <div class="game-result-banner" id="slotsStatusBanner" style="margin: 12px 0;">
       Введите ставку и крутите барабаны!
     </div>
-
     <div class="bet-input-row">
       <span style="font-size:11px; color:var(--text-sub); white-space:nowrap;">Ваша ставка (₽):</span>
       <input type="number" id="slotsBetInput" value="200" min="50">
     </div>
-
     <button class="btn-modal-action emerald" id="btnSpinSlots" style="width:100%; padding:12px; margin-top:10px; font-size:13px;">
       КРУТИТЬ БАРАБАНЫ
     </button>
   </div>
 
-  <!-- 2В. МИНИ-ИГРА: МОНЕТКА -->
   <div class="modal-sheet" id="sheetGameCoin">
     <div class="modal-head">
       <h2>Монетка 3D</h2>
       <button class="btn-close-modal" data-close="sheetGameCoin">&times;</button>
     </div>
-
     <div class="coin-stage">
       <div class="coin-3d" id="coin3dElem">🦅</div>
     </div>
-
     <div class="game-result-banner" id="coinStatusBanner" style="margin: 10px 0;">
       Выберите сторону и подбросьте монетку!
     </div>
-
     <div class="bet-input-row" style="margin-bottom: 10px;">
       <span style="font-size:11px; color:var(--text-sub); white-space:nowrap;">Ваша ставка (₽):</span>
       <input type="number" id="coinBetInput" value="150" min="50">
     </div>
-
     <div style="display:flex; gap:8px;">
       <button class="btn-modal-action emerald" id="btnCoinHeads" style="flex:1; padding:12px;">🦅 ОРЁЛ (×2)</button>
       <button class="btn-modal-action purple" id="btnCoinTails" style="flex:1; padding:12px;">👑 РЕШКА (×2)</button>
     </div>
   </div>
 
-  <!-- 2Г. МИНИ-ИГРА: КОСТИ -->
   <div class="modal-sheet" id="sheetGameDice">
     <div class="modal-head">
       <h2>Кости (Больше / Меньше)</h2>
       <button class="btn-close-modal" data-close="sheetGameDice">&times;</button>
     </div>
-
     <div class="dice-stage">
       <div class="die-cube" id="dieCube1">⚄</div>
       <div class="die-cube" id="dieCube2">⚂</div>
     </div>
-
     <div class="game-result-banner" id="diceStatusBanner" style="margin: 10px 0;">
       Сумма &gt; 7 приносит выигрыш ×2.2!
     </div>
-
     <div class="bet-input-row" style="margin-bottom: 10px;">
       <span style="font-size:11px; color:var(--text-sub); white-space:nowrap;">Ваша ставка (₽):</span>
       <input type="number" id="diceBetInput" value="200" min="50">
     </div>
-
     <button class="btn-modal-action emerald" id="btnRollDice" style="width:100%; padding:12px; font-size:13px;">
       БРОСИТЬ КУБИКИ
     </button>
   </div>
 
-  <!-- 3. КОНТЕЙНЕРЫ (с шансом металлолома даже в дорогих) -->
   <div class="modal-sheet" id="sheetCases">
     <div class="modal-head">
       <h2>Контейнеры</h2>
       <button class="btn-close-modal" data-close="sheetCases">&times;</button>
     </div>
-
     <div class="glass-card">
       <div class="item-info-cluster">
         <div class="item-thumbnail"><img id="boxImg1" src="" alt="box"></div>
@@ -1202,23 +1167,19 @@
     </div>
   </div>
 
-  <!-- 4. ДЕТАЛЬНЫЙ ТЮНИНГ (Турбина, Чип, Выхлоп, Подвеска, КПП, NOS) -->
   <div class="modal-sheet" id="sheetTuning">
     <div class="modal-head">
       <h2>Тюнинг-Ателье</h2>
       <button class="btn-close-modal" data-close="sheetTuning">&times;</button>
     </div>
-
     <div style="margin-bottom:8px;">
       <label style="font-size:10px; color:var(--text-sub); text-transform:uppercase; font-weight:700;">Выберите автомобиль из гаража:</label>
       <select id="tuningCarSelect" style="width:100%; margin-top:4px; padding:8px; border-radius:8px; background:#0b0d13; color:#fff; border:1px solid var(--card-border);"></select>
     </div>
-
     <div id="tuningSelectedCarInfo" class="glass-card" style="display:none;"></div>
     <div class="parts-grid" id="tuningPartsGrid"></div>
   </div>
 
-  <!-- 5. ГАРАЖ -->
   <div class="modal-sheet" id="sheetGarage">
     <div class="modal-head">
       <h2>Мой Гараж</h2>
@@ -1227,14 +1188,11 @@
     <div id="garageContainer" style="display:flex; flex-direction:column; gap:6px;"></div>
   </div>
 
-  <!-- 6. P2P РЫНОК (Выставление своих машин, отмена и покупка) -->
   <div class="modal-sheet" id="sheetMarket">
     <div class="modal-head">
       <h2>P2P Рынок</h2>
       <button class="btn-close-modal" data-close="sheetMarket">&times;</button>
     </div>
-
-    <!-- Форма выставления своей машины на продажу -->
     <div class="glass-card" style="flex-direction:column; align-items:stretch; gap:8px;">
       <strong style="font-size:12px; color:var(--accent-primary);">+ Продать свою машину на рынке</strong>
       <select id="marketSellCarSelect" style="width:100%; padding:7px; border-radius:7px; background:#06070a; color:#fff; border:1px solid var(--card-border); font-size:11px;"></select>
@@ -1243,12 +1201,10 @@
         <button class="btn-modal-action emerald" id="btnCreateListing">Выставить</button>
       </div>
     </div>
-
     <div style="font-size:11px; font-weight:800; color:var(--text-sub); margin: 6px 0 4px;">Активные предложения:</div>
     <div id="marketListContainer" style="display:flex; flex-direction:column; gap:6px;"></div>
   </div>
 
-  <!-- 7. ТОП РЕАЛЬНЫХ ИГРОКОВ -->
   <div class="modal-sheet" id="sheetLeaderboard">
     <div class="modal-head">
       <h2>Топ Реальных Игроков</h2>
@@ -1257,7 +1213,6 @@
     <div id="realLeaderboardContainer" style="display:flex; flex-direction:column; gap:6px;"></div>
   </div>
 
-  <!-- 8. ДРУЗЬЯ (Персональная реферальная ссылка и начисление) -->
   <div class="modal-sheet" id="sheetFriends">
     <div class="modal-head">
       <h2>Реферальная программа</h2>
@@ -1274,7 +1229,6 @@
         <button class="btn-modal-action emerald" id="btnShareTelegramRef" style="flex:1;">Отправить другу</button>
       </div>
     </div>
-
     <div class="glass-card">
       <div>
         <strong>Приглашено друзей</strong>
@@ -1298,43 +1252,6 @@
       error: () => tg?.HapticFeedback?.notificationOccurred('error')
     };
 
-    // 12. ГЕНЕРАТОР ПРОЗРАЧНЫХ РЕНДЕРОВ МАШИН БЕЗ ФОНА (SVG Data URI)
-    function makeTransparentCarImage(primaryColor, accentColor, bodyStyle = 'coupe') {
-      const isSuv = bodyStyle === 'suv';
-      const isJunk = bodyStyle === 'junk';
-      const roofPath = isSuv
-        ? 'M75 72 L105 36 L225 36 L245 72 Z'
-        : 'M85 72 L125 40 L205 40 L240 72 Z';
-      const spoiler = bodyStyle === 'hyper' ? '<path d="M35 52 L55 52 L50 70 L38 70 Z" fill="' + accentColor + '"/>' : '';
-      const wheelOpacity = isJunk ? '0.25' : '1';
-
-      const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 135">
-        <defs>
-          <linearGradient id="bodyGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stop-color="${primaryColor}"/>
-            <stop offset="100%" stop-color="${accentColor}"/>
-          </linearGradient>
-        </defs>
-        <!-- Тень под машиной -->
-        <ellipse cx="160" cy="118" rx="128" ry="9" fill="rgba(0,0,0,0.65)"/>
-        ${spoiler}
-        <!-- Кузов на прозрачном фоне -->
-        <path d="${roofPath}" fill="rgba(180,220,255,0.22)" stroke="${primaryColor}" stroke-width="3"/>
-        <path d="M32 72 Q40 58 75 68 L245 68 Q285 68 292 86 L292 104 Q292 110 280 110 L42 110 Q30 110 30 96 Z" fill="url(#bodyGrad)"/>
-        <!-- Фары и неон -->
-        <path d="M276 78 L291 84 L288 92 L273 86 Z" fill="#e0f2fe"/>
-        <path d="M32 78 L42 78 L42 90 L32 90 Z" fill="#f43f5e"/>
-        <!-- Колёсные арки и литые диски -->
-        <g opacity="${wheelOpacity}">
-          <circle cx="85" cy="106" r="21" fill="#090d16" stroke="#334155" stroke-width="4"/>
-          <circle cx="85" cy="106" r="11" fill="none" stroke="${accentColor}" stroke-width="2" stroke-dasharray="4 3"/>
-          <circle cx="235" cy="106" r="21" fill="#090d16" stroke="#334155" stroke-width="4"/>
-          <circle cx="235" cy="106" r="11" fill="none" stroke="${accentColor}" stroke-width="2" stroke-dasharray="4 3"/>
-        </g>
-      </svg>`;
-      return 'data:image/svg+xml;utf8,' + encodeURIComponent(svg);
-    }
-
     const RARITY_SCHEME = {
       junk: { name: 'Металлолом', color: '#64748b', mult: '×0.05' },
       common: { name: 'Обычный', color: '#94a3b8', mult: '×1.0' },
@@ -1344,98 +1261,70 @@
       mythic: { name: 'Мифический', color: '#fbbf24', mult: '×15.0' }
     };
 
-    // 12. НОВЫЙ КАТАЛОГ 55+ МАШИН БЕЗ ФОНА
+    // =========================================================================
+    // СПИСОК ВАШИХ МАШИН ДЛЯ ЗАПОЛНЕНИЯ
+    // =========================================================================
+    // Формат строки:
+    // [ "Название", "Редкость", Средняя_мощность_лс, Средняя_цена_руб, "Мотор", "Привод", "Картинка_или_путь", "Подзаголовок" ]
+    //
+    // Доступные варианты редкости:
+    // 'common' (Обычный), 'rare' (Редкий), 'epic' (Эпический), 'legendary' (Легендарный), 'mythic' (Мифический)
+    //
+    // Для картинки можно указывать:
+    // - путь к файлу: 'cars/skyline.png' или 'bmw_m5.jpg'
+    // - полную ссылку: 'https://site.com/image.png'
+    // =========================================================================
     const RAW_MODELS = [
-      // Common (14)
-      ["Honda Civic EK9", "common", 185, 160, "1.6L VTEC", "FWD", "#e2e8f0", "#64748b", "coupe"],
-      ["Mazda MX-5 Miata", "common", 140, 150, "1.8L I4", "RWD", "#ef4444", "#991b1b", "coupe"],
-      ["Nissan 240SX S13", "common", 205, 190, "2.0L SR20", "RWD", "#a855f7", "#581c87", "coupe"],
-      ["Toyota Celica GT-Four", "common", 240, 210, "2.0L Turbo", "AWD", "#f8fafc", "#dc2626", "coupe"],
-      ["Mitsubishi Eclipse GSX", "common", 210, 195, "2.0L 4G63", "AWD", "#22c55e", "#14532d", "coupe"],
-      ["Subaru Forester STI", "common", 265, 220, "2.5L Boxer", "AWD", "#2563eb", "#1e3a8a", "suv"],
-      ["Volvo 850 T-5R", "common", 240, 200, "2.3L I5", "FWD", "#facc15", "#713f12", "suv"],
-      ["Ford Focus ST", "common", 250, 215, "2.0L EcoBoost", "FWD", "#f97316", "#7c2d12", "coupe"],
-      ["Renault Megane RS", "common", 280, 235, "1.8L Turbo", "FWD", "#eab308", "#a16207", "coupe"],
-      ["Hyundai i30 N", "common", 275, 230, "2.0L T-GDI", "FWD", "#38bdf8", "#0369a1", "coupe"],
-      ["Mini Cooper JCW", "common", 231, 205, "2.0L TwinPower", "FWD", "#dc2626", "#f8fafc", "coupe"],
-      ["Peugeot 205 T16", "common", 200, 240, "1.8L Turbo", "AWD", "#cbd5e1", "#334155", "coupe"],
-      ["Toyota Chaser JZX100", "common", 280, 260, "2.5L 1JZ", "RWD", "#f1f5f9", "#475569", "coupe"],
-      ["Lexus IS300 Sport", "common", 215, 185, "3.0L 2JZ-GE", "RWD", "#64748b", "#1e293b", "coupe"],
-
-      // Rare (14)
-      ["Nissan Silvia S15 Spec-R", "rare", 250, 420, "2.0L SR20DET", "RWD", "#38bdf8", "#1d4ed8", "coupe"],
-      ["Mitsubishi Lancer Evo IX", "rare", 290, 480, "2.0L 4G63T", "AWD", "#ef4444", "#7f1d1d", "coupe"],
-      ["Honda S2000 AP2", "rare", 242, 440, "2.2L VTEC", "RWD", "#facc15", "#ca8a04", "coupe"],
-      ["Nissan 370Z Nismo", "rare", 350, 460, "3.7L V6", "RWD", "#f8fafc", "#e11d48", "coupe"],
-      ["BMW M3 E92 V8", "rare", 420, 540, "4.0L S65 V8", "RWD", "#e2e8f0", "#1e40af", "coupe"],
-      ["Audi RS4 B7", "rare", 420, 520, "4.2L FSI V8", "AWD", "#3b82f6", "#1e3a8a", "coupe"],
-      ["Mercedes C63 AMG W204", "rare", 457, 560, "6.2L M156 V8", "RWD", "#94a3b8", "#0f172a", "coupe"],
-      ["Porsche Cayman GT4", "rare", 420, 620, "4.0L Flat-6", "RWD", "#facc15", "#475569", "coupe"],
-      ["Lotus Exige Cup 430", "rare", 430, 640, "3.5L V6 Super", "RWD", "#10b981", "#064e3b", "hyper"],
-      ["Alpine A110 R", "rare", 300, 510, "1.8L Turbo", "RWD", "#0ea5e9", "#0c4a6e", "coupe"],
-      ["Toyota GR Yaris Circuit", "rare", 261, 430, "1.6L I3 Turbo", "AWD", "#f43f5e", "#111827", "coupe"],
-      ["Pontiac GTO Judge", "rare", 400, 490, "6.0L LS2 V8", "RWD", "#ea580c", "#431407", "coupe"],
-      ["Plymouth Barracuda HEMI", "rare", 425, 590, "7.0L HEMI V8", "RWD", "#84cc16", "#1a2e05", "coupe"],
-      ["Cadillac CT4-V Blackwing", "rare", 472, 580, "3.6L TwinTurbo", "RWD", "#6366f1", "#1e1b4b", "coupe"],
-
-      // Epic (11)
-      ["Honda NSX Type-R NA1", "epic", 290, 1150, "3.0L V6 VTEC", "RWD", "#f8fafc", "#dc2626", "hyper"],
-      ["Nissan GT-R R35 Track", "epic", 570, 1350, "3.8L VR38DETT", "AWD", "#64748b", "#f43f5e", "hyper"],
-      ["BMW M4 CSL G82", "epic", 550, 1400, "3.0L S58", "RWD", "#475569", "#ef4444", "coupe"],
-      ["Audi R8 V10 Plus", "epic", 610, 1520, "5.2L FSI V10", "AWD", "#38bdf8", "#0f172a", "hyper"],
-      ["Mercedes-AMG GT R Pro", "epic", 585, 1480, "4.0L Biturbo", "RWD", "#22c55e", "#052e16", "hyper"],
-      ["Jaguar F-Type SVR", "epic", 575, 1180, "5.0L V8 Super", "AWD", "#0284c7", "#082f49", "coupe"],
-      ["Aston Martin Vantage AMR", "epic", 510, 1290, "4.0L V8", "RWD", "#a3e635", "#14532d", "coupe"],
-      ["Chevrolet Camaro Exorcist", "epic", 1000, 1600, "6.2L LT4 Super", "RWD", "#dc2626", "#090d16", "coupe"],
-      ["De Tomaso Pantera GT5", "epic", 350, 1220, "5.8L V8", "RWD", "#f59e0b", "#451a03", "hyper"],
-      ["Lancia Delta Integrale Evo", "epic", 215, 1120, "2.0L Turbo 16V", "AWD", "#ef4444", "#7f1d1d", "coupe"],
-      ["RAM 1500 TRX Mammoth", "epic", 702, 1320, "6.2L HEMI V8", "AWD", "#78716c", "#1c1917", "suv"],
-
-      // Legendary (9)
-      ["McLaren 765LT Spider", "legendary", 765, 3400, "4.0L M840T V8", "RWD", "#f97316", "#090d16", "hyper"],
-      ["Lamborghini Huracan STO", "legendary", 640, 3600, "5.2L V10 NA", "RWD", "#38bdf8", "#f97316", "hyper"],
-      ["Ferrari F8 Tributo", "legendary", 720, 3550, "3.9L V8 Turbo", "RWD", "#ef4444", "#7f1d1d", "hyper"],
-      ["Ferrari 812 Competizione", "legendary", 830, 4100, "6.5L V12 NA", "RWD", "#dc2626", "#facc15", "hyper"],
-      ["Porsche Carrera GT V10", "legendary", 612, 4300, "5.7L V10 NA", "RWD", "#cbd5e1", "#475569", "hyper"],
-      ["Lexus LFA Nurburgring", "legendary", 571, 3900, "4.8L V10", "RWD", "#f97316", "#111827", "hyper"],
-      ["Ford GT MK II Track", "legendary", 700, 4000, "3.5L EcoBoost", "RWD", "#2563eb", "#f8fafc", "hyper"],
-      ["Dodge Viper ACR Extreme", "legendary", 645, 3100, "8.4L V10", "RWD", "#f8fafc", "#dc2626", "hyper"],
-      ["Aston Martin DBS 770", "legendary", 770, 3700, "5.2L V12 Twin", "RWD", "#065f46", "#022c22", "hyper"],
-
-      // Mythic (8)
-      ["Bugatti Chiron Pur Sport", "mythic", 1500, 6800, "8.0L W16 Quad", "AWD", "#2563eb", "#090d16", "hyper"],
-      ["Koenigsegg Jesko Absolut", "mythic", 1600, 7200, "5.0L V8 Twin", "RWD", "#f8fafc", "#84cc16", "hyper"],
-      ["Pagani Zonda R Evolution", "mythic", 800, 6600, "6.0L V12 AMG", "RWD", "#334155", "#fbbf24", "hyper"],
-      ["McLaren F1 LM Spec", "mythic", 680, 7500, "6.1L BMW V12", "RWD", "#f97316", "#9a3412", "hyper"],
-      ["Ferrari F40 Competizione", "mythic", 700, 6900, "2.9L V8 Twin", "RWD", "#ef4444", "#7f1d1d", "hyper"],
-      ["Porsche 911 GT1 Strassenversion", "mythic", 544, 6400, "3.2L Flat-6", "RWD", "#f8fafc", "#38bdf8", "hyper"],
-      ["Rimac Nevera Time Attack", "mythic", 1914, 6700, "Quad Electric", "AWD", "#10b981", "#064e3b", "hyper"],
-      ["Gordon Murray T.50 Niki", "mythic", 663, 6500, "3.9L V12 Cosworth", "RWD", "#38bdf8", "#0369a1", "hyper"]
+      [
+        "Nissan Silvia S15 Spec-R", // 1. Название машины
+        "rare",                      // 2. Редкость ('common', 'rare', 'epic', 'legendary', 'mythic')
+        250,                         // 3. Средняя мощность (л.с.)
+        420,                         // 4. Средняя стоимость (₽)
+        "2.0L SR20DET",              // 5. Двигатель
+        "RWD",                       // 6. Привод (RWD, AWD, FWD)
+        "silvia_s15.png",            // 7. Название фотки (файл или url)
+        "Купе без пробега"           // 8. Краткое описание
+      ],
+      [
+        "BMW M3 E92",
+        "epic",
+        420,
+        1200,
+        "4.0L S65 V8",
+        "RWD",
+        "m3_e92.png",
+        "Атмосферный V8"
+      ]
+      // Сюда добавляйте следующие машины через запятую:
+      // ["Название", "редкость", мощность, цена, "мотор", "привод", "картинка", "описание"],
     ];
 
+    // Формирование единого рабочего массива машин из ваших параметров
     const UNIFIED_CARS = RAW_MODELS.map(m => ({
       name: m[0],
-      rarity: m[1],
-      baseHp: m[2],
-      basePrice: m[3],
-      engine: m[4],
-      drive: m[5],
-      img: makeTransparentCarImage(m[6], m[7], m[8]),
-      sub: `${m[4]} • ${m[5]}`
+      rarity: m[1] || 'common',
+      baseHp: m[2] || 150,
+      basePrice: m[3] || 150,
+      engine: m[4] || "2.0L",
+      drive: m[5] || "RWD",
+      img: m[6] || "",
+      sub: m[7] || `${m[4]} • ${m[5]}`
     }));
 
+    // Базовый пул металлолома/утиля
     const JUNK_POOL = [
-      { name: "Ржавый кузов без колёс", rarity: "junk", hp: 8, accel: "—", engine: "Заклинен", drive: "Нет", price: 10, img: makeTransparentCarImage("#475569", "#1e293b", "junk"), sub: "Сгнивший металл" },
-      { name: "Сгоревший моторный отсек", rarity: "junk", hp: 0, accel: "—", engine: "Пепел", drive: "Нет", price: 5, img: makeTransparentCarImage("#334155", "#0f172a", "junk"), sub: "Только на чермет" },
-      { name: "Распил после тотала", rarity: "junk", hp: 14, accel: "—", engine: "Пробит блок", drive: "Нет", price: 15, img: makeTransparentCarImage("#52525b", "#27272a", "junk"), sub: "Восстановлению не подлежит" }
+      { name: "Ржавый кузов без колёс", rarity: "junk", hp: 8, accel: "—", engine: "Заклинен", drive: "Нет", price: 10, img: "", sub: "Сгнивший металл" },
+      { name: "Сгоревший моторный отсек", rarity: "junk", hp: 0, accel: "—", engine: "Пепел", drive: "Нет", price: 5, img: "", sub: "Только на чермет" },
+      { name: "Распил после тотала", rarity: "junk", hp: 14, accel: "—", engine: "Пробит блок", drive: "Нет", price: 15, img: "", sub: "Восстановлению не подлежит" }
     ];
 
     // Иконки для контейнеров
-    document.getElementById('boxImg1').src = UNIFIED_CARS[14].img;
-    document.getElementById('boxImg2').src = UNIFIED_CARS[48].img;
+    if (UNIFIED_CARS.length > 0) {
+      document.getElementById('boxImg1').src = UNIFIED_CARS[0].img;
+      document.getElementById('boxImg2').src = UNIFIED_CARS[UNIFIED_CARS.length - 1].img;
+    }
     document.getElementById('boxImg3').src = JUNK_POOL[0].img;
 
-    // 10. КАТАЛОГ ДЕТАЛЕЙ ТЮНИНГА
     const TUNING_PARTS = [
       { key: 'turbo', name: '💨 Турбина Garrett', hpGain: 0.18, costMult: 0.25 },
       { key: 'ecu', name: '💻 Прошивка Чип ECU', hpGain: 0.12, costMult: 0.18 },
@@ -1445,11 +1334,9 @@
       { key: 'nos', name: '🧪 Закись Азота (NOS)', hpGain: 0.25, costMult: 0.35 }
     ];
 
-    // Профиль текущего пользователя Telegram
     const tgUser = tg?.initDataUnsafe?.user || { id: 777001, first_name: "Player", username: "street_racer" };
     const myUsername = tgUser.username ? `@${tgUser.username}` : tgUser.first_name;
 
-    // Состояние игрока и БД
     let playerData = {
       uid: tgUser.id,
       username: myUsername,
@@ -1501,7 +1388,6 @@
       }
     };
 
-    // Звуковой движок
     const AudioEngine = {
       ctx: null,
       init() {
@@ -1542,7 +1428,7 @@
       }
     };
 
-    let selectedSpinCount = 1; // 1, 2 или 5
+    let selectedSpinCount = 1;
     const BASE_SPIN_PRICE = 150;
     let isSpinning = false;
     let revealQueue = [];
@@ -1577,7 +1463,6 @@
       document.getElementById('refEarnedRub').textContent = playerData.refEarned;
     }
 
-    // Переключатель количества одновременных прокрутов (x1, x2, x5)
     document.querySelectorAll('#spinCountSelector .btn-mode-spin').forEach(btn => {
       btn.addEventListener('click', () => {
         if (isSpinning || revealQueue.length > 0) return;
@@ -1589,7 +1474,6 @@
       });
     });
 
-    // 9. ГЕНЕРАЦИЯ АВТО С ШАНСОМ ОЧЕНЬ ПЛОХИХ ХАРАКТЕРИСТИК
     function generateDrop(forcedTier = null, junkChance = 0.16) {
       if (Math.random() < junkChance) {
         return { ...JUNK_POOL[Math.floor(Math.random() * JUNK_POOL.length)], conditionText: "Тотал / Чермет", parts: {} };
@@ -1604,13 +1488,15 @@
         else if (roll < 35.0) targetTier = 'rare';
       }
 
-      const pool = UNIFIED_CARS.filter(c => c.rarity === targetTier);
-      const picked = pool[Math.floor(Math.random() * pool.length)] || UNIFIED_CARS[0];
+      let pool = UNIFIED_CARS.filter(c => c.rarity === targetTier);
+      if (pool.length === 0) pool = UNIFIED_CARS;
+      const picked = pool[Math.floor(Math.random() * pool.length)] || {
+        name: "Пусто", rarity: "common", baseHp: 100, basePrice: 100, engine: "1.6", drive: "FWD", img: "", sub: ""
+      };
 
-      // 25% шанс получить машину с очень плохими характеристиками ("Троит мотор / Износ")
       const isBadRoll = Math.random() < 0.25;
       const variance = isBadRoll
-        ? -(0.25 + Math.random() * 0.22) // От -25% до -47%
+        ? -(0.25 + Math.random() * 0.22)
         : (Math.random() * 0.28) - 0.08;
 
       const calcHp = Math.max(38, Math.round(picked.baseHp * (1 + variance)));
@@ -1628,13 +1514,14 @@
     }
 
     function renderStageCard(item, currentNum, totalNum) {
-      const meta = RARITY_SCHEME[item.rarity];
+      if (!item) return;
+      const meta = RARITY_SCHEME[item.rarity] || RARITY_SCHEME.common;
       document.documentElement.style.setProperty('--rarity-col', meta.color);
 
       document.getElementById('dispRarity').textContent = meta.name;
       document.getElementById('dispQueueBadge').textContent = `ДРОП ${currentNum} / ${totalNum}`;
       document.getElementById('dispCondition').textContent = item.conditionText || 'Состояние: Норма';
-      document.getElementById('dispImage').src = item.img;
+      document.getElementById('dispImage').src = item.img || '';
       document.getElementById('dispTitle').textContent = item.name;
       document.getElementById('dispSub').textContent = item.sub;
       document.getElementById('dispMult').textContent = meta.mult;
@@ -1650,7 +1537,6 @@
       document.getElementById('btnDirectSell').disabled = false;
     }
 
-    // 3. МНОГОПОЛОСНАЯ РУЛЕТКА СВЕРХУ ВНИЗ И ПООЧЕРЁДНЫЙ ПОКАЗ РЕЗУЛЬТАТОВ
     const ITEM_WIDTH = 110;
     const WINNING_INDEX = 20;
 
@@ -1676,7 +1562,6 @@
       const results = [];
       const tapes = [];
 
-      // Строим 1, 2 или 5 полос сверху вниз
       for (let laneIdx = 0; laneIdx < selectedSpinCount; laneIdx++) {
         const winCar = generateDrop();
         results.push(winCar);
@@ -1689,8 +1574,8 @@
         tape.className = 'lane-tape';
 
         for (let i = 0; i < 26; i++) {
-          const car = (i === WINNING_INDEX) ? winCar : UNIFIED_CARS[Math.floor(Math.random() * UNIFIED_CARS.length)];
-          const meta = RARITY_SCHEME[car.rarity];
+          const car = (i === WINNING_INDEX) ? winCar : (UNIFIED_CARS[Math.floor(Math.random() * UNIFIED_CARS.length)] || winCar);
+          const meta = RARITY_SCHEME[car.rarity] || RARITY_SCHEME.common;
           const cell = document.createElement('div');
           cell.className = 'tape-item';
           cell.innerHTML = `
@@ -1705,7 +1590,6 @@
         tapes.push({ tape, lane });
       }
 
-      // Запуск анимации всех полос
       requestAnimationFrame(() => {
         tapes.forEach(({ tape, lane }, idx) => {
           const center = lane.clientWidth / 2;
@@ -1732,7 +1616,6 @@
         multiBox.classList.remove('active');
         stageCard.classList.remove('hidden');
 
-        // Запускаем поочередный показ каждой выпавшей машины
         revealQueue = results;
         revealIndex = 0;
         addXP(15 * selectedSpinCount);
@@ -1780,7 +1663,6 @@
       showNextRevealCar();
     });
 
-    // НАВИГАЦИЯ ПО МОДАЛКАМ
     const sheets = {
       sheetMenu: document.getElementById('sheetMenu'),
       sheetGamesHub: document.getElementById('sheetGamesHub'),
@@ -1828,7 +1710,6 @@
       sheets.sheetFriends.classList.add('active');
     });
 
-    // Открытие подразделов из Меню
     document.getElementById('menuOpenGamesHub').addEventListener('click', () => {
       dismissSheets();
       sheets.sheetGamesHub.classList.add('active');
@@ -1848,7 +1729,6 @@
       loadRealLeaderboard();
     });
 
-    // Кнопки внутри хаба Мини-Игр
     document.getElementById('openGameUpgrader').addEventListener('click', () => {
       dismissSheets();
       sheets.sheetGameUpgrader.classList.add('active');
@@ -1874,9 +1754,7 @@
       });
     });
 
-    // =====================================================
-    // 3. АПГРЕЙДЕР: СЛЕВА ИНВЕНТАРЬ, ПО ЦЕНТРУ КОЛЕСО, СПРАВА ЦЕЛЬ
-    // =====================================================
+    // Апгрейдер
     let selectedUpgGarageIdx = null;
     let selectedUpgTargetIdx = null;
     let wheelDeg = 0;
@@ -1997,9 +1875,7 @@
       }, 3450);
     });
 
-    // =====================================================
-    // 4. СЛОТЫ С КАСКАДНОЙ ОСТАНОВКОЙ СЛЕВА НАПРАВО И СТАВКОЙ
-    // =====================================================
+    // Слоты
     const SYMBOLS = ['🍒', '🍋', '🍇', '💎', '7️⃣', '👑'];
     let slotsBusy = false;
 
@@ -2038,21 +1914,18 @@
         AudioEngine.playTick();
       }, 90);
 
-      // Остановка 1 барабана (слева)
       setTimeout(() => {
         r1.classList.remove('spinning');
         r1.textContent = res1;
         Haptic.light();
       }, 900);
 
-      // Остановка 2 барабана (центр)
       setTimeout(() => {
         r2.classList.remove('spinning');
         r2.textContent = res2;
         Haptic.light();
       }, 1600);
 
-      // Остановка 3 барабана (справа) и итог
       setTimeout(() => {
         clearInterval(spinInterval);
         r3.classList.remove('spinning');
@@ -2081,9 +1954,7 @@
       }, 2300);
     });
 
-    // =====================================================
-    // 5. МОНЕТКА С 3D ПОДБРАСЫВАНИЕМ И СТАВКОЙ
-    // =====================================================
+    // Монетка
     let coinBusy = false;
     function flipCoinGame(chosenSide) {
       if (coinBusy) return;
@@ -2131,9 +2002,7 @@
     document.getElementById('btnCoinHeads').addEventListener('click', () => flipCoinGame('heads'));
     document.getElementById('btnCoinTails').addEventListener('click', () => flipCoinGame('tails'));
 
-    // =====================================================
-    // 6. КОСТИ С АНИМАЦИЕЙ ПАДЕНИЯ И СТАВКОЙ
-    // =====================================================
+    // Кости
     const DICE_FACES = ['⚀', '⚁', '⚂', '⚃', '⚄', '⚅'];
     let diceBusy = false;
 
@@ -2192,9 +2061,7 @@
       }, 1100);
     });
 
-    // =====================================================
-    // 8. КОНТЕЙНЕРЫ (В ДОРОГИХ ТОЖЕ ЕСТЬ РИСК МЕТАЛЛОЛОМА)
-    // =====================================================
+    // Контейнеры
     function openMysteryContainer(cost, targetTier, junkRisk) {
       if (playerData.balance < cost) {
         Haptic.error();
@@ -2216,9 +2083,7 @@
     document.getElementById('btnOpenSuperBox').addEventListener('click', () => openMysteryContainer(1500, 'legendary', 0.18));
     document.getElementById('btnOpenJunkyardBox').addEventListener('click', () => openMysteryContainer(100, 'rare', 0.80));
 
-    // =====================================================
-    // 10. ДЕТАЛЬНОЕ МЕНЮ ТЮНИНГА (Турбина, Чип, Выхлоп, КПП, NOS)
-    // =====================================================
+    // Тюнинг
     const tuningCarSelect = document.getElementById('tuningCarSelect');
 
     function initTuningModal() {
@@ -2307,7 +2172,7 @@
       });
     }
 
-    // ГАРАЖ
+    // Гараж
     function loadGarageSheet() {
       const container = document.getElementById('garageContainer');
       container.innerHTML = '';
@@ -2318,7 +2183,7 @@
       }
 
       playerData.garage.forEach((item, idx) => {
-        const meta = RARITY_SCHEME[item.rarity];
+        const meta = RARITY_SCHEME[item.rarity] || RARITY_SCHEME.common;
         const card = document.createElement('div');
         card.className = 'glass-card';
         card.innerHTML = `
@@ -2349,9 +2214,7 @@
       });
     }
 
-    // =====================================================
-    // 13. P2P РЫНОК (Выставление своих авто, отмена и покупка)
-    // =====================================================
+    // Рынок
     function loadMarketSheet() {
       const select = document.getElementById('marketSellCarSelect');
       select.innerHTML = '';
@@ -2376,7 +2239,7 @@
       }
 
       playerData.marketLots.forEach((lot, idx) => {
-        const meta = RARITY_SCHEME[lot.car.rarity];
+        const meta = RARITY_SCHEME[lot.car.rarity] || RARITY_SCHEME.common;
         const isMyLot = lot.sellerUid === playerData.uid;
 
         const card = document.createElement('div');
@@ -2400,7 +2263,6 @@
         listContainer.appendChild(card);
       });
 
-      // Отмена своего лота и возврат в гараж
       listContainer.querySelectorAll('button[data-cancel-lot]').forEach(btn => {
         btn.addEventListener('click', () => {
           const idx = parseInt(btn.dataset.cancelLot, 10);
@@ -2412,7 +2274,6 @@
         });
       });
 
-      // Покупка чужого лота
       listContainer.querySelectorAll('button[data-buy-lot]').forEach(btn => {
         btn.addEventListener('click', () => {
           const idx = parseInt(btn.dataset.buyLot, 10);
@@ -2461,9 +2322,7 @@
       loadMarketSheet();
     });
 
-    // =====================================================
-    // 11. РЕАЛЬНЫЙ ЛИДЕРБОРД БЕЗ ФЕЙКОВЫХ БОТОВ
-    // =====================================================
+    // Лидерборд
     function loadRealLeaderboard() {
       const container = document.getElementById('realLeaderboardContainer');
       container.innerHTML = '';
@@ -2492,9 +2351,7 @@
       });
     }
 
-    // =====================================================
-    // 7. ПЕРСОНАЛЬНАЯ РЕФЕРАЛЬНАЯ ССЫЛКА И НАЧИСЛЕНИЕ ПРИ ВХОДЕ ДРУГА
-    // =====================================================
+    // Реферальная система
     const myPersonalRefUrl = `https://t.me/MashinkaBot?startapp=ref_${playerData.uid}`;
     document.getElementById('refPersonalLink').value = myPersonalRefUrl;
 
@@ -2511,7 +2368,6 @@
       else window.open(shareUrl, '_blank');
     });
 
-    // Проверка входа по реферальной ссылке друга через start_param
     function checkReferralEntry() {
       const startParam = tg?.initDataUnsafe?.start_param || new URLSearchParams(window.location.search).get('startapp');
       if (startParam && startParam.startsWith('ref_') && !playerData.referredByClaimed) {
@@ -2528,13 +2384,15 @@
       }
     }
 
-    // Инициализация сохранения при старте
+    // Инициализация при старте
     (async () => {
       const saved = await DB.load();
       if (saved) {
         playerData = { ...playerData, ...saved };
       }
-      renderStageCard(UNIFIED_CARS[0], 1, 1);
+      if (UNIFIED_CARS.length > 0) {
+        renderStageCard(UNIFIED_CARS[0], 1, 1);
+      }
       document.getElementById('btnKeepGarage').disabled = true;
       document.getElementById('btnDirectSell').disabled = true;
       checkReferralEntry();
