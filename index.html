@@ -158,9 +158,9 @@ input,select{font:800 14px Unbounded,sans-serif;border:2.5px solid var(--ink);bo
 
 <script>
 /* ===== !!! НАСТРОЙКИ ВАШЕГО БОТА — ЗАМЕНИТЕ НА СВОИ !!! ===== */
-const BOT_USERNAME = 'CryptoClickGameBot';      // username вашего бота БЕЗ @ (например MyMinerBot)
+const BOT_USERNAME = 'CryptoClickGme';      // username вашего бота БЕЗ @ (например MyMinerBot)
 const CHANNEL_USERNAME = 'CryptoClickGame';        // username вашего канала БЕЗ @ (бот должен быть админом канала)
-const CHANNEL_URL = 'https://t.me/@CryptoClickGame' + CHANNEL_USERNAME;
+const CHANNEL_URL = 'https://t.me/' + CHANNEL_USERNAME;
 const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const tgUserId = () => { try { const u = Telegram.WebApp.initDataUnsafe.user; if (u && u.id) return String(u.id); } catch(e){} return localStorage.getItem('gid') || ''; };
 const startParam = () => { try { return Telegram.WebApp.initDataUnsafe.start_param || ''; } catch(e){ return ''; } };
@@ -195,6 +195,7 @@ const creds = () => {
 };
 
 /* Универсальный метод обращения к онлайн API Supabase */
+let LASTERR = '';
 const post = async (method, body = {}, hold = false) => {
   try {
     const c = creds();
@@ -208,7 +209,9 @@ const post = async (method, body = {}, hold = false) => {
       body: JSON.stringify({ d: c.d, h: c.h, f: method, a: body })
     });
     const j = await r.json();
+    if (!r.ok) LASTERR = method + ': HTTP ' + r.status + ' ' + (j.message || j.hint || j.details || j.err || '');
     if (j.err) {
+      LASTERR = method + ': ' + j.err;
       if (j.err !== 'auth') toast('Сеть', j.err);
       return null;
     }
@@ -219,6 +222,7 @@ const post = async (method, body = {}, hold = false) => {
     }
     return j;
   } catch(e) {
+    LASTERR = method + ': ' + (e && e.message || e);
     return null;
   }
 };
@@ -251,7 +255,12 @@ setInterval(flush, 1500);
 /* Загрузка реальных топов и онлайна */
 async function loadServerData() {
   const j = await post('tops', {}, true);
-  if (!j) return;
+  if (!j) {
+    const t = $('#tickin'), o = $('#onl');
+    if (t) t.innerHTML = `<span>⚠️ Нет данных с сервера (${esc(LASTERR || 'нет ответа')})</span>`;
+    if (o) o.textContent = '🔴 Онлайн: нет данных';
+    return;
+  }
   
   REAL_TOPS = Array.isArray(j.earned) ? j.earned : [];
   REAL_FEED = Array.isArray(j.feed) ? j.feed : [];
@@ -395,6 +404,7 @@ const applyServerState = (u) => {
   if (u.gpu !== undefined) S.gpu = +u.gpu;
   if (u.own) { S.own = [...u.own]; while (S.own.length < GPU.length) S.own.push(0); }
   if (u.items) S.items = u.items;
+  if (u.bmul !== undefined) S.boostMul = +u.bmul;
   if (u.ac !== undefined) S.ac = +u.ac;
   if (u.fan !== undefined) S.fan = +u.fan;
   if (u.lvl !== undefined) S.lvl = +u.lvl;
@@ -815,7 +825,7 @@ async function claimDaily(){
   if(j){
     if(!j.u){S.dailyAt=Date.now()+86400000;S.bal+=30;S.dia+=.5}
     addXP(30);
-    banner('Ежедневный подарок получен!',1);confetti(45);
+    banner(j.gift?('+'+f2(j.gift.usd)+' $'+(j.gift.dia>0?'  +'+f2(j.gift.dia)+' 💎':'')):'Ежедневный подарок получен!',1);confetti(45);
     sync();tabGarage();
   }
 }
@@ -1719,15 +1729,18 @@ async function bootOnline(){
     applyServerState(j);
   }
   sync();
-  const sp = startParam();
-  if (/^ref_\d+$/.test(sp) && !localStorage.getItem('ref_done')) {
-    const rr = await fx('ref_register', { ref: sp });
-    if (rr && (rr.ok || rr.why)) localStorage.setItem('ref_done', '1');
-  }
-  syncRefs();
-  setInterval(syncRefs, 120000);
-  await loadServerData();
+  loadServerData();
   go(0);
+  /* рефералы в фоне, не блокируют запуск */
+  (async () => {
+    const sp = startParam();
+    if (/^ref_\d+$/.test(sp) && !localStorage.getItem('ref_done')) {
+      const rr = await fx('ref_register', { ref: sp });
+      if (rr && (rr.ok || rr.why)) localStorage.setItem('ref_done', '1');
+    }
+    syncRefs();
+    setInterval(syncRefs, 120000);
+  })();
 }
 
 bootOnline();
