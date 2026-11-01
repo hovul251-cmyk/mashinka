@@ -1034,7 +1034,7 @@ function tabMore(){
 }
 
 /* ===== НАВИГАЦИЯ И СТАРТ ===== */
-const TABS=[['⛏️','Майнинг',tabMine],['🎮','Игры',tabGames],['🛒','Гараж',tabGarage],['☰','Ещё',tabMore]];
+const TABS=[['⛏️','Майнинг',tabMine],['🎮','Игры',tabGames],['🛒','Магазин',tabGarage],['☰','Ещё',tabMore]];
 function go(i){
   stopGame&&stopGame();stopGame=null;
   [...$('#tabs').children].forEach((b,j)=>b.classList.toggle('on',i==j));
