@@ -116,7 +116,7 @@ const $=s=>document.querySelector(s),f2=n=>n.toFixed(2);
 const save=()=>{};
 let lastD=-1;const sync=()=>{document.querySelectorAll('[data-bal]').forEach(e=>e.textContent=f2(S.bal));document.querySelectorAll('[data-dia]').forEach(e=>{e.textContent=f2(S.dia);if(lastD>=0&&S.dia!=lastD&&e.closest('.chip')){const c=e.closest('.chip');c.classList.remove('bump');void c.offsetWidth;c.classList.add('bump')}});lastD=S.dia};
 /* ===== НАСТРОЙКА: вставьте данные из Supabase (Project Settings → API) ===== */
-const SB_URL='https://qmcvgtkfvsxthukbpafy.supabase.co/rest/v1/',SB_KEY='sb_publishable_dmFpfh7OvvYv_LgiP0gSvQ_n124nmga';
+const SB_URL='https://qmcvgtkfvsxthukbpafy.supabase.co',SB_KEY='sb_publishable_dmFpfh7OvvYv_LgiP0gSvQ_n124nmga';
 const creds=()=>{try{const w=Telegram.WebApp;if(w.initData){const p=new URLSearchParams(w.initData),h=p.get('hash');p.delete('hash');return{d:[...p.entries()].map(([k,v])=>k+'='+v).sort().join('\n'),h}}}catch(e){}
  let g=localStorage.getItem('gid');if(!g){g='g'+rnd().toString(36).slice(2,9);localStorage.setItem('gid',g)}return{d:'user='+JSON.stringify({id:g,first_name:'Гость '+g.slice(-3)}),h:''}};
 const post=async(p,b={},hold)=>{try{const c=creds(),r=await fetch(SB_URL+'/rest/v1/rpc/api',{method:'POST',headers:SB_KEY.startsWith('sb_')?{'content-type':'application/json',apikey:SB_KEY}:{'content-type':'application/json',apikey:SB_KEY,Authorization:'Bearer '+SB_KEY},body:JSON.stringify({d:c.d,h:c.h,f:p,a:b})});const j=await r.json();if(j.err){toast('Ошибка',j.err=='auth'?'Откройте игру через Telegram-бота':j.err);return null}if(!r.ok)throw 0;if(j.u&&!hold){apply(j.u);sync()}return j}catch(e){toast('Нет связи','Сервер недоступен');return null}};
