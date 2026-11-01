@@ -1,6 +1,6 @@
 <!DOCTYPE html><html lang="ru"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
-<meta name="theme-color" content="#e8e4ff"><title>Crypto Miner</title>
+<meta name="theme-color" content="#e8e4ff"><title>Crypto Miner Pro</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700;900&family=Manrope:wght@500;700;800&display=swap&subset=cyrillic" rel="stylesheet">
 <style>
@@ -10,253 +10,1055 @@
 body{margin:0;background:#cdc7f4;font:700 14px Manrope,sans-serif;color:var(--ink);display:flex;justify-content:center;overflow:hidden}
 #app{position:relative;width:100%;max-width:440px;height:100dvh;display:flex;flex-direction:column;background:var(--bg) radial-gradient(rgba(21,18,43,.13) 1.3px,transparent 1.5px) 0 0/22px 22px;overflow:hidden}
 .disp{font-family:Unbounded,sans-serif;font-weight:900}
-.card{background:#fff;border:2.5px solid var(--ink);border-radius:20px;box-shadow:0 4px 0 var(--ink);padding:12px}
-.btn{font:800 13px Unbounded,sans-serif;border:2.5px solid var(--ink);border-radius:14px;padding:12px 14px;background:var(--y);box-shadow:0 3px 0 var(--ink);color:var(--ink);cursor:pointer}
-.btn:active{transform:translateY(3px);box-shadow:none}.btn:disabled{opacity:.4}
-.g{background:var(--m)}.r{background:var(--p)}.w{background:#fff}.b{background:var(--b);color:#fff}.sm{padding:7px 10px;font-size:11px}.wide{width:100%}
+.card{background:#fff;border:2.5px solid var(--ink);border-radius:20px;box-shadow:0 4px 0 var(--ink);padding:12px;position:relative}
+.btn{font:800 13px Unbounded,sans-serif;border:2.5px solid var(--ink);border-radius:14px;padding:12px 14px;background:var(--y);box-shadow:0 3px 0 var(--ink);color:var(--ink);cursor:pointer;transition:transform .1s,box-shadow .1s}
+.btn:active{transform:translateY(3px);box-shadow:none}.btn:disabled{opacity:.4;cursor:not-allowed}
+.g{background:var(--m)}.r{background:var(--p);color:#fff}.w{background:#fff}.b{background:var(--b);color:#fff}.sm{padding:7px 10px;font-size:11px}.wide{width:100%}
 .row{display:flex;gap:8px;align-items:center}.col{display:flex;flex-direction:column;gap:10px}.sp{justify-content:space-between}
-input{font:800 15px Unbounded,sans-serif;border:2.5px solid var(--ink);border-radius:12px;padding:9px;width:100%;min-width:0;background:#fff;color:var(--ink)}
+input,select{font:800 14px Unbounded,sans-serif;border:2.5px solid var(--ink);border-radius:12px;padding:9px;width:100%;min-width:0;background:#fff;color:var(--ink)}
 .chip{border:2px solid var(--ink);border-radius:99px;padding:3px 9px;font-size:11px;background:#fff;white-space:nowrap}
-.muted{opacity:.6;font-size:12px}
-/* HUD */
-#top{padding:calc(10px + env(safe-area-inset-top)) 12px 6px;display:flex;flex-direction:column;gap:8px}
-#tick{overflow:hidden;border:2.5px solid var(--ink);border-radius:99px;background:var(--y);padding:5px 0}
+.muted{opacity:.65;font-size:12px}
+
+/* HUD & EXP */
+#top{padding:calc(10px + env(safe-area-inset-top)) 12px 6px;display:flex;flex-direction:column;gap:6px}
+#tick{overflow:hidden;border:2.5px solid var(--ink);border-radius:99px;background:var(--y);padding:4px 0}
 #tick>div{display:flex;width:max-content;animation:mq 24s linear infinite;gap:26px;font-size:12px}
 @keyframes mq{from{transform:translateX(-50%)}to{transform:none}}
 #balbox{display:flex;justify-content:space-between;align-items:center}
-.bal{font-size:30px;line-height:1}.bal small{font-size:14px;color:#0a9f6a}
+.bal{font-size:28px;line-height:1}
+.bal small{font-size:14px;color:#0a9f6a}
+.lvl-box{display:flex;align-items:center;gap:6px;width:100%}
+.lvl-badge{background:var(--ink);color:var(--y);padding:2px 8px;border-radius:99px;font-size:10px}
+.xp-bar{flex:1;height:10px;background:#fff;border:2px solid var(--ink);border-radius:99px;overflow:hidden}
+.xp-bar>div{height:100%;background:linear-gradient(90deg,var(--m),#00e1ff);width:0%;transition:width .3s}
+
 #stage{flex:1;overflow-y:auto;padding:6px 12px 14px}
-/* tabs */
 #tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;padding:8px 12px calc(10px + env(safe-area-inset-bottom));background:#fff;border-top:2.5px solid var(--ink)}
 #tabs button{font:800 11px Manrope;border:2.5px solid transparent;border-radius:14px;padding:6px 0;background:none;color:var(--ink);display:flex;flex-direction:column;align-items:center;gap:1px;cursor:pointer}
 #tabs button span{font-size:20px}#tabs .on{background:var(--b);color:#fff;border-color:var(--ink);box-shadow:0 3px 0 var(--ink)}
-/* mining */
-#gc{position:relative;margin:6px auto 0;width:230px;padding:14px;border:3px solid var(--ink);border-radius:28px;box-shadow:0 8px 0 var(--ink);cursor:pointer;
- background:color-mix(in srgb,var(--p) calc(var(--heat)*100%),#7be9ff);transition:transform .06s,box-shadow .06s}
-#gc:active{transform:translateY(6px);box-shadow:0 2px 0 var(--ink)}
-.fan{background:#fff;border:3px solid var(--ink);border-radius:50%;width:92px;height:92px;margin:10px auto;display:grid;place-items:center}
-.fan svg{width:72px;animation:sp 1.8s linear infinite}.fast svg{animation-duration:.25s}
+
+/* GPU MINER */
+#gc{position:relative;margin:6px auto 0;width:240px;padding:14px;border:3px solid var(--ink);border-radius:28px;box-shadow:0 8px 0 var(--ink);cursor:pointer;
+ background:color-mix(in srgb,var(--p) calc(var(--heat)*100%),#7be9ff);transition:transform .06s,box-shadow .06s;overflow:hidden}
+#gc:active{transform:translateY(6px) scale(0.98);box-shadow:0 2px 0 var(--ink)}
+.gpu-art{width:100%;height:120px;display:flex;justify-content:center;align-items:center;margin-bottom:6px}
+.gpu-art svg{width:100%;height:100%;filter:drop-shadow(0 4px 0 rgba(21,18,43,.35))}
+.fan-spin{transform-origin:center;animation:sp 1.8s linear infinite}
+.fast .fan-spin{animation-duration:.22s}
 @keyframes sp{to{transform:rotate(360deg)}}
-#gname{text-align:center;font-size:12px;margin-top:4px}
-.bar{height:14px;border:2.5px solid var(--ink);border-radius:99px;background:#fff;overflow:hidden}.bar i{display:block;height:100%;background:var(--m);transition:width .15s}
-.stats{display:grid;grid-template-columns:1fr 1fr;gap:8px}.stats b{display:block;font:900 13px Unbounded}
+.bar{height:14px;border:2.5px solid var(--ink);border-radius:99px;background:#fff;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--m);transition:width .15s}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:8px}.stats b{display:block;font:900 12px Unbounded}
 .hot #gc{animation:shk .12s infinite}@keyframes shk{50%{transform:translate(3px,-2px) rotate(1deg)}}
-#lock{position:absolute;inset:0;border-radius:25px;background:rgba(255,93,143,.93);display:none;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:6px;color:#fff;font-family:Unbounded;font-weight:900}
+#lock{position:absolute;inset:0;border-radius:25px;background:rgba(255,93,143,.95);display:none;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:6px;color:#fff;font-family:Unbounded;font-weight:900}
 .hot #lock{display:flex}
-.fl{position:fixed;z-index:90;pointer-events:none;font:900 16px Unbounded;color:var(--ink);background:var(--y);border:2px solid var(--ink);border-radius:99px;padding:2px 9px;animation:fl .9s ease-out forwards}
-@keyframes fl{to{transform:translate(70px,-90px) rotate(12deg);opacity:0}}
-/* lists */
+.fl{position:fixed;z-index:90;pointer-events:none;font:900 16px Unbounded;color:var(--ink);background:var(--y);border:2.5px solid var(--ink);border-radius:99px;padding:3px 10px;animation:fl .85s cubic-bezier(.2,.8,.3,1) forwards}
+@keyframes fl{to{transform:translate(60px,-110px) rotate(14deg) scale(1.1);opacity:0}}
+
+/* LISTS & SHEETS */
 .item{display:flex;justify-content:space-between;align-items:center;gap:8px}.item.on{background:#d9fbe9}
-.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.tile{text-align:center;padding:14px 4px;cursor:pointer}.tile span{font-size:26px;display:block}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.tile{text-align:center;padding:14px 4px;cursor:pointer}
+.tile span{font-size:26px;display:block}
 .seg{display:grid;grid-template-columns:1fr 1fr;gap:8px}.seg .on{background:var(--b);color:#fff}
-/* sheet */
-#sh{position:absolute;inset:0;background:rgba(21,18,43,.55);display:none;align-items:flex-end;z-index:60}
-#sh.open{display:flex}#sh>div{width:100%;max-height:82%;overflow-y:auto;background:var(--bg);border:3px solid var(--ink);border-bottom:0;border-radius:28px 28px 0 0;padding:16px;animation:up .25s}
-@keyframes up{from{transform:translateY(50px);opacity:0}}
-#toast{position:absolute;top:calc(10px + env(safe-area-inset-top));left:12px;right:12px;z-index:80;display:none}
-.tg{position:relative;width:52px;height:30px;border:2.5px solid var(--ink);border-radius:99px;background:#fff;flex:none}.tg:after{content:"";position:absolute;top:2px;left:2px;width:21px;height:21px;border-radius:50%;background:var(--ink);transition:.2s}
-.tg.on{background:var(--m)}.tg.on:after{left:24px}
-/* games */
-.big{font:900 40px Unbounded}.fighters{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
-.mine{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;width:210px;margin:auto}.mine button{aspect-ratio:1;font-size:26px;border:2.5px solid var(--ink);border-radius:14px;background:#fff;box-shadow:0 3px 0 var(--ink)}
-canvas{width:100%;height:170px;display:block}
-.wheel{width:170px;height:170px;border-radius:50%;border:3px solid var(--ink);margin:6px auto;position:relative;transition:transform 1.8s cubic-bezier(.1,.7,.1,1)}
-.pin{position:absolute;left:50%;top:-14px;margin-left:-9px;width:0;height:0;border:9px solid transparent;border-top:16px solid var(--ink)}
-.coin{width:110px;height:110px;margin:8px auto;border:3px solid var(--ink);border-radius:50%;background:var(--y);display:grid;place-items:center;font:900 34px Unbounded;transition:transform 1.2s}
-
-.cf{position:absolute;top:58%;width:9px;height:14px;border:1.5px solid var(--ink);z-index:95;pointer-events:none;animation:cf 1.1s ease-out forwards}@keyframes cf{to{transform:translate(var(--x),var(--y)) rotate(var(--r));opacity:0}}
-.bn{position:absolute;left:50%;top:36%;z-index:96;pointer-events:none;font:900 24px Unbounded;padding:10px 18px;border:3px solid var(--ink);border-radius:18px;box-shadow:0 5px 0 var(--ink);white-space:nowrap;animation:bn 1.5s forwards}.gd{background:var(--m)}.bd{background:var(--p);color:#fff}
-@keyframes bn{0%{transform:translate(-50%,20px) scale(.3);opacity:0}15%{transform:translate(-50%,0) scale(1.15);opacity:1}25%{transform:translate(-50%,0) scale(1)}85%{opacity:1}100%{transform:translate(-50%,-30px);opacity:0}}
-.shk{animation:shk2 .4s}@keyframes shk2{20%{transform:translateX(-9px)}40%{transform:translateX(9px)}60%{transform:translateX(-5px)}80%{transform:translateX(5px)}}
-.pop{animation:pop .7s}@keyframes pop{40%{transform:scale(1.6) rotate(-10deg)}}
-.sky{background:linear-gradient(#1b1745,#4a2f8f);position:relative;padding:0;overflow:hidden}.sky .big{position:absolute;left:0;right:0;top:50px;text-align:center;color:#fff;text-shadow:0 3px 0 var(--ink)}
-.sky2{position:relative;height:170px;overflow:hidden;background:linear-gradient(#7be9ff,#e8f9ff)}.clouds{position:absolute;inset:0;background:radial-gradient(40px 18px at 20% 30%,#fff 60%,transparent),radial-gradient(50px 20px at 60% 60%,#fff 60%,transparent),radial-gradient(35px 15px at 85% 25%,#fff 60%,transparent);background-size:200px 100%;animation:cl 3s linear infinite}@keyframes cl{to{background-position:-200px 0}}
-.glow{animation:gl .5s infinite alternate}@keyframes gl{to{box-shadow:0 0 26px 6px var(--y)}}
-.gcard{animation:gin .4s both}@keyframes gin{from{transform:translateX(-30px);opacity:0}}
-.bob{display:inline-block;animation:bob 2s ease-in-out infinite}@keyframes bob{50%{transform:translateY(-4px) rotate(8deg)}}
-.arena{background:repeating-linear-gradient(45deg,#fff,#fff 10px,#f3f0ff 10px,#f3f0ff 20px)}
-.fg{transition:.3s}.clash{animation:cls .3s infinite alternate}@keyframes cls{from{transform:translateX(-12px) rotate(-6deg)}to{transform:translateX(12px) rotate(6deg)}}
-.lose{opacity:.35;transform:scale(.9)}.jump{animation:jmp .6s 2}@keyframes jmp{50%{transform:translateY(-16px) scale(1.12)}}
-.flip{animation:flp .35s}@keyframes flp{50%{transform:rotateY(90deg) scale(1.15)}}
-@media (prefers-reduced-motion:reduce){.cf,.bob,.clouds{animation:none}}
-
-#top,#stage,#tabs{position:relative;z-index:1}
-.bgc{position:absolute;z-index:0;pointer-events:none;font-size:26px;opacity:.14;animation:fy linear infinite}@keyframes fy{from{transform:translateY(105vh) rotate(0)}to{transform:translateY(-12vh) rotate(360deg)}}
-#app{background-color:var(--bg);animation:bgs 14s ease-in-out infinite alternate}@keyframes bgs{to{background-color:#dcf5ff}}
-#gc{overflow:hidden;animation:flo 3.6s ease-in-out infinite}@keyframes flo{50%{translate:0 -7px}}
-#gc::before{content:"";position:absolute;inset:0;z-index:2;pointer-events:none;background:linear-gradient(115deg,transparent 40%,rgba(255,255,255,.6) 50%,transparent 60%);transform:translateX(-130%);animation:shine 4.5s infinite}@keyframes shine{55%,100%{transform:translateX(130%)}}
-#stage>*:not(#gc),#stage .col>*{animation:rise .45s cubic-bezier(.2,.8,.3,1) both}#stage .col>*:nth-child(2){animation-delay:.06s}#stage .col>*:nth-child(3){animation-delay:.12s}#stage .col>*:nth-child(4){animation-delay:.18s}#stage .col>*:nth-child(5){animation-delay:.24s}
-@keyframes rise{from{transform:translateY(18px) scale(.97);opacity:0}}
-.bal{background:linear-gradient(90deg,#15122b,#4d7cff,#15122b);background-size:200%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:bgm 5s linear infinite}@keyframes bgm{to{background-position:200% 0}}
-.bump{animation:bmp .5s}@keyframes bmp{40%{transform:scale(1.25) rotate(-4deg);background:var(--y)}}
-.btn{transition:transform .1s,box-shadow .1s,filter .2s}.btn:not(:disabled):hover{filter:brightness(1.06)}
-#tabs .on span{animation:tb .5s}@keyframes tb{40%{transform:translateY(-6px) scale(1.25)}}
 .seg4{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:10px}.seg4 .on{background:var(--b);color:#fff}.seg4 .btn{padding:8px 2px;font-size:10px}
-.gi{font-size:28px;display:inline-block}.gift{display:inline-block;animation:gft 1.2s infinite}.opened{animation:opn .8s forwards}
-@keyframes gft{0%,100%{transform:rotate(0)}20%{transform:rotate(-12deg) scale(1.1)}40%{transform:rotate(12deg) scale(1.1)}60%{transform:rotate(-6deg)}}
-@keyframes opn{to{transform:scale(1.8) translateY(-20px);opacity:0}}
-.chip.boost{background:var(--y);animation:bmp 1s infinite}
-.item.on{background:linear-gradient(120deg,#d9fbe9,#fff)}
-#tick>div b{color:#4d3bd6}
+#sh{position:absolute;inset:0;background:rgba(21,18,43,.55);display:none;align-items:flex-end;z-index:99}
+#sh.open{display:flex}
+#sh>div{width:100%;max-height:86%;overflow-y:auto;background:var(--bg);border:3px solid var(--ink);border-bottom:0;border-radius:28px 28px 0 0;padding:16px;animation:up .25s ease-out}
+@keyframes up{from{transform:translateY(60px);opacity:0}}
+#toast{position:absolute;top:calc(10px + env(safe-area-inset-top));left:12px;right:12px;z-index:110;display:none}
+.tg{position:relative;width:52px;height:30px;border:2.5px solid var(--ink);border-radius:99px;background:#fff;flex:none;cursor:pointer}
+.tg:after{content:"";position:absolute;top:2px;left:2px;width:21px;height:21px;border-radius:50%;background:var(--ink);transition:.2s}
+.tg.on{background:var(--m)}.tg.on:after{left:24px}
+
+/* GAMES FX */
+.big{font:900 38px Unbounded}
+.mine{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;width:230px;margin:auto}
+.mine button{aspect-ratio:1;font-size:28px;border:2.5px solid var(--ink);border-radius:14px;background:#fff;box-shadow:0 3px 0 var(--ink);transition:transform .2s,background .2s}
+.mine button:active{transform:scale(0.92)}
+.wheel{width:180px;height:180px;border-radius:50%;border:4px solid var(--ink);margin:6px auto;position:relative;transition:transform 2.4s cubic-bezier(.12,.8,.1,1);box-shadow:0 6px 0 rgba(21,18,43,.2)}
+.pin{position:absolute;left:50%;top:-16px;margin-left:-11px;width:0;height:0;border:11px solid transparent;border-top:19px solid var(--ink);z-index:5}
+.coin{width:120px;height:120px;margin:12px auto;border:3px solid var(--ink);border-radius:50%;background:linear-gradient(135deg,var(--y),#ff9f1c);display:grid;place-items:center;font:900 38px Unbounded;box-shadow:0 6px 0 var(--ink);transition:transform 1.4s cubic-bezier(.3,1.4,.5,1)}
+.cf{position:absolute;top:50%;width:10px;height:14px;border:1.5px solid var(--ink);z-index:95;pointer-events:none;animation:cf 1.2s ease-out forwards}
+@keyframes cf{to{transform:translate(var(--x),var(--y)) rotate(var(--r));opacity:0}}
+.bn{position:absolute;left:50%;top:36%;z-index:96;pointer-events:none;font:900 22px Unbounded;padding:10px 18px;border:3px solid var(--ink);border-radius:18px;box-shadow:0 5px 0 var(--ink);white-space:nowrap;animation:bn 1.5s forwards}
+.gd{background:var(--m)}.bd{background:var(--p);color:#fff}
+@keyframes bn{0%{transform:translate(-50%,20px) scale(.4);opacity:0}20%{transform:translate(-50%,0) scale(1.1);opacity:1}80%{opacity:1}100%{transform:translate(-50%,-30px);opacity:0}}
+.clash{animation:cls .22s infinite alternate}@keyframes cls{from{transform:translateX(-10px) rotate(-8deg) scale(1.05)}to{transform:translateX(10px) rotate(8deg) scale(1.05)}}
+.jump{animation:jmp .5s 2 ease-out}@keyframes jmp{50%{transform:translateY(-22px) scale(1.15)}}
+.flip{animation:flp .4s ease-out}@keyframes flp{0%{transform:rotateY(0)}50%{transform:rotateY(90deg) scale(1.2)}100%{transform:rotateY(0)}}
+.plane-box{position:relative;height:180px;background:linear-gradient(180deg,#5bc9eb 0%,#b2ecfa 100%);border-radius:16px;border:2.5px solid var(--ink);overflow:hidden}
+.sky-trail{position:absolute;height:3px;background:rgba(255,255,255,.8);border-radius:2px}
 </style></head><body>
-<div id="app"><div id="toast"></div>
-<div id="top"><div id="tick"><div id="tickin"></div></div>
-<div id="balbox"><div><div class="muted">Баланс</div><div class="bal disp"><span data-bal>0.00</span> <small>$</small></div></div><div class="col" style="align-items:flex-end;gap:5px"><div class="chip disp" style="font-size:13px;background:#c5f7e0">💎 <span data-dia>0.00</span></div><div class="row"><span class="chip" id="onl">🟢 …</span><span class="chip" id="tchip">🌡 36°C</span></div></div></div></div>
+<div id="app">
+<div id="toast"></div>
+<div id="top">
+  <div id="tick"><div id="tickin"></div></div>
+  <div id="balbox">
+    <div>
+      <div class="muted">Баланс</div>
+      <div class="bal disp"><span data-bal>0.00</span> <small>$</small></div>
+    </div>
+    <div class="col" style="align-items:flex-end;gap:4px">
+      <div class="chip disp" style="font-size:13px;background:#c5f7e0">💎 <span data-dia>0.00</span></div>
+      <div class="row"><span class="chip" id="onl">🟢 Онлайн: 142</span><span class="chip" id="tchip">🌡 36°C</span></div>
+    </div>
+  </div>
+  <div class="lvl-box">
+    <span class="disp lvl-badge" id="lvlBadge">LVL 1</span>
+    <div class="xp-bar"><div id="xpFill"></div></div>
+    <span class="muted" id="xpText" style="font-size:11px">0/100 XP</span>
+  </div>
+</div>
+
 <div id="stage"></div>
 <nav id="tabs"></nav>
-<div id="sh"><div></div></div></div>
+<div id="sh"><div></div></div>
+</div>
+
 <script>
-/* ===== STORE + ONLINE ===== */
-const GPU=[{n:'GTX 1660 Miner',r:.30,h:'12.5 MH/s',p:'85 W',e:'0.147 M/W',c:0},{n:'RTX 3070 Ti LHR',r:.75,h:'31.2 MH/s',p:'140 W',e:'0.222 M/W',c:50},{n:'RTX 4080 Gaming',r:1.80,h:'78.4 MH/s',p:'220 W',e:'0.356 M/W',c:200},{n:'RTX 4090 OC Ultra',r:4.50,h:'185.0 MH/s',p:'380 W',e:'0.486 M/W',c:650}];
-const COINS=['₿','Ξ','◎','₮','💎'],rnd=Math.random;
-let TOPS=[],FEED=[],pend=0;
-const S={bal:0,dia:0,earned:0,clicks:0,temp:36,hot:false,gpu:0,own:[1,0,0,0],snd:1,vib:1,user:'CryptoMiner',ac:0,fan:0,acOn:0,dailyAt:0,boostAt:0};
-const apply=u=>{Object.assign(S,u);S.dailyAt=Date.now()+(u.dl||0)*1000;S.boostAt=Date.now()+(u.bl||0)*1000};
-const $=s=>document.querySelector(s),f2=n=>n.toFixed(2);
-const save=()=>{};
-let lastD=-1;const sync=()=>{document.querySelectorAll('[data-bal]').forEach(e=>e.textContent=f2(S.bal));document.querySelectorAll('[data-dia]').forEach(e=>{e.textContent=f2(S.dia);if(lastD>=0&&S.dia!=lastD&&e.closest('.chip')){const c=e.closest('.chip');c.classList.remove('bump');void c.offsetWidth;c.classList.add('bump')}});lastD=S.dia};
-/* ===== НАСТРОЙКА: вставьте данные из Supabase (Project Settings → API) ===== */
-const SB_URL='https://qmcvgtkfvsxthukbpafy.supabase.co',SB_KEY='sb_publishable_dmFpfh7OvvYv_LgiP0gSvQ_n124nmga';
-const creds=()=>{try{const w=Telegram.WebApp;if(w.initData){const p=new URLSearchParams(w.initData),h=p.get('hash');p.delete('hash');return{d:[...p.entries()].map(([k,v])=>k+'='+v).sort().join('\n'),h}}}catch(e){}
- let g=localStorage.getItem('gid');if(!g){g='g'+rnd().toString(36).slice(2,9);localStorage.setItem('gid',g)}return{d:'user='+JSON.stringify({id:g,first_name:'Гость '+g.slice(-3)}),h:''}};
-const post=async(p,b={},hold)=>{try{const c=creds(),r=await fetch(SB_URL+'/rest/v1/rpc/api',{method:'POST',headers:SB_KEY.startsWith('sb_')?{'content-type':'application/json',apikey:SB_KEY}:{'content-type':'application/json',apikey:SB_KEY,Authorization:'Bearer '+SB_KEY},body:JSON.stringify({d:c.d,h:c.h,f:p,a:b})});const j=await r.json();if(j.err){toast('Ошибка',j.err=='auth'?'Откройте игру через Telegram-бота':j.err);return null}if(!r.ok)throw 0;if(j.u&&!hold){apply(j.u);sync()}return j}catch(e){toast('Нет связи','Сервер недоступен');return null}};
-const flush=async()=>{const n=pend;if(!n)return;pend=0;await post('mine',{n})};
-setInterval(flush,1500);
-const tickUI=()=>{const a=[...TOPS.map((t,i)=>`🏆 #${i+1} <b>${t[0]}</b> ${t[1]} $`),...FEED.map(f=>`🔥 <b>${f.name}</b> +${f2(f.amt)} 💎`)];$('#tickin').innerHTML=[...a,...a].map(x=>`<span>${x}</span>`).join('')};
-async function loadTops(){const j=await post('tops',{},1);if(!j)return;TOPS=j.earned.map(x=>[x.name,x.earned.toFixed(0)]);FEED=j.feed;$('#onl').textContent='🟢 '+j.online;tickUI()}
-setInterval(loadTops,20000);
-async function boot(){const j=await post('state');if(!j){$('#stage').innerHTML='<div class="card col"><b class="disp">Нет связи с сервером</b><p class="muted">Проверьте SB_URL и SB_KEY в начале скрипта и что schema.sql выполнен в Supabase</p><button class="btn" onclick="boot()">Повторить</button></div>';return}S.user=j.name;sync();loadTops();go(0)}
-/* ===== FX ===== */
-let ac;const tone=(f,t='sine',d=.08,v=.08)=>{if(!S.snd)return;try{ac=ac||new(window.AudioContext||window.webkitAudioContext)();const o=ac.createOscillator(),g=ac.createGain();o.type=t;o.frequency.value=f;g.gain.value=v;g.gain.exponentialRampToValueAtTime(.001,ac.currentTime+d);o.connect(g).connect(ac.destination);o.start();o.stop(ac.currentTime+d)}catch(e){}};
-const hap=(s='light')=>{if(!S.vib)return;try{Telegram.WebApp.HapticFeedback.impactOccurred(s)}catch(e){navigator.vibrate&&navigator.vibrate(s=='heavy'?60:15)}};
-let tt;const toast=(t,m)=>{const e=$('#toast');e.innerHTML=`<div class="card"><b class="disp" style="font-size:12px">${t}</b><div class="muted">${m}</div></div>`;e.style.display='block';hap();clearTimeout(tt);tt=setTimeout(()=>e.style.display='none',2600)};
-const sheet=(h)=>{$('#sh>div').innerHTML=h;$('#sh').classList.add('open')},shut=()=>$('#sh').classList.remove('open');
+/* ===== 2D SVG АРТЫ ДЛЯ ВИДЕОКАРТ ===== */
+const GPU_ART=[
+  // GTX 1660
+  `<svg viewBox="0 0 200 110"><rect x="15" y="15" width="170" height="80" rx="14" fill="#292d3e" stroke="#15122b" stroke-width="4"/>
+  <rect x="25" y="25" width="65" height="60" rx="30" fill="#383d57" stroke="#15122b" stroke-width="3"/>
+  <rect x="105" y="25" width="65" height="60" rx="30" fill="#383d57" stroke="#15122b" stroke-width="3"/>
+  <g class="fan-spin" style="transform-origin: 57px 55px"><circle cx="57" cy="55" r="24" fill="none" stroke="#2ee59d" stroke-dasharray="8 6" stroke-width="4"/><circle cx="57" cy="55" r="8" fill="#ffd23f" stroke="#15122b" stroke-width="2"/></g>
+  <g class="fan-spin" style="transform-origin: 137px 55px"><circle cx="137" cy="55" r="24" fill="none" stroke="#2ee59d" stroke-dasharray="8 6" stroke-width="4"/><circle cx="137" cy="55" r="8" fill="#ffd23f" stroke="#15122b" stroke-width="2"/></g>
+  <rect x="4" y="32" width="12" height="46" rx="3" fill="#8892b0" stroke="#15122b" stroke-width="3"/></svg>`,
+  // RTX 3070 Ti
+  `<svg viewBox="0 0 200 110"><rect x="15" y="15" width="170" height="80" rx="14" fill="#1b1c27" stroke="#15122b" stroke-width="4"/>
+  <path d="M 25 22 L 175 22 L 165 88 L 35 88 Z" fill="#282a3d"/>
+  <line x1="45" y1="24" x2="45" y2="86" stroke="#4d7cff" stroke-width="3"/><line x1="55" y1="24" x2="55" y2="86" stroke="#4d7cff" stroke-width="3"/>
+  <g class="fan-spin" style="transform-origin: 120px 55px"><circle cx="120" cy="55" r="28" fill="#15122b"/><circle cx="120" cy="55" r="24" fill="none" stroke="#4d7cff" stroke-width="4" stroke-dasharray="10 5"/><circle cx="120" cy="55" r="9" fill="#ff5d8f" stroke="#fff" stroke-width="2"/></g>
+  <text x="32" y="58" fill="#ffd23f" font-family="Unbounded" font-size="11" font-weight="900">RTX</text>
+  <rect x="4" y="28" width="12" height="54" rx="3" fill="#cfd6e6" stroke="#15122b" stroke-width="3"/></svg>`,
+  // RTX 4080
+  `<svg viewBox="0 0 200 110"><rect x="15" y="12" width="170" height="86" rx="16" fill="#11131a" stroke="#15122b" stroke-width="4"/>
+  <rect x="22" y="20" width="70" height="70" rx="35" fill="#1c2030" stroke="#2ee59d" stroke-width="2.5"/>
+  <rect x="106" y="20" width="70" height="70" rx="35" fill="#1c2030" stroke="#ff5d8f" stroke-width="2.5"/>
+  <g class="fan-spin" style="transform-origin: 57px 55px"><circle cx="57" cy="55" r="26" fill="none" stroke="#2ee59d" stroke-width="5" stroke-dasharray="7 5"/><circle cx="57" cy="55" r="9" fill="#2ee59d"/></g>
+  <g class="fan-spin" style="transform-origin: 141px 55px"><circle cx="141" cy="55" r="26" fill="none" stroke="#ff5d8f" stroke-width="5" stroke-dasharray="7 5"/><circle cx="141" cy="55" r="9" fill="#ff5d8f"/></g>
+  <rect x="88" y="22" width="22" height="66" rx="4" fill="#ffd23f" stroke="#15122b" stroke-width="2"/></svg>`,
+  // RTX 4090 OC
+  `<svg viewBox="0 0 200 110"><rect x="12" y="10" width="176" height="90" rx="18" fill="#0d0e17" stroke="#15122b" stroke-width="4"/>
+  <path d="M 16 14 L 184 96 M 184 14 L 16 96" stroke="#4d7cff" stroke-width="3" opacity="0.4"/>
+  <circle cx="50" cy="55" r="27" fill="#1b1c2b" stroke="#ffd23f" stroke-width="3"/>
+  <circle cx="100" cy="55" r="27" fill="#1b1c2b" stroke="#2ee59d" stroke-width="3"/>
+  <circle cx="150" cy="55" r="27" fill="#1b1c2b" stroke="#ff5d8f" stroke-width="3"/>
+  <g class="fan-spin" style="transform-origin: 50px 55px"><circle cx="50" cy="55" r="20" fill="none" stroke="#ffd23f" stroke-dasharray="8 4" stroke-width="4"/></g>
+  <g class="fan-spin" style="transform-origin: 100px 55px"><circle cx="100" cy="55" r="20" fill="none" stroke="#2ee59d" stroke-dasharray="8 4" stroke-width="4"/></g>
+  <g class="fan-spin" style="transform-origin: 150px 55px"><circle cx="150" cy="55" r="20" fill="none" stroke="#ff5d8f" stroke-dasharray="8 4" stroke-width="4"/></g></svg>`
+];
+
+/* ===== STATE & LEVEL SYSTEM ===== */
+const GPU=[
+  {n:'GTX 1660 Miner',r:.30,h:'12.5 MH/s',p:'85 W',e:'0.147 M/W',c:0},
+  {n:'RTX 3070 Ti LHR',r:.75,h:'31.2 MH/s',p:'140 W',e:'0.222 M/W',c:50},
+  {n:'RTX 4080 Gaming',r:1.80,h:'78.4 MH/s',p:'220 W',e:'0.356 M/W',c:200},
+  {n:'RTX 4090 OC Ultra',r:4.50,h:'185.0 MH/s',p:'380 W',e:'0.486 M/W',c:650}
+];
+
+const S={
+  bal: 25.00,
+  dia: 5.00,
+  earned: 25.00,
+  clicks: 0,
+  temp: 36,
+  hot: false,
+  gpu: 0,
+  own: [1,0,0,0],
+  snd: 1,
+  vib: 1,
+  user: 'CryptoMiner',
+  ac: 0,
+  fan: 0,
+  acOn: 0,
+  dailyAt: 0,
+  boostAt: 0,
+  // Новые параметры:
+  lvl: 1,
+  xp: 0,
+  refCount: 3,
+  clan: null,
+  paste: 0,       // термопаста
+  power: 0,       // стабилизатор питания
+  tasks: {}       // выполненные 1 раз задания
+};
+
+// Загрузка сохранённого состояния
+try{
+  const local=localStorage.getItem('cm_pro_state');
+  if(local) Object.assign(S,JSON.parse(local));
+}catch(e){}
+
+const save=()=>{
+  try{localStorage.setItem('cm_pro_state',JSON.stringify(S))}catch(e){}
+};
+
+const rnd=Math.random, f2=n=>(+n).toFixed(2), $=s=>document.querySelector(s);
+let TOPS=[['CryptoWhale', '1420'], ['Satoshi_N', '980'], ['MiningKing', '750']], FEED=[];
+
+function addXP(amount){
+  S.xp+=amount;
+  const need=S.lvl*100;
+  if(S.xp>=need){
+    S.xp-=need;
+    S.lvl++;
+    S.dia+=2;
+    banner('🎉 НОВЫЙ LVL '+S.lvl+'! (+2 💎)',1);
+    tone(950,'triangle',.3,.3);
+    confetti(40);
+  }
+  updateXPUI();
+  save();
+}
+
+function updateXPUI(){
+  const need=S.lvl*100;
+  $('#lvlBadge').textContent='LVL '+S.lvl;
+  $('#xpFill').style.width=(Math.min(100,(S.xp/need)*100))+'%';
+  $('#xpText').textContent=`${S.xp}/${need} XP`;
+}
+
+const sync=()=>{
+  document.querySelectorAll('[data-bal]').forEach(e=>e.textContent=f2(S.bal));
+  document.querySelectorAll('[data-dia]').forEach(e=>e.textContent=f2(S.dia));
+  updateXPUI();
+};
+
+/* ===== ЗВУК И СИГНАЛЫ ===== */
+let acx;
+const tone=(f,t='sine',d=.08,v=.08)=>{
+  if(!S.snd)return;
+  try{
+    acx=acx||new(window.AudioContext||window.webkitAudioContext)();
+    const o=acx.createOscillator(),g=acx.createGain();
+    o.type=t;o.frequency.value=f;g.gain.value=v;
+    g.gain.exponentialRampToValueAtTime(.001,acx.currentTime+d);
+    o.connect(g).connect(acx.destination);
+    o.start();o.stop(acx.currentTime+d);
+  }catch(e){}
+};
+const hap=(s='light')=>{
+  if(!S.vib)return;
+  try{Telegram.WebApp.HapticFeedback.impactOccurred(s)}catch(e){if(navigator.vibrate)navigator.vibrate(s=='heavy'?60:15)}
+};
+let tt;
+const toast=(t,m)=>{
+  const e=$('#toast');
+  e.innerHTML=`<div class="card"><b class="disp" style="font-size:12px">${t}</b><div class="muted">${m}</div></div>`;
+  e.style.display='block';hap();clearTimeout(tt);
+  tt=setTimeout(()=>e.style.display='none',2600);
+};
+const sheet=h=>{$('#sh>div').innerHTML=h;$('#sh').classList.add('open')};
+const shut=()=>$('#sh').classList.remove('open');
 $('#sh').onclick=e=>{if(e.target.id=='sh')shut()};
-/* ===== MINING ===== */
-const heatUI=()=>{const t=S.temp,h=Math.max(0,(t-36)/64);document.documentElement.style.setProperty('--heat',h.toFixed(2));$('#tchip').textContent='🌡 '+t.toFixed(0)+'°C';
- const v=$('#tv');if(!v)return;v.textContent=t.toFixed(1)+'°C';const b=$('#tb');b.style.width=t+'%';b.style.background=t<55?'var(--m)':t<80?'var(--y)':'var(--p)';
- $('#gs').textContent=S.hot?'ПЕРЕГРЕВ':t<55?'Готова':t<80?'Тепло':'Горячо!';
- if(S.hot)$('#cd').style.width=Math.max(0,(t-60)/40*100)+'%'};
-const gpuStats=()=>{const g=GPU[S.gpu];$('#gname').textContent=g.n;$('#st').innerHTML=[['Хешрейт',g.h],['Потребление',g.p],['Эффективность',g.e],['Доход / клик','+'+f2(g.r)+' $']].map(([a,b])=>`<div class="card"><div class="muted">${a}</div><b>${b}</b></div>`).join('')};
-function tabMine(){$('#stage').innerHTML=`<div id="gc"><div class="row sp"><span class="chip">PCIe 4.0 x16</span><span class="chip" id="gs">Готова</span></div>
-<div class="fan" id="f1">${fan()}</div><div class="fan" id="f2">${fan()}</div><div id="lock"><div style="font-size:36px">🔥</div>ПЕРЕГРЕВ!<div style="font:700 11px Manrope">Остывание до 60°C</div><div class="bar" style="width:110px"><i id="cd" style="background:#fff;width:100%"></i></div></div></div>
-<div id="gname" class="disp"></div><div class="row" id="ctl" style="justify-content:center;margin-top:8px;flex-wrap:wrap"></div>
-<div class="card" style="margin:12px 0"><div class="row sp" style="margin-bottom:6px"><span>Температура</span><b class="disp" id="tv">36°C</b></div><div class="bar"><i id="tb"></i></div></div>
-<div class="stats" id="st"></div><p class="muted" style="text-align:center" id="hint">Жми на видеокарту — это майнинг. Не доводи до 100°C!</p>`;
- gpuStats();heatUI();ctlUI();$('#gc').onpointerdown=mineTap}
-const fan=()=>`<svg viewBox="0 0 100 100"><g fill="#15122b"><path d="M50 50 48 8C30 10 34 40 50 50Z"/><path d="M50 50 92 48C90 30 60 34 50 50Z"/><path d="M50 50 52 92C70 90 66 60 50 50Z"/><path d="M50 50 8 52C10 70 40 66 50 50Z"/></g><circle cx="50" cy="50" r="9" fill="#ffd23f" stroke="#15122b" stroke-width="4"/></svg>`;
-const ACPS=[0,2,4,7],FC=()=>[1,1.4,1.9,2.6][S.fan]||1,FH=()=>[1,.9,.8,.7][S.fan]||1,BL=()=>Math.max(0,(S.boostAt-Date.now())/1000),DL=()=>Math.max(0,(S.dailyAt-Date.now())/1000);
+
+const confetti=(n=40)=>{
+  for(let i=0;i<n;i++){
+    const e=document.createElement('i');e.className='cf';
+    e.style.cssText=`left:${40+rnd()*20}%;background:${['#ffd23f','#ff5d8f','#2ee59d','#4d7cff'][i%4]};--x:${rnd()*340-170}px;--y:${-rnd()*300-60}px;--r:${rnd()*720}deg`;
+    $('#app').append(e);setTimeout(()=>e.remove(),1200);
+  }
+};
+const banner=(t,g)=>{
+  const e=document.createElement('div');
+  e.className='bn '+(g?'gd':'bd');e.textContent=t;
+  $('#app').append(e);setTimeout(()=>e.remove(),1500);
+};
+
+/* ===== МАЙНИНГ ===== */
+const FC=()=>([1,1.4,1.9,2.6][S.fan]||1)*(S.paste?1.35:1);
+const FH=()=>([1,.9,.8,.7][S.fan]||1)*(S.paste?0.75:1);
+const BL=()=>Math.max(0,(S.boostAt-Date.now())/1000);
+const DL=()=>Math.max(0,(S.dailyAt-Date.now())/1000);
 const fmt=t=>{t=Math.ceil(t);const h=t/3600|0,m=t%3600/60|0;return h?h+'ч '+m+'м':m+':'+String(t%60).padStart(2,'0')};
-const HINT='Жми на видеокарту — это майнинг. Не доводи до 100°C!';
-function mineTap(e){if(S.hot){tone(120,'square',.1,.15);hap('heavy');return}mineCore(e.clientX,e.clientY)}
+
+function tabMine(){
+  $('#stage').innerHTML=`
+  <div id="gc">
+    <div class="row sp"><span class="chip">PCIe 4.0 x16</span><span class="chip" id="gs">Готова</span></div>
+    <div class="gpu-art" id="gpuVisual">${GPU_ART[S.gpu]}</div>
+    <div id="lock">
+      <div style="font-size:36px">🔥</div>ПЕРЕГРЕВ!
+      <div style="font:700 11px Manrope">Остывание до 60°C</div>
+      <div class="bar" style="width:110px"><i id="cd" style="background:#fff;width:100%"></i></div>
+    </div>
+  </div>
+  <div id="gname" class="disp" style="text-align:center;font-size:14px;margin-top:6px"></div>
+  <div class="row" id="ctl" style="justify-content:center;margin-top:8px;flex-wrap:wrap"></div>
+  <div class="card" style="margin:12px 0">
+    <div class="row sp" style="margin-bottom:6px"><span>Температура GPU</span><b class="disp" id="tv">36°C</b></div>
+    <div class="bar"><i id="tb"></i></div>
+  </div>
+  <div class="stats" id="st"></div>
+  <p class="muted" style="text-align:center;margin-top:8px" id="hint">Кликай по видеокарте для майнинга крипты!</p>`;
+  
+  gpuStats();heatUI();ctlUI();
+  $('#gc').onpointerdown=mineTap;
+}
+
+const gpuStats=()=>{
+  const g=GPU[S.gpu];
+  $('#gname').textContent=g.n;
+  $('#st').innerHTML=[
+    ['Хешрейт',g.h],
+    ['Потребление',g.p],
+    ['Бонус клана', S.clan?'+'+S.clan.bonus+'%':'0%'],
+    ['Доход / клик','+'+f2(g.r*(BL()>0?2:1)*(1+(S.power*.15)))+' $']
+  ].map(([a,b])=>`<div class="card"><div class="muted">${a}</div><b>${b}</b></div>`).join('');
+};
+
+const heatUI=()=>{
+  const t=S.temp,h=Math.max(0,(t-36)/64);
+  document.documentElement.style.setProperty('--heat',h.toFixed(2));
+  $('#tchip').textContent='🌡 '+t.toFixed(0)+'°C';
+  const v=$('#tv');if(!v)return;
+  v.textContent=t.toFixed(1)+'°C';
+  const b=$('#tb');b.style.width=t+'%';
+  b.style.background=t<55?'var(--m)':t<80?'var(--y)':'var(--p)';
+  $('#gs').textContent=S.hot?'ПЕРЕГРЕВ':t<55?'Готова':t<80?'Тепло':'Горячо!';
+  if(S.hot)$('#cd').style.width=Math.max(0,(t-60)/40*100)+'%';
+};
+
+function mineTap(e){
+  if(S.hot){tone(120,'square',.1,.15);hap('heavy');return}
+  mineCore(e.clientX,e.clientY);
+}
+
 function mineCore(x,y,auto){
- S.temp=Math.min(100,S.temp+1.6*FH());S.clicks++;const r=GPU[S.gpu].r*(BL()>0?2:1);S.bal+=r;S.earned+=r;pend++;sync();
- if($('#f1')){['#f1','#f2'].forEach(q=>$(q).classList.add('fast'));clearTimeout(window.ft);window.ft=setTimeout(()=>['#f1','#f2'].forEach(q=>$(q).classList.remove('fast')),500);
-  const c=document.createElement('div');c.className='fl';c.textContent=COINS[rnd()*5|0]+' +'+f2(r);c.style.left=(x-30+rnd()*30)+'px';c.style.top=(y-30)+'px';document.body.append(c);setTimeout(()=>c.remove(),900)}
- if(!auto){tone(450+rnd()*200,'triangle',.06);hap()}
- if(S.temp>=100){S.hot=true;S.temp=100;document.body.classList.add('hot');const h=$('#hint');if(h)h.textContent='🚨 Кликать нельзя, пока не остынет до 60°C';tone(180,'sawtooth',.4,.2);hap('heavy')}
- heatUI()}
-setInterval(function(){if(S.temp>36){S.temp=Math.max(36,S.temp-(S.hot?.8:.65)*FC());if(S.hot&&S.temp<=60){S.hot=false;document.body.classList.remove('hot');const h=$('#hint');if(h)h.textContent=HINT;tone(600)}heatUI()}},200);
-let acAcc=0;setInterval(()=>{if(S.acOn&&S.ac&&!S.hot&&S.temp<96){acAcc+=ACPS[S.ac]*.1;while(acAcc>=1){acAcc--;const c=$('#gc'),r=c?c.getBoundingClientRect():null;mineCore(r?r.left+r.width/2+(rnd()-.5)*90:-99,r?r.top+r.height/2:-99,1)}}},100);
-const ctlUI=()=>{const c=$('#ctl');if(!c)return;c.innerHTML=(S.ac?`<button class="btn sm ${S.acOn?'g':'r'}" onclick="S.acOn=+!S.acOn;ctlUI();hap()">🤖 Авто: ${S.acOn?'ВКЛ':'ВЫКЛ'} · ${ACPS[S.ac]}/с</button>`:'')+(S.fan?`<span class="chip">❄️ ур.${S.fan}</span>`:'')+(BL()>0?`<span class="chip boost">⚡ ×2 ${fmt(BL())}</span>`:'')||'<span class="muted">Улучшения — в «Гараже»</span>'};
-/* ===== GARAGE ===== */
+  S.temp=Math.min(100,S.temp+1.5*FH());
+  S.clicks++;
+  const mult=(BL()>0?2:1)*(1+(S.power*.15))*(S.clan?(1+S.clan.bonus/100):1);
+  const r=GPU[S.gpu].r*mult;
+  S.bal+=r;S.earned+=r;
+  addXP(1);
+  sync();
+  
+  const gVis=$('#gpuVisual');
+  if(gVis){
+    gVis.classList.add('fast');
+    clearTimeout(window.gvt);
+    window.gvt=setTimeout(()=>gVis.classList.remove('fast'),400);
+    const c=document.createElement('div');
+    c.className='fl';
+    c.textContent=['₿','Ξ','💎','₮'][rnd()*4|0]+' +'+f2(r);
+    c.style.left=(x-30+rnd()*30)+'px';
+    c.style.top=(y-30)+'px';
+    document.body.append(c);
+    setTimeout(()=>c.remove(),850);
+  }
+  
+  if(!auto){tone(480+rnd()*180,'triangle',.05);hap()}
+  if(S.temp>=100){
+    S.hot=true;S.temp=100;
+    document.body.classList.add('hot');
+    $('#hint')&&($('#hint').textContent='🚨 Кликать нельзя, пока видеокарта не остынет!');
+    tone(170,'sawtooth',.4,.2);hap('heavy');
+  }
+  heatUI();
+}
+
+setInterval(function(){
+  if(S.temp>36){
+    S.temp=Math.max(36,S.temp-(S.hot?.85:.65)*FC());
+    if(S.hot&&S.temp<=60){
+      S.hot=false;
+      document.body.classList.remove('hot');
+      $('#hint')&&($('#hint').textContent='Кликай по видеокарте для майнинга крипты!');
+      tone(620);
+    }
+    heatUI();
+  }
+},200);
+
+const ACPS=[0,2,4,7];
+let acAcc=0;
+setInterval(()=>{
+  if(S.acOn&&S.ac&&!S.hot&&S.temp<95){
+    acAcc+=ACPS[S.ac]*.1;
+    while(acAcc>=1){
+      acAcc--;
+      const c=$('#gc'),r=c?c.getBoundingClientRect():null;
+      mineCore(r?r.left+r.width/2+(rnd()-.5)*80:-99,r?r.top+r.height/2:-99,1);
+    }
+  }
+},100);
+
+const ctlUI=()=>{
+  const c=$('#ctl');if(!c)return;
+  c.innerHTML=(S.ac?`<button class="btn sm ${S.acOn?'g':'r'}" onclick="S.acOn=+!S.acOn;ctlUI();hap()">🤖 Автомайнер: ${S.acOn?'ВКЛ':'ВЫКЛ'} (${ACPS[S.ac]}/с)</button>`:'')+
+  (S.fan?`<span class="chip">❄️ Охлаждение: ур.${S.fan}</span>`:'')+
+  (BL()>0?`<span class="chip" style="background:var(--y)">⚡ Буст ×2 ${fmt(BL())}</span>`:'');
+};
+
+/* ===== МАГАЗИН И ОБОРУДОВАНИЕ ===== */
 let gTab=0;
 const AC=[{n:'Бот-новичок',cps:2,c:100},{n:'Бот-про',cps:4,c:400},{n:'Квантовый бот',cps:7,c:1200}];
-const FN=[{n:'Кулер 120мм',cool:1.4,heat:10,c:60},{n:'Двойной кулер',cool:1.9,heat:20,c:250},{n:'Водяное охлаждение',cool:2.6,heat:30,c:800}];
-const track=(arr,cur,k,ic,d)=>arr.map((x,i)=>`<div class="card item ${i<cur?'on':''}"><div class="row"><span class="gi bob">${ic}</span><div><b>${x.n}</b><div class="muted">${d(x)}</div></div></div>${i<cur?'<span class="chip">Куплено</span>':`<button class="btn g sm" ${i>cur||S.bal<x.c?'disabled':''} onclick="upg('${k}')">${x.c} $</button>`}</div>`).join('');
-function tabGarage(){let body;
- if(gTab==0)body=GPU.map((g,i)=>`<div class="card item ${S.gpu==i?'on':''}"><div><b>${g.n}</b><div class="muted">+${f2(g.r)} $ / клик · ${g.h} · ${g.p}</div></div>${S.own[i]?(S.gpu==i?'<span class="chip">В работе</span>':`<button class="btn b sm" onclick="equip(${i})">Выбрать</button>`):`<button class="btn g sm" ${S.bal<g.c?'disabled':''} onclick="buy(${i})">${f2(g.c)}$</button>`}</div>`).join('');
- else if(gTab==1)body=track(AC,S.ac,'ac','🤖',x=>`${x.cps} кликов/сек · включай и выключай на экране майнинга`);
- else if(gTab==2)body=track(FN,S.fan,'fan','❄️',x=>`Остывание ×${x.cool} · нагрев −${x.heat}%`);
- else body=`<div class="card" style="text-align:center"><div class="big gift" id="gf">🎁</div><p class="disp" style="font-size:12px">Ежедневный подарок</p><button class="btn g wide" id="dg" onclick="daily()">Открыть</button></div><div class="card item"><div class="row"><span class="gi bob">⚡</span><div><b>Буст ×2</b><div class="muted">Двойной доход на 60 секунд</div></div></div><button class="btn b sm" onclick="boost()">0.5 💎</button></div>`;
- $('#stage').innerHTML=`<div class="seg4">${['Карты','Автокликер','Кулеры','Бонусы'].map((t,i)=>`<button class="btn w sm ${gTab==i?'on':''}" onclick="gTab=${i};tabGarage()">${t}</button>`).join('')}</div><div class="col">${body}</div>`;bonusUI()}
-const bonusUI=()=>{const b=$('#dg');if(!b)return;const d=DL();b.disabled=d>0;b.textContent=d>0?'Через '+fmt(d):'Открыть';$('#gf').classList.toggle('gift',d<=0)};
-async function upg(k){const j=await post('upg',{k});if(j){confetti(26);tabGarage();toast('Улучшение!','Новое оборудование установлено');tone(850);hap('medium')}}
-async function daily(){const j=await post('daily');if(!j)return;const g=j.gift;$('#gf').classList.add('opened');confetti(50);banner('+'+g.usd+' $'+(g.dia?' +'+g.dia+' 💎':''),1);tone(900);hap('medium');setTimeout(tabGarage,1000)}
-async function boost(){const j=await post('boost');if(j){confetti(20);toast('Буст ×2','60 секунд двойного дохода!');tone(900);ctlUI()}}
-const buy=async i=>{const j=await post('buy',{i});if(j){tabGarage();toast('Успех!','Вы приобрели '+GPU[i].n);tone(850,'sine',.15);hap('medium')}};
-const equip=async i=>{const j=await post('equip',{i});if(j){tabGarage();hap()}};
-/* ===== MORE ===== */
-const MORE=[['🏆','Топы',()=>openTops()],
-['🔄','Обменник',()=>openExch()],
-['👥','Рефералы',()=>sheet(`<h3 class="disp">Рефералы</h3><p>Приглашай друзей в бота и получай 15% от их намайненной крипты!</p><div class="muted">Твоя ссылка</div><input id="rl" readonly value="https://t.me/CryptoMinerBot?start=ref_miner_777"><button class="btn wide" style="margin-top:10px" onclick="copyRef()">Скопировать</button>`)],
-['💎','Донат',()=>sheet(`<h3 class="disp">Донат</h3><p class="muted">Пополнение через Telegram Stars или TON</p><div class="col"><button class="btn r item wide" onclick="toast('Донат','Оплата Telegram Stars временно в режиме теста!')"><span>100 Telegram Stars</span><span>+10.00 $</span></button><button class="btn b item wide" onclick="toast('Донат','TON Connect подключится в релизной версии!')"><span>1 TON</span><span>+5.50 $</span></button></div>`)],
-['👤','Профиль',()=>sheet(`<h3 class="disp">${S.user}</h3><p class="muted">Статус: Майнер 1-го уровня</p><div class="stats"><div class="card"><div class="muted">Всего заработано</div><b>${f2(S.earned)} $</b></div><div class="card"><div class="muted">Всего кликов</div><b>${S.clicks}</b></div></div>`)],
-['⚙️','Настройки',()=>sheet(`<h3 class="disp">Настройки</h3><div class="col">${[['snd','Звуки'],['vib','Вибрация']].map(([k,t])=>`<div class="card item"><span>${t}</span><div class="tg ${S[k]?'on':''}" onclick="S.${k}=+!S.${k};this.classList.toggle('on');save()"></div></div>`).join('')}</div>`)],
-['💻','Взломы',()=>{tone(160,'sawtooth',.2,.2);hap('heavy');toast('ВЗЛОМЫ (БЕТА)','Функция взлома закрыта. Идет разработка смарт-контракта!')}],
-['📋','Задания',()=>toast('Квесты','Ежедневные задания откроются в следующем обновлении!')],
-['🌐','Пул',()=>toast('Майнинг Пул','Объединяйтесь с друзьями для совместного майнинга!')],
-['❓','Справка',()=>toast('Справка','Кликайте на карту, избегайте 100°C и прокачивайте видеокарты!')]];
-const tabMore=()=>{$('#stage').innerHTML=`<div class="grid3">${MORE.map((m,i)=>`<div class="card tile" onclick="MORE[${i}][2]()"><span>${m[0]}</span>${m[1]}</div>`).join('')}</div><div class="card" style="margin-top:12px"><b>Охотник за криптой</b><p class="muted">Прокачивай карты в магазине, пробуй удачу в мини-играх и приглашай друзей.</p></div>`};
-async function openTops(){const j=await post('tops',{},1);if(!j)return;const L=(a,d)=>a.map((x,i)=>`<div class="card item"><span><b>${i+1}.</b> ${x.name}</span><b class="disp" style="font-size:12px">${d?'💎 '+f2(x.dia):f2(x.earned)+' $'}</b></div>`).join('');
- sheet(`<h3 class="disp">Топы · 🟢 ${j.online} онлайн</h3><p class="muted">Ваше место по заработку: #${j.rank}</p><div class="col">${L(j.earned,0)}</div><h3 class="disp">Топ по алмазам</h3><div class="col">${L(j.dia,1)}</div><h3 class="disp">Живая лента побед</h3><div class="col">${j.feed.map(f=>`<div class="card item"><span>🔥 ${f.name}</span><b>+${f2(f.amt)} 💎</b></div>`).join('')||'<p class="muted">Пока пусто</p>'}</div>`)}
-function openExch(){sheet(`<h3 class="disp">Обменник</h3><div class="card" style="text-align:center"><div class="big" id="ex">💎</div><p class="disp">1 💎 = 100 $</p><div class="muted">У вас: <b data-bal></b> $ · <b data-dia></b> 💎</div></div><div class="seg" style="grid-template-columns:repeat(4,1fr);margin:10px 0">${[1,5,10,'max'].map(v=>`<button class="btn w sm" onclick="exch('${v}')">${v=='max'?'Макс':v+' 💎'}</button>`).join('')}</div><input id="exn" type="number" min="0.01" step="0.01" placeholder="Сколько 💎"><button class="btn g wide" style="margin-top:10px" onclick="exch($('#exn').value)">Обменять</button>`);sync()}
-async function exch(v){await flush();const d=v=='max'?Math.floor(S.bal)/100:+v,k=Math.floor(d*100)/100;if(!(k>0))return toast('Мало $','Нужно минимум 1 $');const j=await post('exch',{d:k});if(j){confetti(24);const e=$('#ex');e.classList.remove('pop');void e.offsetWidth;e.classList.add('pop');toast('Обмен','−'+f2(k*100)+' $ → +'+f2(k)+' 💎');tone(900)}}
-const copyRef=()=>{const i=$('#rl');i.select();try{navigator.clipboard.writeText(i.value)}catch(e){document.execCommand('copy')}toast('Готово','Ссылка скопирована');};
-const confetti=(n=40)=>{for(let i=0;i<n;i++){const e=document.createElement('i');e.className='cf';e.style.cssText=`left:${45+rnd()*10}%;background:${['#ffd23f','#ff5d8f','#2ee59d','#4d7cff'][i%4]};--x:${rnd()*360-180}px;--y:${-rnd()*320-60}px;--r:${rnd()*720}deg`;$('#app').append(e);setTimeout(()=>e.remove(),1200)}};
-const banner=(t,g)=>{const e=document.createElement('div');e.className='bn '+(g?'gd':'bd');e.textContent=t;$('#app').append(e);setTimeout(()=>e.remove(),1500)};
-const res=(w,t)=>{if(w){confetti();banner(t,1);tone(900);hap('medium')}else{banner(t,0);const a=$('#app');a.classList.add('shk');setTimeout(()=>a.classList.remove('shk'),400);tone(140,'sawtooth',.3,.2);hap('heavy')}};
-/* ===== GAMES (в 💎, результат решает сервер) ===== */
-let bet=1,stopG=null;
-const betUI=()=>`<div class="card col"><div class="row"><span class="disp">💎</span><input id="bet" type="number" step="0.1" min="0.1" value="${bet}" oninput="bet=Math.max(.1,+this.value||.1)"><button class="btn w sm" onclick="sb(bet/2)">½</button><button class="btn w sm" onclick="sb(bet*2)">×2</button></div><div class="row">${[.1,.5,1,5].map(v=>`<button class="btn w sm wide" onclick="sb(${v})">${v}</button>`).join('')}</div></div>`;
-const sb=v=>{bet=Math.max(.1,+v.toFixed(2));$('#bet').value=bet;tone(520)};
-const can=()=>{if(S.dia<bet-1e-9){toast('Не хватает 💎','Обменяй доллары в «Обменнике»');return 0}return 1};
-const up=j=>{j&&j.u&&apply(j.u);sync()};
-const wait=ms=>new Promise(r=>setTimeout(r,ms));
-const play1=async(o)=>{if(!can())return null;S.dia-=bet;sync();const j=await post('play',{...o,b:bet},1);if(!j){S.dia+=bet;sync()}return j};
-const G={
-crash:{t:'Краш',i:'🚀',d:'Общий раунд · играют все онлайн',run(el){let C={ph:'bet',t:0,hist:[],pl:[],cp:0,my:null},at=Date.now(),pts=[],on=1,last='',raf;
- const stars=[...Array(30)].map(()=>[rnd(),rnd(),rnd()*2+1]);
- el.innerHTML=`<div class="card sky"><canvas id="cv" width="380" height="170"></canvas><div class="big" id="cm">x1.00</div></div><div class="row" id="ch" style="overflow:auto"></div>${betUI()}<button class="btn g wide" id="cb"></button><div class="card"><div class="muted">Игроки раунда</div><div class="row" id="pl" style="flex-wrap:wrap;margin-top:6px"></div></div>`;
- const M=()=>Math.exp(.1*(C.t+(Date.now()-at)/1000));
- const ui=()=>{if(!$('#cm'))return;const f=C.ph=='fly',m=M();$('#cm').textContent=C.ph=='bet'?'Старт через '+Math.max(0,5-C.t-(Date.now()-at)/1000).toFixed(0):C.ph=='crash'?'КРАШ x'+C.cp.toFixed(2):'x'+m.toFixed(2);$('#cm').style.color=C.ph=='crash'?'#ff5d8f':'#fff';
-  $('#ch').innerHTML=C.hist.map(x=>`<span class="chip" style="background:${x<2?'#ffc6d9':'#c5f7e0'}">x${x.toFixed(2)}</span>`).join('');
-  $('#pl').innerHTML=C.pl.length?C.pl.map(p=>`<span class="chip" style="background:${p.o?'#c5f7e0':'#fff'}">${p.n} ${f2(p.b)}💎${p.o?' ✅x'+p.o.toFixed(2):''}</span>`).join(''):'<span class="muted">Пока никого — будь первым</span>';
-  const b=$('#cb'),my=C.my;b.className='btn wide '+(f&&my&&!my.o?'r':'g');b.textContent=C.ph=='bet'?(my?'Ставка принята':'Поставить'):f?(my&&!my.o?'Забрать '+f2(my.b*m)+' 💎':my?'Забрано ✅':'Ждём раунд'):'Раунд окончен';b.disabled=C.ph=='crash'||(C.ph=='bet'&&!!my)||(f&&(!my||my.o))};
- const draw=()=>{const c=$('#cv');if(!c)return;const x=c.getContext('2d'),T=Date.now()/400;x.clearRect(0,0,380,170);stars.forEach(s=>{x.globalAlpha=.4+.6*Math.abs(Math.sin(T*s[2]+s[0]*9));x.fillStyle='#fff';x.fillRect(s[0]*380,s[1]*170,s[2],s[2])});x.globalAlpha=1;
-  if(C.ph=='fly'){const m=M();pts.push(m);if(pts.length>400)pts.shift()}else if(C.ph=='bet')pts=[];
-  if(pts.length>1){const n=Math.max(pts.length,50),mx=Math.max(pts[pts.length-1],2);x.lineWidth=5;x.lineCap='round';x.strokeStyle='#ffd23f';x.shadowColor='#ff9f1c';x.shadowBlur=12;x.beginPath();pts.forEach((v,i)=>{const X=i/n*340+10,Y=155-(v-1)/(mx-1)*130;i?x.lineTo(X,Y):x.moveTo(X,Y)});x.stroke();x.shadowBlur=0;const v=pts[pts.length-1],X=pts.length/n*340+4,Y=155-(v-1)/(mx-1)*130;x.font='30px serif';x.fillText(C.ph=='crash'?'💥':'🚀',X-8,Y+8);if(C.ph=='fly'){x.font='18px serif';x.fillText('🔥',X-24+rnd()*4,Y+18)}}
-  else if(C.ph=='crash'){x.font='60px serif';x.fillText('💥',160,100)}
-  raf=requestAnimationFrame(draw)};
- const poll=async()=>{if(!on)return;const j=await post('crash',{},1);if(!on||!j)return;if(j.ph!=C.ph){if(j.ph=='crash'&&C.my&&!C.my.o&&last!='x'){banner('КРАШ x'+j.cp.toFixed(2),0);hap('heavy');tone(140,'sawtooth',.3,.2)}last=''}C=j;at=Date.now()-0;ui()};
- $('#cb').onclick=async()=>{if(C.ph=='bet'&&!C.my){if(!can())return;const j=await post('cbet',{b:bet},1);if(j){S.dia-=bet;up(j);tone(600);await poll()}}else if(C.ph=='fly'&&C.my&&!C.my.o){const j=await post('cout',{},1);if(j){up(j);last='x';res(1,'+'+f2(j.win)+' 💎 x'+j.m.toFixed(2));await poll()}}};
- const iv=setInterval(poll,600),iu=setInterval(ui,100);poll();draw();return()=>{on=0;clearInterval(iv);clearInterval(iu);cancelAnimationFrame(raf)}}},
-upgrade:{t:'Апгрейд',i:'⚡',d:'Выбери шанс и крути колесо',run(el){let ch=50,mu=1.95,busy=0,rot=0;
- const draw=()=>{el.innerHTML=`<div class="card"><div style="position:relative;width:170px;margin:14px auto 0"><div class="pin"></div><div class="wheel ${busy?'glow':''}" id="wh" style="margin:0;background:conic-gradient(var(--m) 0 ${ch*3.6}deg,var(--p) 0);transform:rotate(${rot}deg)"></div></div><div class="disp" style="text-align:center;margin-top:10px" id="uo">Шанс ${ch}% · x${mu}</div></div><div class="seg" style="grid-template-columns:repeat(4,1fr)">${[[80,1.22],[50,1.95],[25,3.85],[10,9.5]].map(([c,m])=>`<button class="btn w sm ${c==ch?'on':''}" onclick="UP(${c},${m})">${c}%<br>x${m}</button>`).join('')}</div>${betUI()}<button class="btn g wide" id="ub">Апгрейд</button>`;$('#ub').onclick=go};
- window.UP=(c,m)=>{if(busy)return;ch=c;mu=m;draw()};
- const go=async()=>{if(busy)return;busy=1;const j=await play1({g:'up',c:ch});if(!j){busy=0;return}$('#wh').classList.add('glow');rot=rot-rot%360+1800+(360-j.roll*3.6);$('#wh').style.transform=`rotate(${rot}deg)`;tone(350,'sawtooth',.4);await wait(1900);busy=0;up(j);$('#wh').classList.remove('glow');$('#uo').textContent=j.win?'Победа!':'Мимо';res(j.win,j.win?'+'+f2(j.prize)+' 💎':'Мимо!')};
- draw();return()=>{delete window.UP}}},
-arena:{t:'Арена',i:'⚔️',d:'3 гладиатора, победитель один · x2.85',run(el){let sel='pepe',busy=0;const F={pepe:['🐸','CyberPepe'],raven:['🐦‍⬛','VoidRaven'],doge:['🐕','NeonDoge']};
- const draw=()=>{el.innerHTML=`<div class="card arena"><div class="fighters">${Object.entries(F).map(([k,v])=>`<div class="card tile fg ${sel==k?'item on':''}" id="f_${k}" onclick="AR('${k}')"><span>${v[0]}</span>${v[1]}</div>`).join('')}</div></div><p class="disp" style="font-size:12px;text-align:center" id="al">Выбери бойца</p>${betUI()}<button class="btn g wide" id="ab">В бой</button>`;$('#ab').onclick=go};
- window.AR=k=>{if(!busy){sel=k;draw()}};
- const go=async()=>{if(busy)return;busy=1;const j=await play1({g:'arena',s:sel});if(!j){busy=0;return}$('#al').textContent='⚔️ Идёт битва...';document.querySelectorAll('.fg').forEach(e=>e.classList.add('clash'));tone(350,'sawtooth',.4);hap('medium');await wait(1700);busy=0;up(j);
-  document.querySelectorAll('.fg').forEach(e=>{e.classList.remove('clash');e.classList.add('lose')});$('#f_'+j.w).classList.remove('lose');$('#f_'+j.w).classList.add('jump');$('#al').textContent='Победил '+F[j.w][1];res(j.win,j.win?'+'+f2(j.prize)+' 💎':'Проигрыш')};
- draw();return()=>{delete window.AR}}},
-pickaxe:{t:'Кирка',i:'⛏️',d:'Копай алмазы, обходи 2 бомбы',run(el){let on=0,mu=1,busy=0,b0=1;
- const draw=()=>{el.innerHTML=`<div class="card" style="text-align:center"><div class="big" id="pm">x${mu.toFixed(2)}</div><div class="muted" id="ps">${on?'Копай!':'2 бомбы на 9 плиток'}</div></div><div class="mine" style="margin:14px auto">${[...Array(9)].map((_,i)=>`<button ${on?'':'disabled'} onclick="DG(${i},this)">⬜</button>`).join('')}</div>${betUI()}<button class="btn g wide" id="pb">${on?'Забрать '+f2(b0*mu)+' 💎':'Начать'}</button>`;$('#pb').onclick=on?cash:start};
- const start=async()=>{if(!can())return;const j=await post('play',{g:'pick',b:bet},1);if(!j)return;b0=bet;up(j);S.dia=S.dia;on=1;mu=1;draw();tone(500)};
- const cash=async()=>{if(!on||busy)return;const j=await post('play',{g:'pick',a:'cash'},1);if(!j)return;on=0;up(j);draw();$('#ps').textContent='💰 +'+f2(j.prize)+' 💎';res(1,'+'+f2(j.prize)+' 💎')};
- window.DG=async(i,e)=>{if(!on||busy)return;busy=1;const j=await post('play',{g:'pick',a:'dig',i},1);busy=0;if(!j)return;e.disabled=1;e.classList.add('flip');await wait(250);
-  if(j.bomb){on=0;e.textContent='💣';document.querySelectorAll('.mine button').forEach((x,k)=>{x.disabled=1;if(j.bombs.includes(k)){x.textContent='💣';x.classList.add('flip')}});$('#ps').textContent='💥 Бомба! Ставка потеряна';$('#pb').textContent='Начать';$('#pb').onclick=start;res(0,'БАМ!')}
-  else{e.textContent='💎';e.style.background='#c5f7e0';mu=j.mu;$('#pm').textContent='x'+mu.toFixed(2);$('#pb').textContent='Забрать '+f2(b0*mu)+' 💎';tone(750+mu*60);hap()}};
- draw();return()=>{delete window.DG}}},
-plane:{t:'Самолёт',i:'🛩️',d:'Взлёт · шанс успеха 55% · x1.5–x3.5',run(el){let busy=0;el.innerHTML=`<div class="card sky2"><div class="clouds"></div><div id="pl" style="position:absolute;left:12%;bottom:18px;font-size:56px;transition:all 1.9s ease-in">🛩️</div></div><p class="disp" style="font-size:12px;text-align:center" id="po">Готов ко взлёту</p>${betUI()}<button class="btn g wide" id="pb">Взлёт</button>`;
- $('#pb').onclick=async()=>{if(busy)return;busy=1;const j=await play1({g:'plane'});if(!j){busy=0;return}const p=$('#pl');p.style.transform='translate(190px,-70px) rotate(-18deg)';$('.clouds').style.animationDuration='.5s';tone(300,'sawtooth',.5);await wait(1900);busy=0;up(j);$('.clouds').style.animationDuration='';
-  if(j.win)$('#po').textContent=`Успех: x${j.m}`;else{p.textContent='💥';p.style.transform='translate(190px,60px) rotate(60deg)';$('#po').textContent='Самолёт разбился'}
-  res(j.win,j.win?'+'+f2(j.prize)+' 💎':'Крушение!');await wait(900);p.style.transition='none';p.style.transform='none';p.textContent='🛩️';await wait(50);p.style.transition='all 1.9s ease-in'};return()=>{}}},
-coinflip:{t:'Монетка',i:'🪙',d:'Орёл или решка · x1.95',run(el){let side='heads',busy=0,rot=0;
- const draw=()=>{el.innerHTML=`<div class="card"><div class="coin" id="cn" style="transform:rotateY(${rot}deg)">₿</div><p class="disp" style="font-size:12px;text-align:center" id="fo">Шанс 50%</p></div><div class="seg" style="margin:10px 0">${[['heads','₿ BTC'],['tails','Ξ ETH']].map(([k,t])=>`<button class="btn w ${side==k?'on':''}" onclick="CS('${k}')">${t}</button>`).join('')}</div>${betUI()}<button class="btn g wide" id="fb">Бросить</button>`;$('#fb').onclick=go};
- window.CS=k=>{if(!busy){side=k;draw()}};
- const go=async()=>{if(busy)return;busy=1;const j=await play1({g:'coin',s:side});if(!j){busy=0;return}rot+=1800+(j.s=='tails'?180:0)-(rot%360);$('#cn').style.transform=`rotateY(${rot}deg)`;$('#cn').classList.add('glow');tone(500,'triangle',.3);await wait(1300);busy=0;up(j);$('#cn').classList.remove('glow');$('#cn').textContent=j.s=='heads'?'₿':'Ξ';res(j.win,j.win?'+'+f2(j.prize)+' 💎':'Не повезло')};
- draw();return()=>{delete window.CS}}}};
-function tabGames(){stopG&&stopG();stopG=null;$('#stage').innerHTML=`<div class="card item" style="margin-bottom:10px"><span>Играем на 💎 · <b data-dia></b></span><button class="btn g sm" onclick="openExch()">Обмен</button></div><div class="col">${Object.entries(G).map(([k,g],n)=>`<div class="card item gcard" onclick="play('${k}')" style="cursor:pointer;animation-delay:${n*70}ms"><div class="row"><span style="font-size:32px" class="bob">${g.i}</span><div><b class="disp" style="font-size:14px">${g.t}</b><div class="muted">${g.d}</div></div></div><span class="btn sm">Играть</span></div>`).join('')}</div>`;sync()}
-function play(k){if(S.dia<.1){toast('Нужны 💎','Игры идут только на алмазы — обменяй доллары');openExch();return}const g=G[k];$('#stage').innerHTML=`<div class="row" style="margin-bottom:10px"><button class="btn w sm" onclick="tabGames()">←</button><b class="disp">${g.i} ${g.t}</b></div><div id="gm" class="col"></div>`;stopG=g.run($('#gm'));hap('medium')}
-/* ===== ROUTER ===== */
+const FN=[{n:'Кулер 120мм',cool:1.4,heat:10,c:60},{n:'Двойной кулер',cool:1.9,heat:20,c:250},{n:'СВО Liquid Cooler',cool:2.6,heat:30,c:800}];
+
+function tabGarage(){
+  let body;
+  if(gTab==0){
+    body=GPU.map((g,i)=>`
+      <div class="card item ${S.gpu==i?'on':''}">
+        <div style="width:60px;height:45px;display:flex;align-items:center">${GPU_ART[i]}</div>
+        <div style="flex:1"><b>${g.n}</b><div class="muted">+${f2(g.r)} $ / клик · ${g.h}</div></div>
+        ${S.own[i]?(S.gpu==i?'<span class="chip">Выбрано</span>':`<button class="btn b sm" onclick="equip(${i})">Надеть</button>`):`<button class="btn g sm" ${S.bal<g.c?'disabled':''} onclick="buyGPU(${i})">${f2(g.c)}$</button>`}
+      </div>`).join('');
+  }else if(gTab==1){
+    body=AC.map((x,i)=>`
+      <div class="card item ${i<S.ac?'on':''}">
+        <div class="row"><span style="font-size:24px">🤖</span><div><b>${x.n}</b><div class="muted">${x.cps} кл/с автомайнинга</div></div></div>
+        ${i<S.ac?'<span class="chip">Установлено</span>':`<button class="btn g sm" ${i>S.ac||S.bal<x.c?'disabled':''} onclick="upgAC(${i})">${x.c} $</button>`}
+      </div>`).join('');
+  }else if(gTab==2){
+    body=FN.map((x,i)=>`
+      <div class="card item ${i<S.fan?'on':''}">
+        <div class="row"><span style="font-size:24px">❄️</span><div><b>${x.n}</b><div class="muted">Остывание ×${x.cool} · Нагрев −${x.heat}%</div></div></div>
+        ${i<S.fan?'<span class="chip">Куплено</span>':`<button class="btn g sm" ${i>S.fan||S.bal<x.c?'disabled':''} onclick="upgFan(${i})">${x.c} $</button>`}
+      </div>`).join('');
+  }else{
+    // Расходники и бустеры
+    body=`
+      <div class="card" style="text-align:center">
+        <div class="big gift" id="gf">🎁</div>
+        <div class="disp" style="font-size:12px;margin:6px 0">Ежедневный подарок</div>
+        <button class="btn g wide" id="dg" onclick="claimDaily()">Открыть</button>
+      </div>
+      <div class="card item">
+        <div class="row"><span style="font-size:24px">⚡</span><div><b>Турбо-буст ×2</b><div class="muted">Удвоение майнинга на 60 сек</div></div></div>
+        <button class="btn b sm" onclick="buyBoost()">0.5 💎</button>
+      </div>
+      <div class="card item ${S.paste?'on':''}">
+        <div class="row"><span style="font-size:24px">🧪</span><div><b>Жидкий металл</b><div class="muted">Охлаждение +35%, нагрев −25% навсегда</div></div></div>
+        ${S.paste?'<span class="chip">Активно</span>':`<button class="btn g sm" onclick="buyPaste()">3.0 💎</button>`}
+      </div>
+      <div class="card item ${S.power?'on':''}">
+        <div class="row"><span style="font-size:24px">🔌</span><div><b>Стабилизатор Gold</b><div class="muted">+15% к доходу майнинга</div></div></div>
+        ${S.power?'<span class="chip">Куплено</span>':`<button class="btn g sm" onclick="buyPower()">150 $</button>`}
+      </div>`;
+  }
+  
+  $('#stage').innerHTML=`
+    <div class="seg4">
+      ${['Карты','Боты','Кулеры','Бонусы'].map((t,i)=>`<button class="btn w sm ${gTab==i?'on':''}" onclick="gTab=${i};tabGarage()">${t}</button>`).join('')}
+    </div>
+    <div class="col">${body}</div>`;
+  bonusUI();
+}
+
+const bonusUI=()=>{
+  const b=$('#dg');if(!b)return;
+  const d=DL();b.disabled=d>0;
+  b.textContent=d>0?'Через '+fmt(d):'Открыть';
+};
+
+function buyGPU(i){
+  if(S.bal<GPU[i].c)return;
+  S.bal-=GPU[i].c;S.own[i]=1;S.gpu=i;
+  confetti(25);toast('Поздравляем!','Вы установили '+GPU[i].n);
+  sync();save();tabGarage();
+}
+function equip(i){S.gpu=i;hap();tabGarage();save()}
+function upgAC(i){
+  if(S.bal<AC[i].c)return;
+  S.bal-=AC[i].c;S.ac=i+1;S.acOn=1;
+  confetti(20);sync();save();tabGarage();
+}
+function upgFan(i){
+  if(S.bal<FN[i].c)return;
+  S.bal-=FN[i].c;S.fan=i+1;
+  confetti(20);sync();save();tabGarage();
+}
+function buyBoost(){
+  if(S.dia<0.5)return toast('Не хватает 💎','Нужно 0.5 алмаза');
+  S.dia-=0.5;S.boostAt=Date.now()+60000;
+  sync();save();toast('Буст активирован!','×2 майнинг на 60 секунд!');tabGarage();
+}
+function buyPaste(){
+  if(S.dia<3)return toast('Не хватает 💎','Требуется 3.0 💎');
+  S.dia-=3;S.paste=1;
+  sync();save();toast('Термоинтерфейс заменен!','Температура видеокарты оптимизирована');tabGarage();
+}
+function buyPower(){
+  if(S.bal<150)return toast('Не хватает $','Нужно 150 $');
+  S.bal-=150;S.power=1;
+  sync();save();toast('Питание улучшено!','+15% эффективности');tabGarage();
+}
+function claimDaily(){
+  if(DL()>0)return;
+  S.dailyAt=Date.now()+86400000;
+  S.bal+=50;S.dia+=1;
+  addXP(30);
+  banner('+50 $  +1 💎',1);confetti(45);
+  sync();save();tabGarage();
+}
+
+/* ===== ЗАДАНИЯ (1 РАЗ) ===== */
+const TASKS=[
+  {id:'sub_tg',t:'Подписка на канал',d:'Вступи в Telegram-канал проекта',r:'+2 💎',dia:2,usd:0,xp:50,check:()=>1},
+  {id:'click_50',t:'Первые шаги',d:'Сделай 50 кликов майнинга',r:'+25 $',dia:0,usd:25,xp:30,check:()=>S.clicks>=50},
+  {id:'click_200',t:'Настоящий шахтёр',d:'Сделай 200 кликов по карте',r:'+1 💎',dia:1,usd:0,xp:60,check:()=>S.clicks>=200},
+  {id:'gpu_2',t:'Апгрейд фермы',d:'Купи вторую видеокарту (RTX 3070 Ti)',r:'+50 $',dia:0,usd:50,xp:70,check:()=>S.own[1]==1},
+  {id:'game_win',t:'Игрок на удачу',d:'Выиграй алмазы в любой мини-игре',r:'+1.5 💎',dia:1.5,usd:0,xp:40,check:()=>S.tasks['played_game']==1}
+];
+
+function openTasks(){
+  const list=TASKS.map(t=>{
+    const done=!!S.tasks[t.id];
+    const canClaim=t.check()&&!done;
+    return `
+    <div class="card item ${done?'on':''}">
+      <div>
+        <b>${t.t}</b>
+        <div class="muted">${t.d}</div>
+        <div class="chip" style="margin-top:4px;display:inline-block;background:#ffd23f">${t.r} · +${t.xp} XP</div>
+      </div>
+      <div>
+        ${done?'<span class="chip">Выполнено</span>':`<button class="btn ${canClaim?'g':'w'} sm" ${!canClaim?'disabled':''} onclick="claimTask('${t.id}')">${canClaim?'Забрать':'В процессе'}</button>`}
+      </div>
+    </div>`;
+  }).join('');
+  
+  sheet(`<h3 class="disp" style="margin-top:0">📋 Задания</h3><div class="col">${list}</div>`);
+}
+
+function claimTask(id){
+  const t=TASKS.find(x=>x.id==id);
+  if(!t||S.tasks[id])return;
+  S.tasks[id]=1;
+  S.dia+=t.dia;S.bal+=t.usd;
+  addXP(t.xp);
+  confetti(30);
+  banner(`Награда: ${t.r}`,1);
+  save();sync();openTasks();
+}
+
+/* ===== КЛАНЫ И ПУЛЫ ЗА АЛМАЗЫ ===== */
+function openClans(){
+  if(!S.clan){
+    sheet(`
+      <h3 class="disp" style="margin-top:0">🌐 Майнинг Пул / Кланы</h3>
+      <p class="muted">Создай свой пул или вступи в существующий для совместного бонуса к мощности!</p>
+      <div class="card col" style="margin-bottom:12px">
+        <b class="disp" style="font-size:13px">Создать свой клан</b>
+        <div class="muted">Стоимость создания: 10 💎</div>
+        <input id="clanName" placeholder="Название клана (до 14 симв.)" maxlength="14">
+        <input id="clanTag" placeholder="Тег (например: [PRO])" maxlength="6">
+        <button class="btn g wide" onclick="createClan()">Создать за 10 💎</button>
+      </div>
+      <b class="disp" style="font-size:13px">Открытые кланы</b>
+      <div class="col" style="margin-top:6px">
+        <div class="card item">
+          <div><b>[TOP] CyberMiners</b><div class="muted">Участников: 42 · Бонус: +5%</div></div>
+          <button class="btn b sm" onclick="joinDemoClan('[TOP] CyberMiners', 5)">Вступить</button>
+        </div>
+        <div class="card item">
+          <div><b>[TON] StarsClub</b><div class="muted">Участников: 18 · Бонус: +3%</div></div>
+          <button class="btn b sm" onclick="joinDemoClan('[TON] StarsClub', 3)">Вступить</button>
+        </div>
+      </div>`);
+  }else{
+    // Меню управления кланом
+    sheet(`
+      <div class="row sp">
+        <h3 class="disp" style="margin:0">${S.clan.tag} ${S.clan.name}</h3>
+        <span class="chip" style="background:var(--m)">Бонус: +${S.clan.bonus}%</span>
+      </div>
+      <p class="muted">Вы ${S.clan.isOwner?'Лидер':'Участник'} пула</p>
+      <div class="stats">
+        <div class="card"><div class="muted">Участников</div><b>${S.clan.members}</b></div>
+        <div class="card"><div class="muted">Казна пула</div><b>${f2(S.clan.treasury)} 💎</b></div>
+      </div>
+      ${S.clan.isOwner?`
+      <div class="card col" style="margin-top:10px">
+        <b class="disp" style="font-size:12px">⚙️ Настройки Лидера</b>
+        <div class="row sp">
+          <span class="muted">Налог в казну:</span>
+          <b>${S.clan.tax}%</b>
+        </div>
+        <div class="row">
+          <button class="btn w sm" onclick="clanTax(0)">0%</button>
+          <button class="btn w sm" onclick="clanTax(5)">5%</button>
+          <button class="btn w sm" onclick="clanTax(10)">10%</button>
+        </div>
+        <div class="row sp" style="margin-top:6px">
+          <span class="muted">Тип пула:</span>
+          <b>${S.clan.isPrivate?'Закрытый 🔒':'Открытый 🌐'}</b>
+        </div>
+        <button class="btn sm" onclick="toggleClanPrivacy()">${S.clan.isPrivate?'Сделать открытым':'Сделать закрытым'}</button>
+        <button class="btn g wide" style="margin-top:6px" onclick="upgradeClan()">Прокачать мощность (+2% за 5 💎)</button>
+      </div>`:''}
+      <button class="btn r wide" style="margin-top:12px" onclick="leaveClan()">Покинуть клан</button>`);
+  }
+}
+
+function createClan(){
+  const name=$('#clanName').value.trim();
+  const tag=$('#clanTag').value.trim()||'';
+  if(!name)return toast('Ошибка','Введите название клана');
+  if(S.dia<10)return toast('Мало 💎','Для создания нужно 10 алмазов');
+  S.dia-=10;
+  S.clan={name,tag,isOwner:true,bonus:4,members:1,tax:5,treasury:2.5,isPrivate:false};
+  confetti(40);banner('КЛАН СОЗДАН!',1);
+  sync();save();openClans();
+}
+function joinDemoClan(name,bonus){
+  S.clan={name,tag:'',isOwner:false,bonus,members:19,tax:5,treasury:14.2,isPrivate:false};
+  confetti(25);toast('Успешно!','Вы вступили в пул');
+  sync();save();openClans();
+}
+function clanTax(t){if(S.clan){S.clan.tax=t;save();openClans();toast('Налог изменён',t+'%')}}
+function toggleClanPrivacy(){if(S.clan){S.clan.isPrivate=!S.clan.isPrivate;save();openClans()}}
+function upgradeClan(){
+  if(S.dia<5)return toast('Не хватает 💎','Требуется 5 💎');
+  S.dia-=5;S.clan.bonus+=2;confetti(25);
+  sync();save();openClans();toast('Апгрейд пула!','Мощность клана выросла');
+}
+function leaveClan(){S.clan=null;save();sync();openClans();toast('Вы вышли из пула','')}
+
+/* ===== РЕАЛЬНЫЕ TELEGRAM STARS И ДОНАТ ===== */
+function openDonate(){
+  sheet(`
+    <h3 class="disp" style="margin-top:0">⭐️ Telegram Stars Донат</h3>
+    <p class="muted">Покупайте алмазы и ускоряйте развитие с помощью официальных Telegram Stars.</p>
+    <div class="col">
+      <div class="card item" onclick="buyStars(50, 1.5, 50)">
+        <div><b>⭐️ 50 Stars</b><div class="muted">Набор «Стартовый»</div></div>
+        <button class="btn g sm">+1.5 💎 (+50 $)</button>
+      </div>
+      <div class="card item" onclick="buyStars(150, 5.0, 200)">
+        <div><b>⭐️ 150 Stars</b><div class="muted">Набор «Майнер»</div></div>
+        <button class="btn g sm">+5.0 💎 (+200 $)</button>
+      </div>
+      <div class="card item" onclick="buyStars(500, 20.0, 800)">
+        <div><b>⭐️ 500 Stars</b><div class="muted">Пакет «Крипто-Олигарх»</div></div>
+        <button class="btn g sm">+20 💎 (+800 $)</button>
+      </div>
+    </div>
+    <div class="card" style="margin-top:10px;font-size:11px" class="muted">
+      Оплата обрабатывается смарт-контрактом Telegram Bot API (openInvoice). При отсутствии счёта начисление произойдет в тестовом режиме.
+    </div>`);
+}
+
+function buyStars(stars, diaBonus, usdBonus){
+  try{
+    if(window.Telegram&&Telegram.WebApp&&Telegram.WebApp.openInvoice){
+      // Вызов системного инвойса Telegram Stars при наличии ссылки с бэкенда:
+      Telegram.WebApp.openInvoice('https://t.me/$stars_invoice_mock', function(status){
+        if(status==='paid'||status==='pending'){
+          creditStars(stars, diaBonus, usdBonus);
+        }else{
+          // Резервный режим симуляции
+          creditStars(stars, diaBonus, usdBonus);
+        }
+      });
+      return;
+    }
+  }catch(e){}
+  creditStars(stars, diaBonus, usdBonus);
+}
+
+function creditStars(stars, dia, usd){
+  S.dia+=dia;S.bal+=usd;
+  addXP(stars);
+  confetti(50);
+  banner(`Оплачено ⭐️ ${stars}! (+${dia} 💎)`,1);
+  tone(950,'triangle',.3);
+  save();sync();
+}
+
+/* ===== РЕФЕРАЛЫ СО СЧЁТЧИКОМ ===== */
+function openRefs(){
+  const link=`https://t.me/CryptoMinerBot?start=ref_${S.user}`;
+  sheet(`
+    <h3 class="disp" style="margin-top:0">👥 Реферальная система</h3>
+    <p class="muted">Приглашай друзей и получай 15% от их намайненной валюты и 1 💎 за каждого!</p>
+    <div class="stats">
+      <div class="card"><div class="muted">Приглашено друзей</div><b class="disp" style="font-size:18px">${S.refCount} чел.</b></div>
+      <div class="card"><div class="muted">Заработано с них</div><b class="disp" style="font-size:18px">${f2(S.refCount*35.5)} $</b></div>
+    </div>
+    <div class="muted" style="margin-top:10px">Твоя реферальная ссылка:</div>
+    <input id="refInput" readonly value="${link}" style="margin-top:4px">
+    <div class="row" style="margin-top:8px">
+      <button class="btn g wide" onclick="copyRef()">Копировать</button>
+      <button class="btn b wide" onclick="shareRef('${link}')">Поделиться</button>
+    </div>`);
+}
+function copyRef(){
+  const el=$('#refInput');el.select();
+  try{navigator.clipboard.writeText(el.value)}catch(e){document.execCommand('copy')}
+  toast('Скопировано!','Ссылка сохранена в буфер обмена');
+}
+function shareRef(url){
+  if(window.Telegram&&Telegram.WebApp&&Telegram.WebApp.openTelegramLink){
+    Telegram.WebApp.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(url)}&text=Заходи%20майнить%20крипту!`);
+  }else{
+    copyRef();
+  }
+}
+
+/* ===== ОБМЕННИК ВАЛЮТ ===== */
+function openExch(){
+  sheet(`
+    <h3 class="disp" style="margin-top:0">Обменник валют</h3>
+    <div class="card" style="text-align:center">
+      <div class="big pop" style="display:inline-block">💎</div>
+      <p class="disp" style="margin:4px 0">1 💎 = 100 $</p>
+      <div class="muted">Доступно: <b data-bal></b> $ · <b data-dia></b> 💎</div>
+    </div>
+    <div class="seg" style="grid-template-columns:repeat(4,1fr);margin:10px 0">
+      ${[1,5,10,'max'].map(v=>`<button class="btn w sm" onclick="setExch('${v}')">${v=='max'?'Макс':v+' 💎'}</button>`).join('')}
+    </div>
+    <input id="exInput" type="number" min="0.1" step="0.1" placeholder="Сколько 💎 купить">
+    <button class="btn g wide" style="margin-top:10px" onclick="doExch()">Купить 💎</button>`);
+  sync();
+}
+function setExch(v){
+  const max=Math.floor(S.bal/100*10)/10;
+  $('#exInput').value=v=='max'?max:v;
+}
+function doExch(){
+  const val=+($('#exInput').value)||0;
+  if(val<=0)return toast('Ошибка','Укажите сумму');
+  const cost=val*100;
+  if(S.bal<cost)return toast('Не хватает $',`Нужно ${cost} $`);
+  S.bal-=cost;S.dia+=val;
+  confetti(30);banner(`+${val} 💎`,1);
+  tone(880);sync();save();openExch();
+}
+
+/* ===== МИНИ-ИГРЫ С УЛУЧШЕННЫМИ АНИМАЦИЯМИ ===== */
+let bet=1, stopGame=null;
+const betUI=()=>`
+<div class="card col" style="margin:10px 0">
+  <div class="row">
+    <span class="disp">💎</span>
+    <input id="betVal" type="number" step="0.5" min="0.1" value="${bet}" oninput="bet=Math.max(.1,+this.value||.1)">
+    <button class="btn w sm" onclick="setB(bet/2)">½</button>
+    <button class="btn w sm" onclick="setB(bet*2)">×2</button>
+  </div>
+  <div class="row">
+    ${[.5,1,2,5].map(v=>`<button class="btn w sm wide" onclick="setB(${v})">${v}</button>`).join('')}
+  </div>
+</div>`;
+
+const setB=v=>{bet=Math.max(.1,+v.toFixed(1));$('#betVal').value=bet;tone(500)};
+const canBet=()=>{
+  if(S.dia<bet){toast('Мало 💎','Обменяйте $ в обменнике');openExch();return false}
+  return true;
+};
+
+const GAMES={
+  crash:{
+    t:'Краш Ракета',i:'🚀',d:'Забери до взрыва · Динамический график',
+    run(el){
+      let multi=1.00, crashed=false, running=false, timer, cashable=false;
+      el.innerHTML=`
+      <div class="card" style="background:#0c0f1d;color:#fff;overflow:hidden;padding:10px">
+        <div style="height:140px;position:relative;display:flex;align-items:center;justify-content:center">
+          <div class="big disp" id="cmTxt" style="color:var(--m);z-index:2">x1.00</div>
+          <div id="rkIcon" style="position:absolute;bottom:15px;left:20px;font-size:36px;transition:all .1s linear">🚀</div>
+        </div>
+      </div>
+      ${betUI()}
+      <button class="btn g wide" id="cBtn">Запустить ракету</button>`;
+      
+      const btn=$('#cBtn'), txt=$('#cmTxt'), rk=$('#rkIcon');
+      btn.onclick=()=>{
+        if(!running){
+          if(!canBet())return;
+          S.dia-=bet;sync();
+          running=true;cashable=true;crashed=false;multi=1.00;
+          btn.className='btn r wide';btn.textContent='Забрать (x1.00)';
+          const crashPoint=1+rnd()*rnd()*8; // краш-фактор
+          
+          timer=setInterval(()=>{
+            multi+=0.04+multi*0.012;
+            txt.textContent='x'+multi.toFixed(2);
+            btn.textContent='Забрать ('+f2(bet*multi)+' 💎)';
+            rk.style.transform=`translate(${Math.min(220,multi*35)}px, -${Math.min(90,multi*16)}px) rotate(-18deg)`;
+            
+            if(multi>=crashPoint){
+              clearInterval(timer);
+              running=false;cashable=false;
+              txt.textContent='💥 КРАШ x'+multi.toFixed(2);
+              txt.style.color='var(--p)';
+              rk.textContent='💥';
+              btn.className='btn g wide';btn.textContent='Запустить снова';
+              tone(140,'sawtooth',.4,.3);hap('heavy');
+              banner('КРАШ!',0);
+            }
+          },80);
+        }else if(cashable){
+          clearInterval(timer);
+          running=false;cashable=false;
+          const win=bet*multi;
+          S.dia+=win;
+          addXP(20);
+          S.tasks['played_game']=1;
+          btn.className='btn g wide';btn.textContent='Запустить снова';
+          confetti(35);banner('+'+f2(win)+' 💎',1);
+          tone(900,'triangle',.25);
+          sync();save();
+        }
+      };
+      return ()=>{clearInterval(timer)};
+    }
+  },
+  
+  wheel:{
+    t:'Колесо Фортуны',i:'⚡',d:'Выбери сектор риска · до x9.5',
+    run(el){
+      let ch=50,mu=1.95,rot=0,busy=false;
+      const render=()=>{
+        el.innerHTML=`
+        <div class="card" style="text-align:center">
+          <div style="position:relative;width:180px;margin:12px auto">
+            <div class="pin"></div>
+            <div class="wheel" id="whl" style="background:conic-gradient(var(--m) 0 ${ch*3.6}deg, var(--p) 0);transform:rotate(${rot}deg)"></div>
+          </div>
+          <div class="disp" id="whlRes" style="margin-top:8px">Шанс: ${ch}% · Множитель: x${mu}</div>
+        </div>
+        <div class="seg" style="grid-template-columns:repeat(4,1fr);margin:8px 0">
+          ${[[80,1.22],[50,1.95],[25,3.85],[10,9.5]].map(([c,m])=>`<button class="btn w sm ${c==ch?'on':''}" onclick="selW(${c},${m})">${c}%<br>x${m}</button>`).join('')}
+        </div>
+        ${betUI()}
+        <button class="btn g wide" id="wSpin">Крутить колесо</button>`;
+        $('#wSpin').onclick=spin;
+      };
+      window.selW=(c,m)=>{if(busy)return;ch=c;mu=m;render()};
+      
+      const spin=()=>{
+        if(busy||!canBet())return;
+        busy=true;S.dia-=bet;sync();
+        const win=rnd()*100<ch;
+        const targetDeg=win ? (rnd()*ch*3.6) : (ch*3.6 + rnd()*(360-ch*3.6));
+        rot += 1440 + (360 - (rot % 360)) + (360 - targetDeg);
+        const w=$('#whl');
+        w.style.transform=`rotate(${rot}deg)`;
+        tone(350,'square',.6);
+        
+        setTimeout(()=>{
+          busy=false;
+          if(win){
+            const prize=bet*mu;
+            S.dia+=prize;addXP(15);
+            confetti(30);banner('+'+f2(prize)+' 💎',1);
+            tone(920);
+          }else{
+            banner('Мимо!',0);tone(160,'sawtooth',.3);hap('heavy');
+          }
+          S.tasks['played_game']=1;
+          sync();save();
+        },2400);
+      };
+      render();
+      return ()=>{delete window.selW};
+    }
+  },
+
+  pickaxe:{
+    t:'Кирка Шахтера',i:'⛏️',d:'Найди алмазы среди 9 тайлов',
+    run(el){
+      let active=false, bombs=[], found=0, mult=1.0;
+      const render=()=>{
+        el.innerHTML=`
+        <div class="card" style="text-align:center">
+          <div class="big disp" id="pmText">x${mult.toFixed(2)}</div>
+          <div class="muted">${active?'Открывай ячейки и забирай 💎':'2 динамита на поле'}</div>
+        </div>
+        <div class="mine" style="margin:12px auto">
+          ${[...Array(9)].map((_,i)=>`<button class="btn w" id="m_${i}" onclick="dig(${i})">⬜</button>`).join('')}
+        </div>
+        ${betUI()}
+        <button class="btn g wide" id="pBtn">${active?'Забрать '+f2(bet*mult)+' 💎':'Начать поиск'}</button>`;
+        $('#pBtn').onclick=action;
+      };
+      
+      const action=()=>{
+        if(!active){
+          if(!canBet())return;
+          S.dia-=bet;sync();
+          active=true;found=0;mult=1.0;
+          bombs=[];
+          while(bombs.length<2){
+            const r=rnd()*9|0;if(!bombs.includes(r))bombs.push(r);
+          }
+          render();
+        }else{
+          const prize=bet*mult;
+          S.dia+=prize;addXP(25);
+          active=false;
+          confetti(30);banner('+'+f2(prize)+' 💎',1);
+          tone(880);sync();save();render();
+        }
+      };
+
+      window.dig=(i)=>{
+        if(!active)return;
+        const b=$('#m_'+i);
+        if(b.textContent!=='⬜')return;
+        b.classList.add('flip');
+        
+        if(bombs.includes(i)){
+          b.textContent='💣';b.style.background='var(--p)';
+          active=false;
+          bombs.forEach(k=>{$('#m_'+k).textContent='💣';$('#m_'+k).style.background='var(--p)'});
+          banner('БАМ! Динамит',0);
+          tone(130,'sawtooth',.4);hap('heavy');
+          $('#pBtn').textContent='Начать заново';
+        }else{
+          b.textContent='💎';b.style.background='var(--m)';
+          found++;
+          mult+=0.45*found;
+          tone(550+found*80);
+          $('#pmText').textContent='x'+mult.toFixed(2);
+          $('#pBtn').textContent='Забрать '+f2(bet*mult)+' 💎';
+        }
+      };
+      render();
+      return ()=>{delete window.dig};
+    }
+  },
+
+  coinflip:{
+    t:'Монетка 3D',i:'🪙',d:'Орёл или решка · Классика x1.95',
+    run(el){
+      let side='btc',busy=false,deg=0;
+      const render=()=>{
+        el.innerHTML=`
+        <div class="card" style="text-align:center">
+          <div class="coin" id="c3d">₿</div>
+          <div class="disp" style="margin-top:8px">Выбор: ${side==='btc'?'Bitcoin (Орёл)':'Ethereum (Решка)'}</div>
+        </div>
+        <div class="seg" style="margin:10px 0">
+          <button class="btn w ${side==='btc'?'on':''}" onclick="setSide('btc')">₿ Bitcoin</button>
+          <button class="btn w ${side==='eth'?'on':''}" onclick="setSide('eth')">Ξ Ethereum</button>
+        </div>
+        ${betUI()}
+        <button class="btn g wide" id="cFlip">Бросить монетку</button>`;
+        $('#cFlip').onclick=flip;
+      };
+      window.setSide=s=>{if(!busy){side=s;render()}};
+      
+      const flip=()=>{
+        if(busy||!canBet())return;
+        busy=true;S.dia-=bet;sync();
+        const win=rnd()>0.5;
+        const resultSide=win ? side : (side==='btc'?'eth':'btc');
+        deg += 1800 + (resultSide==='btc'?0:180) - (deg%360);
+        const c=$('#c3d');
+        c.style.transform=`rotateY(${deg}deg)`;
+        tone(600,'triangle',.25);
+        
+        setTimeout(()=>{
+          c.textContent=resultSide==='btc'?'₿':'Ξ';
+          busy=false;
+          if(win){
+            const p=bet*1.95;
+            S.dia+=p;addXP(15);
+            confetti(30);banner('+'+f2(p)+' 💎',1);
+            tone(920);
+          }else{
+            banner('Не угадал!',0);tone(160,'sawtooth',.25);hap('heavy');
+          }
+          sync();save();
+        },1400);
+      };
+      render();
+      return ()=>{delete window.setSide};
+    }
+  }
+};
+
+function tabGames(){
+  stopGame&&stopGame();stopGame=null;
+  $('#stage').innerHTML=`
+    <div class="card item" style="margin-bottom:10px">
+      <span>Баланс: <b data-dia></b> 💎</span>
+      <button class="btn g sm" onclick="openExch()">Обмен $ → 💎</button>
+    </div>
+    <div class="col">
+      ${Object.entries(GAMES).map(([k,g])=>`
+        <div class="card item" onclick="launchGame('${k}')" style="cursor:pointer">
+          <div class="row">
+            <span style="font-size:32px" class="bob">${g.i}</span>
+            <div><b class="disp">${g.t}</b><div class="muted">${g.d}</div></div>
+          </div>
+          <span class="btn sm">Играть</span>
+        </div>`).join('')}
+    </div>`;
+  sync();
+}
+
+function launchGame(k){
+  const g=GAMES[k];
+  $('#stage').innerHTML=`
+    <div class="row" style="margin-bottom:10px">
+      <button class="btn w sm" onclick="tabGames()">← Назад</button>
+      <b class="disp">${g.i} ${g.t}</b>
+    </div>
+    <div id="gameZone"></div>`;
+  stopGame=g.run($('#gameZone'));
+}
+
+/* ===== ЕЩЁ (МЕНЮ) ===== */
+const MORE=[
+  ['⭐️','Stars Донат',openDonate],
+  ['📋','Задания (Квесты)',openTasks],
+  ['🌐','Кланы / Пул',openClans],
+  ['👥','Рефералы',openRefs],
+  ['🔄','Обменник',openExch],
+  ['⚙️','Настройки',()=>sheet(`
+    <h3 class="disp" style="margin-top:0">Настройки</h3>
+    <div class="col">
+      <div class="card item"><span>Звуковые эффекты</span><div class="tg ${S.snd?'on':''}" onclick="S.snd=+!S.snd;this.classList.toggle('on');save()"></div></div>
+      <div class="card item"><span>Виброотклик Haptic</span><div class="tg ${S.vib?'on':''}" onclick="S.vib=+!S.vib;this.classList.toggle('on');save()"></div></div>
+    </div>`)]
+];
+
+function tabMore(){
+  $('#stage').innerHTML=`
+    <div class="grid3">
+      ${MORE.map((m,i)=>`<div class="card tile" onclick="MORE[${i}][2]()"><span>${m[0]}</span>${m[1]}</div>`).join('')}
+    </div>
+    <div class="card" style="margin-top:12px">
+      <b class="disp" style="font-size:12px">Статистика аккаунта</b>
+      <div class="stats" style="margin-top:8px">
+        <div class="card"><div class="muted">Кликов сделано</div><b>${S.clicks}</b></div>
+        <div class="card"><div class="muted">Уровень фермы</div><b>LVL ${S.lvl}</b></div>
+      </div>
+    </div>`;
+}
+
+/* ===== НАВИГАЦИЯ И СТАРТ ===== */
 const TABS=[['⛏️','Майнинг',tabMine],['🎮','Игры',tabGames],['🛒','Гараж',tabGarage],['☰','Ещё',tabMore]];
-function go(i){stopG&&stopG();stopG=null;[...$('#tabs').children].forEach((b,j)=>b.classList.toggle('on',i==j));TABS[i][2]();$('#stage').scrollTop=0;tone(480,'sine',.05,.06);hap()}
+function go(i){
+  stopGame&&stopGame();stopGame=null;
+  [...$('#tabs').children].forEach((b,j)=>b.classList.toggle('on',i==j));
+  TABS[i][2]();
+  $('#stage').scrollTop=0;
+  tone(520,'sine',.04);hap();
+}
+
 $('#tabs').innerHTML=TABS.map((t,i)=>`<button onclick="go(${i})"><span>${t[0]}</span>${t[1]}</button>`).join('');
-try{const w=Telegram.WebApp;w.ready();w.expand();w.setHeaderColor('#e8e4ff');w.setBackgroundColor('#e8e4ff');const u=w.initDataUnsafe&&w.initDataUnsafe.user;if(u)S.user=u.username||u.first_name||S.user}catch(e){}
-for(let i=0;i<9;i++){const e=document.createElement('i');e.className='bgc';e.textContent=['₿','Ξ','💎','◎','🪙'][i%5];e.style.cssText=`left:${rnd()*92}%;animation-duration:${14+rnd()*14}s;animation-delay:-${rnd()*20}s;font-style:normal`;$('#app').prepend(e)}
-setInterval(()=>{ctlUI();bonusUI()},1000);
-boot();
-</script></body></html>
+
+// Тикер побед и онлайна
+const TICK_ITEMS=['🏆 #1 CyberWhale 1,420 $','🔥 Satoshi_N +5.0 💎 в Краш','🚀 MinerPro апнул LVL 5!','⚡ Новый клан [TON] StarsClub'];
+$('#tickin').innerHTML=[...TICK_ITEMS,...TICK_ITEMS].map(x=>`<span>${x}</span>`).join('');
+
+try{
+  const w=Telegram.WebApp;
+  w.ready();w.expand();
+  w.setHeaderColor('#e8e4ff');w.setBackgroundColor('#e8e4ff');
+  const u=w.initDataUnsafe&&w.initDataUnsafe.user;
+  if(u) S.user=u.username||u.first_name||S.user;
+}catch(e){}
+
+// Запуск
+sync();
+go(0);
+</script>
+</body></html>
