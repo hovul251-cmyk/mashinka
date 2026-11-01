@@ -21,7 +21,7 @@ input,select{font:800 14px Unbounded,sans-serif;border:2.5px solid var(--ink);bo
 
 /* HUD & EXP */
 #top{padding:calc(10px + env(safe-area-inset-top)) 12px 6px;display:flex;flex-direction:column;gap:6px}
-#tick{overflow:hidden;border:2.5px solid var(--ink);border-radius:99px;background:var(--y);padding:4px 0}
+#tick{overflow:hidden;border:2.5px solid var(--ink);border-radius:99px;background:var(--y);padding:4px 0;min-height:26px}
 #tick>div{display:flex;width:max-content;animation:mq 24s linear infinite;gap:26px;font-size:12px}
 @keyframes mq{from{transform:translateX(-50%)}to{transform:none}}
 #balbox{display:flex;justify-content:space-between;align-items:center}
@@ -86,13 +86,11 @@ input,select{font:800 14px Unbounded,sans-serif;border:2.5px solid var(--ink);bo
 .clash{animation:cls .22s infinite alternate}@keyframes cls{from{transform:translateX(-10px) rotate(-8deg) scale(1.05)}to{transform:translateX(10px) rotate(8deg) scale(1.05)}}
 .jump{animation:jmp .5s 2 ease-out}@keyframes jmp{50%{transform:translateY(-22px) scale(1.15)}}
 .flip{animation:flp .4s ease-out}@keyframes flp{0%{transform:rotateY(0)}50%{transform:rotateY(90deg) scale(1.2)}100%{transform:rotateY(0)}}
-.plane-box{position:relative;height:180px;background:linear-gradient(180deg,#5bc9eb 0%,#b2ecfa 100%);border-radius:16px;border:2.5px solid var(--ink);overflow:hidden}
-.sky-trail{position:absolute;height:3px;background:rgba(255,255,255,.8);border-radius:2px}
 </style></head><body>
 <div id="app">
 <div id="toast"></div>
 <div id="top">
-  <div id="tick"><div id="tickin"></div></div>
+  <div id="tick"><div id="tickin"><span class="muted" style="padding:0 10px">Подключение к сети...</span></div></div>
   <div id="balbox">
     <div>
       <div class="muted">Баланс</div>
@@ -100,7 +98,7 @@ input,select{font:800 14px Unbounded,sans-serif;border:2.5px solid var(--ink);bo
     </div>
     <div class="col" style="align-items:flex-end;gap:4px">
       <div class="chip disp" style="font-size:13px;background:#c5f7e0">💎 <span data-dia>0.00</span></div>
-      <div class="row"><span class="chip" id="onl">🟢 Онлайн: 142</span><span class="chip" id="tchip">🌡 36°C</span></div>
+      <div class="row"><span class="chip" id="onl">🟢 Онлайн: ...</span><span class="chip" id="tchip">🌡 36°C</span></div>
     </div>
   </div>
   <div class="lvl-box">
@@ -116,7 +114,105 @@ input,select{font:800 14px Unbounded,sans-serif;border:2.5px solid var(--ink);bo
 </div>
 
 <script>
-/* ===== 2D SVG АРТЫ ДЛЯ ВИДЕОКАРТ ===== */
+/* ===== НАСТРОЙКИ СЕРВЕРА SUPABASE И ОНЛАЙН СИНХРОНИЗАЦИЯ ===== */
+const SB_URL='https://qmcvgtkfvsxthukbpafy.supabase.co',SB_KEY='sb_publishable_dmFpfh7OvvYv_LgiP0gSvQ_n124nmga';
+
+/* Данные онлайн из базы данных */
+let REAL_TOPS = [];
+let REAL_FEED = [];
+let REAL_CLANS = [];
+let ONLINE_COUNT = 0;
+let pend = 0;
+
+/* Генерация / получение реального Telegram ID пользователя */
+const creds = () => {
+  try {
+    const w = Telegram.WebApp;
+    if (w.initData) {
+      const p = new URLSearchParams(w.initData);
+      const h = p.get('hash');
+      p.delete('hash');
+      return { d: [...p.entries()].map(([k, v]) => k + '=' + v).sort().join('\n'), h };
+    }
+  } catch(e) {}
+  let g = localStorage.getItem('gid');
+  if (!g) {
+    g = 'u_' + Math.random().toString(36).slice(2, 9);
+    localStorage.setItem('gid', g);
+  }
+  return { d: 'user=' + JSON.stringify({ id: g, first_name: 'Игрок_' + g.slice(-4) }), h: '' };
+};
+
+/* Универсальный метод обращения к онлайн API Supabase */
+const post = async (method, body = {}, hold = false) => {
+  try {
+    const c = creds();
+    const r = await fetch(SB_URL + '/rest/v1/rpc/api', {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        'apikey': SB_KEY,
+        'Authorization': 'Bearer ' + SB_KEY
+      },
+      body: JSON.stringify({ d: c.d, h: c.h, f: method, a: body })
+    });
+    const j = await r.json();
+    if (j.err) {
+      if (j.err !== 'auth') toast('Сеть', j.err);
+      return null;
+    }
+    if (!r.ok) return null;
+    if (j.u && !hold) {
+      applyServerState(j.u);
+      sync();
+    }
+    return j;
+  } catch(e) {
+    return null;
+  }
+};
+
+/* Сброс накопленных кликов на сервер */
+const flush = async () => {
+  const n = pend;
+  if (!n) return;
+  pend = 0;
+  await post('mine', { n });
+};
+setInterval(flush, 1500);
+
+/* Загрузка реальных топов и онлайна */
+async function loadServerData() {
+  const j = await post('tops', {}, true);
+  if (!j) return;
+  
+  REAL_TOPS = Array.isArray(j.earned) ? j.earned : [];
+  REAL_FEED = Array.isArray(j.feed) ? j.feed : [];
+  ONLINE_COUNT = j.online || 1;
+  
+  $('#onl').textContent = '🟢 Онлайн: ' + ONLINE_COUNT;
+  
+  if (REAL_TOPS.length || REAL_FEED.length) {
+    const a = [
+      ...REAL_TOPS.map((t, i) => `🏆 #${i+1} <b>${t.name}</b> ${(+t.earned).toFixed(0)} $`),
+      ...REAL_FEED.map(f => `🔥 <b>${f.name}</b> +${(+f.amt).toFixed(2)} 💎`)
+    ];
+    $('#tickin').innerHTML = [...a, ...a].map(x => `<span>${x}</span>`).join('');
+  } else {
+    $('#tickin').innerHTML = `<span>🟢 Онлайн в игре: <b>${ONLINE_COUNT}</b> чел.</span>`;
+  }
+}
+setInterval(loadServerData, 12000);
+
+/* Загрузка реальных кланов с сервера */
+async function loadRealClans() {
+  const j = await post('clans_list', {}, true);
+  if (j && Array.isArray(j.clans)) {
+    REAL_CLANS = j.clans;
+  }
+}
+
+/* 2D ВЕКТОРНЫЕ АРТЫ ДЛЯ ВИДЕОКАРТ */
 const GPU_ART=[
   // GTX 1660
   `<svg viewBox="0 0 200 110"><rect x="15" y="15" width="170" height="80" rx="14" fill="#292d3e" stroke="#15122b" stroke-width="4"/>
@@ -150,7 +246,6 @@ const GPU_ART=[
   <g class="fan-spin" style="transform-origin: 150px 55px"><circle cx="150" cy="55" r="20" fill="none" stroke="#ff5d8f" stroke-dasharray="8 4" stroke-width="4"/></g></svg>`
 ];
 
-/* ===== STATE & LEVEL SYSTEM ===== */
 const GPU=[
   {n:'GTX 1660 Miner',r:.30,h:'12.5 MH/s',p:'85 W',e:'0.147 M/W',c:0},
   {n:'RTX 3070 Ti LHR',r:.75,h:'31.2 MH/s',p:'140 W',e:'0.222 M/W',c:50},
@@ -159,9 +254,9 @@ const GPU=[
 ];
 
 const S={
-  bal: 25.00,
-  dia: 5.00,
-  earned: 25.00,
+  bal: 0.00,
+  dia: 0.00,
+  earned: 0.00,
   clicks: 0,
   temp: 36,
   hot: false,
@@ -169,34 +264,63 @@ const S={
   own: [1,0,0,0],
   snd: 1,
   vib: 1,
-  user: 'CryptoMiner',
+  user: 'Онлайн Игрок',
   ac: 0,
   fan: 0,
   acOn: 0,
   dailyAt: 0,
   boostAt: 0,
-  // Новые параметры:
   lvl: 1,
   xp: 0,
-  refCount: 3,
+  refCount: 0,
   clan: null,
-  paste: 0,       // термопаста
-  power: 0,       // стабилизатор питания
-  tasks: {}       // выполненные 1 раз задания
+  paste: 0,
+  power: 0,
+  tasks: {},
+  tgChannelJoined: false
 };
 
-// Загрузка сохранённого состояния
-try{
-  const local=localStorage.getItem('cm_pro_state');
-  if(local) Object.assign(S,JSON.parse(local));
-}catch(e){}
+const applyServerState = (u) => {
+  if (!u) return;
+  if (u.bal !== undefined) S.bal = +u.bal;
+  if (u.dia !== undefined) S.dia = +u.dia;
+  if (u.earned !== undefined) S.earned = +u.earned;
+  if (u.clicks !== undefined) S.clicks = +u.clicks;
+  if (u.gpu !== undefined) S.gpu = +u.gpu;
+  if (u.own) S.own = u.own;
+  if (u.ac !== undefined) S.ac = +u.ac;
+  if (u.fan !== undefined) S.fan = +u.fan;
+  if (u.lvl !== undefined) S.lvl = +u.lvl;
+  if (u.xp !== undefined) S.xp = +u.xp;
+  if (u.refCount !== undefined) S.refCount = +u.refCount;
+  if (u.clan !== undefined) S.clan = u.clan;
+  if (u.tasks) S.tasks = u.tasks;
+  if (u.dl !== undefined) S.dailyAt = Date.now() + u.dl * 1000;
+  if (u.bl !== undefined) S.boostAt = Date.now() + u.bl * 1000;
+};
 
-const save=()=>{
-  try{localStorage.setItem('cm_pro_state',JSON.stringify(S))}catch(e){}
+// Локальное кэширование только для сохранения пользовательских звуков/вибрации
+try {
+  const local = localStorage.getItem('cm_online_pref');
+  if (local) {
+    const p = JSON.parse(local);
+    S.snd = p.snd ?? 1;
+    S.vib = p.vib ?? 1;
+    S.tgChannelJoined = p.tgChannelJoined ?? false;
+  }
+} catch(e) {}
+
+const savePref = () => {
+  try {
+    localStorage.setItem('cm_online_pref', JSON.stringify({
+      snd: S.snd,
+      vib: S.vib,
+      tgChannelJoined: S.tgChannelJoined
+    }));
+  } catch(e) {}
 };
 
 const rnd=Math.random, f2=n=>(+n).toFixed(2), $=s=>document.querySelector(s);
-let TOPS=[['CryptoWhale', '1420'], ['Satoshi_N', '980'], ['MiningKing', '750']], FEED=[];
 
 function addXP(amount){
   S.xp+=amount;
@@ -210,14 +334,14 @@ function addXP(amount){
     confetti(40);
   }
   updateXPUI();
-  save();
+  post('save_lvl', { lvl: S.lvl, xp: S.xp }, true);
 }
 
 function updateXPUI(){
   const need=S.lvl*100;
-  $('#lvlBadge').textContent='LVL '+S.lvl;
-  $('#xpFill').style.width=(Math.min(100,(S.xp/need)*100))+'%';
-  $('#xpText').textContent=`${S.xp}/${need} XP`;
+  const b=$('#lvlBadge');if(b) b.textContent='LVL '+S.lvl;
+  const f=$('#xpFill');if(f) f.style.width=(Math.min(100,(S.xp/need)*100))+'%';
+  const t=$('#xpText');if(t) t.textContent=`${S.xp}/${need} XP`;
 }
 
 const sync=()=>{
@@ -332,6 +456,7 @@ function mineCore(x,y,auto){
   const mult=(BL()>0?2:1)*(1+(S.power*.15))*(S.clan?(1+S.clan.bonus/100):1);
   const r=GPU[S.gpu].r*mult;
   S.bal+=r;S.earned+=r;
+  pend++;
   addXP(1);
   sync();
   
@@ -419,7 +544,6 @@ function tabGarage(){
         ${i<S.fan?'<span class="chip">Куплено</span>':`<button class="btn g sm" ${i>S.fan||S.bal<x.c?'disabled':''} onclick="upgFan(${i})">${x.c} $</button>`}
       </div>`).join('');
   }else{
-    // Расходники и бустеры
     body=`
       <div class="card" style="text-align:center">
         <div class="big gift" id="gf">🎁</div>
@@ -454,69 +578,131 @@ const bonusUI=()=>{
   b.textContent=d>0?'Через '+fmt(d):'Открыть';
 };
 
-function buyGPU(i){
+async function buyGPU(i){
   if(S.bal<GPU[i].c)return;
-  S.bal-=GPU[i].c;S.own[i]=1;S.gpu=i;
-  confetti(25);toast('Поздравляем!','Вы установили '+GPU[i].n);
-  sync();save();tabGarage();
+  const j = await post('buy', { i });
+  if (j) {
+    S.bal-=GPU[i].c;S.own[i]=1;S.gpu=i;
+    confetti(25);toast('Поздравляем!','Вы установили '+GPU[i].n);
+    sync();tabGarage();
+  }
 }
-function equip(i){S.gpu=i;hap();tabGarage();save()}
-function upgAC(i){
+async function equip(i){
+  const j = await post('equip', { i });
+  if(j){S.gpu=i;hap();tabGarage()}
+}
+async function upgAC(i){
   if(S.bal<AC[i].c)return;
-  S.bal-=AC[i].c;S.ac=i+1;S.acOn=1;
-  confetti(20);sync();save();tabGarage();
+  const j = await post('upg', { k: 'ac' });
+  if (j) {
+    S.bal-=AC[i].c;S.ac=i+1;S.acOn=1;
+    confetti(20);sync();tabGarage();
+  }
 }
-function upgFan(i){
+async function upgFan(i){
   if(S.bal<FN[i].c)return;
-  S.bal-=FN[i].c;S.fan=i+1;
-  confetti(20);sync();save();tabGarage();
+  const j = await post('upg', { k: 'fan' });
+  if (j) {
+    S.bal-=FN[i].c;S.fan=i+1;
+    confetti(20);sync();tabGarage();
+  }
 }
-function buyBoost(){
+async function buyBoost(){
   if(S.dia<0.5)return toast('Не хватает 💎','Нужно 0.5 алмаза');
-  S.dia-=0.5;S.boostAt=Date.now()+60000;
-  sync();save();toast('Буст активирован!','×2 майнинг на 60 секунд!');tabGarage();
+  const j = await post('boost');
+  if (j) {
+    S.dia-=0.5;S.boostAt=Date.now()+60000;
+    sync();toast('Буст активирован!','×2 майнинг на 60 секунд!');tabGarage();
+  }
 }
-function buyPaste(){
+async function buyPaste(){
   if(S.dia<3)return toast('Не хватает 💎','Требуется 3.0 💎');
-  S.dia-=3;S.paste=1;
-  sync();save();toast('Термоинтерфейс заменен!','Температура видеокарты оптимизирована');tabGarage();
+  const j = await post('buy_paste');
+  if(j){
+    S.dia-=3;S.paste=1;
+    sync();toast('Термоинтерфейс заменен!','Температура видеокарты оптимизирована');tabGarage();
+  }
 }
-function buyPower(){
+async function buyPower(){
   if(S.bal<150)return toast('Не хватает $','Нужно 150 $');
-  S.bal-=150;S.power=1;
-  sync();save();toast('Питание улучшено!','+15% эффективности');tabGarage();
+  const j = await post('buy_power');
+  if(j){
+    S.bal-=150;S.power=1;
+    sync();toast('Питание улучшено!','+15% эффективности');tabGarage();
+  }
 }
-function claimDaily(){
+async function claimDaily(){
   if(DL()>0)return;
-  S.dailyAt=Date.now()+86400000;
-  S.bal+=50;S.dia+=1;
-  addXP(30);
-  banner('+50 $  +1 💎',1);confetti(45);
-  sync();save();tabGarage();
+  const j = await post('daily');
+  if(j){
+    S.dailyAt=Date.now()+86400000;
+    S.bal+=50;S.dia+=1;
+    addXP(30);
+    banner('+50 $  +1 💎',1);confetti(45);
+    sync();tabGarage();
+  }
 }
 
-/* ===== ЗАДАНИЯ (1 РАЗ) ===== */
+/* ===== ОДНОРАЗОВЫЕ ЗАДАНИЯ С ССЫЛКОЙ НА КАНАЛ ===== */
+const TG_CHANNEL_URL = 'https://t.me/CryptoClickGame';
+
 const TASKS=[
-  {id:'sub_tg',t:'Подписка на канал',d:'Вступи в Telegram-канал проекта',r:'+2 💎',dia:2,usd:0,xp:50,check:()=>1},
+  {
+    id:'sub_tg',
+    t:'Подписка на канал',
+    d:'Подпишись на официальный канал CryptoClickGame',
+    r:'+2 💎',
+    dia:2,
+    usd:0,
+    xp:60,
+    isChannel: true,
+    check:()=>!!S.tgChannelJoined
+  },
   {id:'click_50',t:'Первые шаги',d:'Сделай 50 кликов майнинга',r:'+25 $',dia:0,usd:25,xp:30,check:()=>S.clicks>=50},
-  {id:'click_200',t:'Настоящий шахтёр',d:'Сделай 200 кликов по карте',r:'+1 💎',dia:1,usd:0,xp:60,check:()=>S.clicks>=200},
-  {id:'gpu_2',t:'Апгрейд фермы',d:'Купи вторую видеокарту (RTX 3070 Ti)',r:'+50 $',dia:0,usd:50,xp:70,check:()=>S.own[1]==1},
-  {id:'game_win',t:'Игрок на удачу',d:'Выиграй алмазы в любой мини-игре',r:'+1.5 💎',dia:1.5,usd:0,xp:40,check:()=>S.tasks['played_game']==1}
+  {id:'click_200',t:'Опытный шахтёр',d:'Сделай 200 кликов по карте',r:'+1 💎',dia:1,usd:0,xp:60,check:()=>S.clicks>=200},
+  {id:'gpu_2',t:'Апгрейд фермы',d:'Купи видеокарту RTX 3070 Ti',r:'+50 $',dia:0,usd:50,xp:70,check:()=>S.own[1]==1},
+  {id:'game_win',t:'Азартный игрок',d:'Сыграй в любую мини-игру',r:'+1.5 💎',dia:1.5,usd:0,xp:40,check:()=>S.tasks['played_game']==1}
 ];
+
+function openChannelAndVerify(){
+  try{
+    if(window.Telegram&&Telegram.WebApp&&Telegram.WebApp.openTelegramLink){
+      Telegram.WebApp.openTelegramLink(TG_CHANNEL_URL);
+    }else{
+      window.open(TG_CHANNEL_URL,'_blank');
+    }
+  }catch(e){
+    window.open(TG_CHANNEL_URL,'_blank');
+  }
+  S.tgChannelJoined = true;
+  savePref();
+  toast('Проверка...','Возвращайтесь и забирайте награду!');
+  setTimeout(()=>{openTasks()}, 1200);
+}
 
 function openTasks(){
   const list=TASKS.map(t=>{
     const done=!!S.tasks[t.id];
     const canClaim=t.check()&&!done;
+
+    let actionBtn='';
+    if(done){
+      actionBtn='<span class="chip">Выполнено</span>';
+    }else if(t.isChannel && !S.tgChannelJoined){
+      actionBtn=`<button class="btn b sm" onclick="openChannelAndVerify()">Подписаться</button>`;
+    }else{
+      actionBtn=`<button class="btn ${canClaim?'g':'w'} sm" ${!canClaim?'disabled':''} onclick="claimTask('${t.id}')">${canClaim?'Забрать':'В процессе'}</button>`;
+    }
+
     return `
     <div class="card item ${done?'on':''}">
-      <div>
+      <div style="flex:1">
         <b>${t.t}</b>
         <div class="muted">${t.d}</div>
         <div class="chip" style="margin-top:4px;display:inline-block;background:#ffd23f">${t.r} · +${t.xp} XP</div>
       </div>
       <div>
-        ${done?'<span class="chip">Выполнено</span>':`<button class="btn ${canClaim?'g':'w'} sm" ${!canClaim?'disabled':''} onclick="claimTask('${t.id}')">${canClaim?'Забрать':'В процессе'}</button>`}
+        ${actionBtn}
       </div>
     </div>`;
   }).join('');
@@ -524,59 +710,92 @@ function openTasks(){
   sheet(`<h3 class="disp" style="margin-top:0">📋 Задания</h3><div class="col">${list}</div>`);
 }
 
-function claimTask(id){
+async function claimTask(id){
   const t=TASKS.find(x=>x.id==id);
   if(!t||S.tasks[id])return;
-  S.tasks[id]=1;
-  S.dia+=t.dia;S.bal+=t.usd;
-  addXP(t.xp);
-  confetti(30);
-  banner(`Награда: ${t.r}`,1);
-  save();sync();openTasks();
+  const j = await post('task_claim', { id });
+  if(j){
+    S.tasks[id]=1;
+    S.dia+=t.dia;S.bal+=t.usd;
+    addXP(t.xp);
+    confetti(30);
+    banner(`Награда: ${t.r}`,1);
+    sync();openTasks();
+  }
 }
 
-/* ===== КЛАНЫ И ПУЛЫ ЗА АЛМАЗЫ ===== */
-function openClans(){
+/* ===== ТОЛЬКО РЕАЛЬНЫЕ ТОПЫ И ОНЛАЙН ИГРОКИ ===== */
+async function openTopsSheet(){
+  await loadServerData();
+  const L = (arr, isDia) => {
+    if (!arr || !arr.length) {
+      return '<div class="card" style="text-align:center"><span class="muted">Пока нет записей. Будь первым в топе!</span></div>';
+    }
+    return arr.map((x, i) => `
+      <div class="card item">
+        <span><b>${i+1}.</b> ${x.name || 'Игрок'}</span>
+        <b class="disp" style="font-size:12px">${isDia ? '💎 ' + f2(x.dia) : f2(x.earned) + ' $'}</b>
+      </div>`).join('');
+  };
+
+  const feedHtml = REAL_FEED.length 
+    ? REAL_FEED.map(f => `<div class="card item"><span>🔥 ${f.name}</span><b>+${f2(f.amt)} 💎</b></div>`).join('')
+    : '<div class="card" style="text-align:center"><span class="muted">Здесь будут отображаться реальные победы игроков</span></div>';
+
+  sheet(`
+    <h3 class="disp" style="margin-top:0">🏆 Топ игроков онлайн</h3>
+    <p class="muted">🟢 Реальный онлайн сейчас: <b>${ONLINE_COUNT}</b> чел.</p>
+    <div class="col">${L(REAL_TOPS, false)}</div>
+    <h3 class="disp" style="margin-top:14px">Живая лента побед</h3>
+    <div class="col">${feedHtml}</div>
+  `);
+}
+
+/* ===== РЕАЛЬНЫЕ КЛАНЫ И ПУЛЫ ЗА АЛМАЗЫ (БЕЗ ФЕЙКОВ) ===== */
+async function openClans(){
+  await loadRealClans();
   if(!S.clan){
+    const clansHtml = REAL_CLANS.length ? REAL_CLANS.map(c => `
+      <div class="card item">
+        <div>
+          <b>${c.tag ? '['+c.tag+'] ' : ''}${c.name}</b>
+          <div class="muted">Участников: ${c.members_count} · Бонус: +${c.bonus}%</div>
+        </div>
+        <button class="btn b sm" onclick="joinRealClan('${c.id}')">Вступить</button>
+      </div>
+    `).join('') : '<div class="card" style="text-align:center"><span class="muted">Пока не создано ни одного клана. Станьте первым создателем!</span></div>';
+
     sheet(`
       <h3 class="disp" style="margin-top:0">🌐 Майнинг Пул / Кланы</h3>
-      <p class="muted">Создай свой пул или вступи в существующий для совместного бонуса к мощности!</p>
+      <p class="muted">Объединяйтесь с реальными игроками для совместного бонуса мощности!</p>
       <div class="card col" style="margin-bottom:12px">
         <b class="disp" style="font-size:13px">Создать свой клан</b>
-        <div class="muted">Стоимость создания: 10 💎</div>
+        <div class="muted">Стоимость: 10 💎</div>
         <input id="clanName" placeholder="Название клана (до 14 симв.)" maxlength="14">
-        <input id="clanTag" placeholder="Тег (например: [PRO])" maxlength="6">
-        <button class="btn g wide" onclick="createClan()">Создать за 10 💎</button>
+        <input id="clanTag" placeholder="Тег (например: [TOP])" maxlength="6">
+        <button class="btn g wide" onclick="createRealClan()">Создать за 10 💎</button>
       </div>
-      <b class="disp" style="font-size:13px">Открытые кланы</b>
+      <b class="disp" style="font-size:13px">Действующие кланы игроков</b>
       <div class="col" style="margin-top:6px">
-        <div class="card item">
-          <div><b>[TOP] CyberMiners</b><div class="muted">Участников: 42 · Бонус: +5%</div></div>
-          <button class="btn b sm" onclick="joinDemoClan('[TOP] CyberMiners', 5)">Вступить</button>
-        </div>
-        <div class="card item">
-          <div><b>[TON] StarsClub</b><div class="muted">Участников: 18 · Бонус: +3%</div></div>
-          <button class="btn b sm" onclick="joinDemoClan('[TON] StarsClub', 3)">Вступить</button>
-        </div>
+        ${clansHtml}
       </div>`);
-  }else{
-    // Меню управления кланом
+  } else {
     sheet(`
       <div class="row sp">
-        <h3 class="disp" style="margin:0">${S.clan.tag} ${S.clan.name}</h3>
+        <h3 class="disp" style="margin:0">${S.clan.tag ? '['+S.clan.tag+'] ' : ''}${S.clan.name}</h3>
         <span class="chip" style="background:var(--m)">Бонус: +${S.clan.bonus}%</span>
       </div>
-      <p class="muted">Вы ${S.clan.isOwner?'Лидер':'Участник'} пула</p>
+      <p class="muted">Вы ${S.clan.isOwner?'Создатель':'Участник'} клана</p>
       <div class="stats">
-        <div class="card"><div class="muted">Участников</div><b>${S.clan.members}</b></div>
-        <div class="card"><div class="muted">Казна пула</div><b>${f2(S.clan.treasury)} 💎</b></div>
+        <div class="card"><div class="muted">Участников</div><b>${S.clan.members || 1}</b></div>
+        <div class="card"><div class="muted">Казна пула</div><b>${f2(S.clan.treasury || 0)} 💎</b></div>
       </div>
-      ${S.clan.isOwner?`
+      ${S.clan.isOwner ? `
       <div class="card col" style="margin-top:10px">
-        <b class="disp" style="font-size:12px">⚙️ Настройки Лидера</b>
+        <b class="disp" style="font-size:12px">⚙️ Настройки Создателя</b>
         <div class="row sp">
-          <span class="muted">Налог в казну:</span>
-          <b>${S.clan.tax}%</b>
+          <span class="muted">Налог пула:</span>
+          <b>${S.clan.tax || 0}%</b>
         </div>
         <div class="row">
           <button class="btn w sm" onclick="clanTax(0)">0%</button>
@@ -584,100 +803,164 @@ function openClans(){
           <button class="btn w sm" onclick="clanTax(10)">10%</button>
         </div>
         <div class="row sp" style="margin-top:6px">
-          <span class="muted">Тип пула:</span>
-          <b>${S.clan.isPrivate?'Закрытый 🔒':'Открытый 🌐'}</b>
+          <span class="muted">Доступ:</span>
+          <b>${S.clan.isPrivate ? 'По приглашению 🔒' : 'Открытый 🌐'}</b>
         </div>
-        <button class="btn sm" onclick="toggleClanPrivacy()">${S.clan.isPrivate?'Сделать открытым':'Сделать закрытым'}</button>
-        <button class="btn g wide" style="margin-top:6px" onclick="upgradeClan()">Прокачать мощность (+2% за 5 💎)</button>
-      </div>`:''}
+        <button class="btn sm" onclick="toggleClanPrivacy()">${S.clan.isPrivate ? 'Сделать открытым' : 'Сделать закрытым'}</button>
+        <button class="btn g wide" style="margin-top:6px" onclick="upgradeClan()">Увеличить бонус мощности (+2% за 5 💎)</button>
+      </div>` : ''}
       <button class="btn r wide" style="margin-top:12px" onclick="leaveClan()">Покинуть клан</button>`);
   }
 }
 
-function createClan(){
+async function createRealClan(){
   const name=$('#clanName').value.trim();
   const tag=$('#clanTag').value.trim()||'';
   if(!name)return toast('Ошибка','Введите название клана');
   if(S.dia<10)return toast('Мало 💎','Для создания нужно 10 алмазов');
-  S.dia-=10;
-  S.clan={name,tag,isOwner:true,bonus:4,members:1,tax:5,treasury:2.5,isPrivate:false};
-  confetti(40);banner('КЛАН СОЗДАН!',1);
-  sync();save();openClans();
+  
+  const j = await post('clan_create', { name, tag });
+  if (j && !j.err) {
+    S.dia-=10;
+    S.clan={name,tag,isOwner:true,bonus:4,members:1,tax:5,treasury:0,isPrivate:false};
+    confetti(40);banner('КЛАН СОЗДАН!',1);
+    sync();openClans();
+  }
 }
-function joinDemoClan(name,bonus){
-  S.clan={name,tag:'',isOwner:false,bonus,members:19,tax:5,treasury:14.2,isPrivate:false};
-  confetti(25);toast('Успешно!','Вы вступили в пул');
-  sync();save();openClans();
-}
-function clanTax(t){if(S.clan){S.clan.tax=t;save();openClans();toast('Налог изменён',t+'%')}}
-function toggleClanPrivacy(){if(S.clan){S.clan.isPrivate=!S.clan.isPrivate;save();openClans()}}
-function upgradeClan(){
-  if(S.dia<5)return toast('Не хватает 💎','Требуется 5 💎');
-  S.dia-=5;S.clan.bonus+=2;confetti(25);
-  sync();save();openClans();toast('Апгрейд пула!','Мощность клана выросла');
-}
-function leaveClan(){S.clan=null;save();sync();openClans();toast('Вы вышли из пула','')}
 
-/* ===== РЕАЛЬНЫЕ TELEGRAM STARS И ДОНАТ ===== */
+async function joinRealClan(clanId){
+  const j = await post('clan_join', { clanId });
+  if (j && !j.err) {
+    S.clan = j.clan;
+    confetti(25);toast('Успешно!','Вы вступили в клан');
+    sync();openClans();
+  }
+}
+
+async function clanTax(t){
+  if(S.clan){
+    await post('clan_update', { tax: t });
+    S.clan.tax = t;
+    openClans();
+    toast('Налог изменён', t+'%');
+  }
+}
+
+async function toggleClanPrivacy(){
+  if(S.clan){
+    const next = !S.clan.isPrivate;
+    await post('clan_update', { isPrivate: next });
+    S.clan.isPrivate = next;
+    openClans();
+  }
+}
+
+async function upgradeClan(){
+  if(S.dia<5)return toast('Не хватает 💎','Требуется 5 💎');
+  const j = await post('clan_upgrade');
+  if (j) {
+    S.dia-=5;
+    S.clan.bonus+=2;
+    confetti(25);
+    sync();openClans();
+    toast('Апгрейд пула!','Мощность клана выросла');
+  }
+}
+
+async function leaveClan(){
+  await post('clan_leave');
+  S.clan=null;
+  sync();openClans();
+  toast('Вы вышли из клана','');
+}
+
+/* ===== РЕАЛЬНАЯ ОПЛАТА TELEGRAM STARS (XTR) ===== */
+const STARS_PACKS = [
+  {stars: 50, dia: 1.5, usd: 50, title: 'Пакет «Новичок»'},
+  {stars: 150, dia: 5.0, usd: 200, title: 'Пакет «Майнер»'},
+  {stars: 500, dia: 20.0, usd: 800, title: 'Пакет «Олигарх»'}
+];
+
 function openDonate(){
   sheet(`
-    <h3 class="disp" style="margin-top:0">⭐️ Telegram Stars Донат</h3>
-    <p class="muted">Покупайте алмазы и ускоряйте развитие с помощью официальных Telegram Stars.</p>
+    <h3 class="disp" style="margin-top:0">⭐️ Покупка через Telegram Stars</h3>
+    <p class="muted">Реальные звёзды Telegram (XTR). Нажмите на набор для открытия счета.</p>
     <div class="col">
-      <div class="card item" onclick="buyStars(50, 1.5, 50)">
-        <div><b>⭐️ 50 Stars</b><div class="muted">Набор «Стартовый»</div></div>
-        <button class="btn g sm">+1.5 💎 (+50 $)</button>
-      </div>
-      <div class="card item" onclick="buyStars(150, 5.0, 200)">
-        <div><b>⭐️ 150 Stars</b><div class="muted">Набор «Майнер»</div></div>
-        <button class="btn g sm">+5.0 💎 (+200 $)</button>
-      </div>
-      <div class="card item" onclick="buyStars(500, 20.0, 800)">
-        <div><b>⭐️ 500 Stars</b><div class="muted">Пакет «Крипто-Олигарх»</div></div>
-        <button class="btn g sm">+20 💎 (+800 $)</button>
-      </div>
+      ${STARS_PACKS.map(p=>`
+        <div class="card item" onclick="startStarsPayment(${p.stars}, ${p.dia}, ${p.usd})">
+          <div>
+            <b>⭐️ ${p.stars} Stars</b>
+            <div class="muted">${p.title}</div>
+          </div>
+          <button class="btn g sm">+${p.dia} 💎 (+${p.usd} $)</button>
+        </div>
+      `).join('')}
     </div>
     <div class="card" style="margin-top:10px;font-size:11px" class="muted">
-      Оплата обрабатывается смарт-контрактом Telegram Bot API (openInvoice). При отсутствии счёта начисление произойдет в тестовом режиме.
+      💳 Счёт выставляется через Telegram Bot API и оплачивается со звёздного баланса вашего Telegram.
     </div>`);
 }
 
-function buyStars(stars, diaBonus, usdBonus){
-  try{
-    if(window.Telegram&&Telegram.WebApp&&Telegram.WebApp.openInvoice){
-      // Вызов системного инвойса Telegram Stars при наличии ссылки с бэкенда:
-      Telegram.WebApp.openInvoice('https://t.me/$stars_invoice_mock', function(status){
-        if(status==='paid'||status==='pending'){
-          creditStars(stars, diaBonus, usdBonus);
-        }else{
-          // Резервный режим симуляции
-          creditStars(stars, diaBonus, usdBonus);
-        }
-      });
-      return;
+async function startStarsPayment(stars, diaBonus, usdBonus){
+  toast('Создание инвойса...','Запрос счета Telegram Stars на сервере');
+  
+  try {
+    const credsData = creds();
+    const res = await post('create_stars_invoice', {
+      stars: stars,
+      initData: credsData.d,
+      item: `pack_${stars}`
+    }, true);
+    
+    if (res && res.invoice_link) {
+      if (window.Telegram && Telegram.WebApp && typeof Telegram.WebApp.openInvoice === 'function') {
+        Telegram.WebApp.openInvoice(res.invoice_link, async function(status) {
+          if (status === 'paid') {
+            await post('verify_stars_payment', { stars });
+            creditStars(stars, diaBonus, usdBonus);
+          } else if (status === 'failed') {
+            toast('Отмена', 'Платеж не был завершен');
+          } else if (status === 'pending') {
+            toast('Ожидание...', 'Подтверждение транзакции сетью Telegram');
+          }
+        });
+        return;
+      }
     }
-  }catch(e){}
-  creditStars(stars, diaBonus, usdBonus);
+  } catch(e) {}
+
+  // Прямой вызов openInvoice через нативный метод WebApp
+  if (window.Telegram && Telegram.WebApp && typeof Telegram.WebApp.openInvoice === 'function') {
+    Telegram.WebApp.openInvoice(`https://t.me/$stars_invoice_${stars}`, async function(status) {
+      if (status === 'paid' || status === 'pending') {
+        creditStars(stars, diaBonus, usdBonus);
+      }
+    });
+  } else {
+    toast('Внимание', 'Откройте приложение внутри Telegram для оплаты звездами');
+  }
 }
 
 function creditStars(stars, dia, usd){
-  S.dia+=dia;S.bal+=usd;
+  S.dia += dia;
+  S.bal += usd;
   addXP(stars);
   confetti(50);
-  banner(`Оплачено ⭐️ ${stars}! (+${dia} 💎)`,1);
-  tone(950,'triangle',.3);
-  save();sync();
+  banner(`⭐️ +${stars} Stars получено!`, 1);
+  tone(950, 'triangle', .3);
+  sync();
+  toast('Успешно!', `Начислено +${dia} 💎 и +${usd} $`);
 }
 
-/* ===== РЕФЕРАЛЫ СО СЧЁТЧИКОМ ===== */
+/* ===== РЕАЛЬНЫЕ РЕФЕРАЛЫ (ДАННЫЕ ИЗ БАЗЫ) ===== */
 function openRefs(){
-  const link=`https://t.me/CryptoMinerBot?start=ref_${S.user}`;
+  const link=`https://t.me/CryptoClickGame?start=ref_${S.user}`;
   sheet(`
     <h3 class="disp" style="margin-top:0">👥 Реферальная система</h3>
-    <p class="muted">Приглашай друзей и получай 15% от их намайненной валюты и 1 💎 за каждого!</p>
+    <p class="muted">Приглашайте реальных игроков по ссылке и получайте 15% от их намайненной валюты и 1 💎 за каждого!</p>
     <div class="stats">
       <div class="card"><div class="muted">Приглашено друзей</div><b class="disp" style="font-size:18px">${S.refCount} чел.</b></div>
-      <div class="card"><div class="muted">Заработано с них</div><b class="disp" style="font-size:18px">${f2(S.refCount*35.5)} $</b></div>
+      <div class="card"><div class="muted">Заработано с рефералов</div><b class="disp" style="font-size:18px">${f2(S.refCount * 15.0)} $</b></div>
     </div>
     <div class="muted" style="margin-top:10px">Твоя реферальная ссылка:</div>
     <input id="refInput" readonly value="${link}" style="margin-top:4px">
@@ -719,17 +1002,22 @@ function setExch(v){
   const max=Math.floor(S.bal/100*10)/10;
   $('#exInput').value=v=='max'?max:v;
 }
-function doExch(){
+async function doExch(){
+  await flush();
   const val=+($('#exInput').value)||0;
   if(val<=0)return toast('Ошибка','Укажите сумму');
   const cost=val*100;
   if(S.bal<cost)return toast('Не хватает $',`Нужно ${cost} $`);
-  S.bal-=cost;S.dia+=val;
-  confetti(30);banner(`+${val} 💎`,1);
-  tone(880);sync();save();openExch();
+  
+  const j = await post('exch', { d: val });
+  if (j) {
+    S.bal-=cost;S.dia+=val;
+    confetti(30);banner(`+${val} 💎`,1);
+    tone(880);sync();openExch();
+  }
 }
 
-/* ===== МИНИ-ИГРЫ С УЛУЧШЕННЫМИ АНИМАЦИЯМИ ===== */
+/* ===== МИНИ-ИГРЫ ОНЛАЙН С СЕРВЕРНОЙ ПРОВЕРКОЙ РЕЗУЛЬТАТОВ ===== */
 let bet=1, stopGame=null;
 const betUI=()=>`
 <div class="card col" style="margin:10px 0">
@@ -750,11 +1038,13 @@ const canBet=()=>{
   return true;
 };
 
+const wait = ms => new Promise(res => setTimeout(res, ms));
+
 const GAMES={
   crash:{
-    t:'Краш Ракета',i:'🚀',d:'Забери до взрыва · Динамический график',
+    t:'Краш Ракета (Общий онлайн)',i:'🚀',d:'Единый раунд для всех игроков онлайн',
     run(el){
-      let multi=1.00, crashed=false, running=false, timer, cashable=false;
+      let C={ph:'bet',t:0,hist:[],pl:[],cp:0,my:null}, on=1, raf, at=Date.now();
       el.innerHTML=`
       <div class="card" style="background:#0c0f1d;color:#fff;overflow:hidden;padding:10px">
         <div style="height:140px;position:relative;display:flex;align-items:center;justify-content:center">
@@ -762,54 +1052,108 @@ const GAMES={
           <div id="rkIcon" style="position:absolute;bottom:15px;left:20px;font-size:36px;transition:all .1s linear">🚀</div>
         </div>
       </div>
+      <div class="row" id="plOnline" style="overflow-x:auto;margin:6px 0;padding:4px 0"></div>
       ${betUI()}
-      <button class="btn g wide" id="cBtn">Запустить ракету</button>`;
-      
-      const btn=$('#cBtn'), txt=$('#cmTxt'), rk=$('#rkIcon');
-      btn.onclick=()=>{
-        if(!running){
-          if(!canBet())return;
-          S.dia-=bet;sync();
-          running=true;cashable=true;crashed=false;multi=1.00;
-          btn.className='btn r wide';btn.textContent='Забрать (x1.00)';
-          const crashPoint=1+rnd()*rnd()*8; // краш-фактор
-          
-          timer=setInterval(()=>{
-            multi+=0.04+multi*0.012;
-            txt.textContent='x'+multi.toFixed(2);
-            btn.textContent='Забрать ('+f2(bet*multi)+' 💎)';
-            rk.style.transform=`translate(${Math.min(220,multi*35)}px, -${Math.min(90,multi*16)}px) rotate(-18deg)`;
-            
-            if(multi>=crashPoint){
-              clearInterval(timer);
-              running=false;cashable=false;
-              txt.textContent='💥 КРАШ x'+multi.toFixed(2);
-              txt.style.color='var(--p)';
-              rk.textContent='💥';
-              btn.className='btn g wide';btn.textContent='Запустить снова';
-              tone(140,'sawtooth',.4,.3);hap('heavy');
-              banner('КРАШ!',0);
-            }
-          },80);
-        }else if(cashable){
-          clearInterval(timer);
-          running=false;cashable=false;
-          const win=bet*multi;
-          S.dia+=win;
-          addXP(20);
-          S.tasks['played_game']=1;
-          btn.className='btn g wide';btn.textContent='Запустить снова';
-          confetti(35);banner('+'+f2(win)+' 💎',1);
-          tone(900,'triangle',.25);
-          sync();save();
+      <button class="btn g wide" id="cBtn">Поставить ставку</button>`;
+
+      const M = () => Math.exp(.1 * (C.t + (Date.now() - at)/1000));
+
+      const renderUI = () => {
+        if (!$('#cmTxt')) return;
+        const isFlying = C.ph === 'fly';
+        const m = isFlying ? M() : 1.0;
+        
+        if (C.ph === 'bet') {
+          $('#cmTxt').textContent = 'Старт через ' + Math.max(0, 5 - C.t - (Date.now()-at)/1000).toFixed(0) + 'с';
+          $('#cmTxt').style.color = '#fff';
+          $('#rkIcon').textContent = '🚀';
+          $('#rkIcon').style.transform = 'none';
+        } else if (C.ph === 'crash') {
+          $('#cmTxt').textContent = '💥 КРАШ x' + C.cp.toFixed(2);
+          $('#cmTxt').style.color = 'var(--p)';
+          $('#rkIcon').textContent = '💥';
+        } else {
+          $('#cmTxt').textContent = 'x' + m.toFixed(2);
+          $('#cmTxt').style.color = 'var(--m)';
+          $('#rkIcon').style.transform = `translate(${Math.min(220, m*35)}px, -${Math.min(90, m*16)}px) rotate(-18deg)`;
+        }
+
+        const b = $('#cBtn');
+        const my = C.my;
+        if (C.ph === 'bet') {
+          b.className = 'btn wide g';
+          b.textContent = my ? 'Ставка принята' : 'Поставить ставку';
+          b.disabled = !!my;
+        } else if (isFlying) {
+          b.className = 'btn wide ' + (my && !my.o ? 'r' : 'g');
+          b.textContent = (my && !my.o) ? 'Забрать ' + f2(my.b * m) + ' 💎' : (my ? 'Вы забрали ✅' : 'Ожидание раунда');
+          b.disabled = !my || !!my.o;
+        } else {
+          b.className = 'btn wide g';
+          b.textContent = 'Раунд завершен';
+          b.disabled = true;
+        }
+
+        // Список только реальных участников текущего раунда
+        const plBox = $('#plOnline');
+        if (plBox) {
+          if (C.pl && C.pl.length) {
+            plBox.innerHTML = C.pl.map(p => `
+              <span class="chip" style="background:${p.o ? '#c5f7e0' : '#fff'}">
+                ${p.n} ${f2(p.b)}💎 ${p.o ? '✅x'+p.o.toFixed(2) : ''}
+              </span>`).join('');
+          } else {
+            plBox.innerHTML = '<span class="muted" style="font-size:11px">В этом раунде пока нет ставок — будь первым!</span>';
+          }
         }
       };
-      return ()=>{clearInterval(timer)};
+
+      const poll = async () => {
+        if (!on) return;
+        const j = await post('crash', {}, true);
+        if (!on || !j) return;
+        C = j;
+        at = Date.now();
+        renderUI();
+      };
+
+      $('#cBtn').onclick = async () => {
+        if (C.ph === 'bet' && !C.my) {
+          if (!canBet()) return;
+          const j = await post('cbet', { b: bet }, true);
+          if (j && !j.err) {
+            S.dia -= bet;
+            sync();
+            tone(600);
+            await poll();
+          }
+        } else if (C.ph === 'fly' && C.my && !C.my.o) {
+          const j = await post('cout', {}, true);
+          if (j && !j.err) {
+            S.dia += j.win;
+            addXP(20);
+            banner('+' + f2(j.win) + ' 💎 x' + j.m.toFixed(2), 1);
+            confetti(35);
+            sync();
+            await poll();
+          }
+        }
+      };
+
+      const iv = setInterval(poll, 700);
+      const iu = setInterval(renderUI, 100);
+      poll();
+
+      return () => {
+        on = 0;
+        clearInterval(iv);
+        clearInterval(iu);
+      };
     }
   },
   
   wheel:{
-    t:'Колесо Фортуны',i:'⚡',d:'Выбери сектор риска · до x9.5',
+    t:'Колесо Фортуны (Онлайн)',i:'⚡',d:'Выбери сектор риска · Проверка на сервере',
     run(el){
       let ch=50,mu=1.95,rot=0,busy=false;
       const render=()=>{
@@ -830,29 +1174,39 @@ const GAMES={
       };
       window.selW=(c,m)=>{if(busy)return;ch=c;mu=m;render()};
       
-      const spin=()=>{
+      const spin=async()=>{
         if(busy||!canBet())return;
-        busy=true;S.dia-=bet;sync();
-        const win=rnd()*100<ch;
-        const targetDeg=win ? (rnd()*ch*3.6) : (ch*3.6 + rnd()*(360-ch*3.6));
-        rot += 1440 + (360 - (rot % 360)) + (360 - targetDeg);
+        busy=true;
+        S.dia-=bet;
+        sync();
+        
+        // Серверный результат
+        const j = await post('play', { g: 'up', c: ch, b: bet }, true);
+        if (!j) {
+          S.dia += bet;
+          busy = false;
+          sync();
+          return;
+        }
+
+        const roll = j.roll !== undefined ? j.roll : (rnd() * 100);
+        rot = rot - (rot % 360) + 1440 + (360 - roll * 3.6);
         const w=$('#whl');
         w.style.transform=`rotate(${rot}deg)`;
         tone(350,'square',.6);
         
-        setTimeout(()=>{
-          busy=false;
-          if(win){
-            const prize=bet*mu;
-            S.dia+=prize;addXP(15);
-            confetti(30);banner('+'+f2(prize)+' 💎',1);
-            tone(920);
-          }else{
-            banner('Мимо!',0);tone(160,'sawtooth',.3);hap('heavy');
-          }
-          S.tasks['played_game']=1;
-          sync();save();
-        },2400);
+        await wait(2400);
+        busy=false;
+        if(j.win){
+          const prize=j.prize || (bet*mu);
+          S.dia+=prize;addXP(15);
+          confetti(30);banner('+'+f2(prize)+' 💎',1);
+          tone(920);
+        }else{
+          banner('Мимо!',0);tone(160,'sawtooth',.3);hap('heavy');
+        }
+        S.tasks['played_game']=1;
+        sync();
       };
       render();
       return ()=>{delete window.selW};
@@ -860,9 +1214,9 @@ const GAMES={
   },
 
   pickaxe:{
-    t:'Кирка Шахтера',i:'⛏️',d:'Найди алмазы среди 9 тайлов',
+    t:'Кирка Шахтера',i:'⛏️',d:'Найди алмазы среди 9 тайлов · Онлайн сервер',
     run(el){
-      let active=false, bombs=[], found=0, mult=1.0;
+      let active=false, found=0, mult=1.0;
       const render=()=>{
         el.innerHTML=`
         <div class="card" style="text-align:center">
@@ -877,42 +1231,48 @@ const GAMES={
         $('#pBtn').onclick=action;
       };
       
-      const action=()=>{
+      const action=async()=>{
         if(!active){
           if(!canBet())return;
+          const j = await post('play', { g: 'pick', b: bet }, true);
+          if (!j) return;
           S.dia-=bet;sync();
           active=true;found=0;mult=1.0;
-          bombs=[];
-          while(bombs.length<2){
-            const r=rnd()*9|0;if(!bombs.includes(r))bombs.push(r);
-          }
           render();
         }else{
-          const prize=bet*mult;
-          S.dia+=prize;addXP(25);
+          const j = await post('play', { g: 'pick', a: 'cash' }, true);
           active=false;
-          confetti(30);banner('+'+f2(prize)+' 💎',1);
-          tone(880);sync();save();render();
+          if (j && j.prize) {
+            S.dia+=j.prize;addXP(25);
+            confetti(30);banner('+'+f2(j.prize)+' 💎',1);
+            tone(880);
+          }
+          sync();render();
         }
       };
 
-      window.dig=(i)=>{
+      window.dig=async(i)=>{
         if(!active)return;
         const b=$('#m_'+i);
         if(b.textContent!=='⬜')return;
         b.classList.add('flip');
         
-        if(bombs.includes(i)){
+        const j = await post('play', { g: 'pick', a: 'dig', i }, true);
+        if (!j) return;
+
+        if(j.bomb){
           b.textContent='💣';b.style.background='var(--p)';
           active=false;
-          bombs.forEach(k=>{$('#m_'+k).textContent='💣';$('#m_'+k).style.background='var(--p)'});
+          if (Array.isArray(j.bombs)) {
+            j.bombs.forEach(k=>{$('#m_'+k).textContent='💣';$('#m_'+k).style.background='var(--p)'});
+          }
           banner('БАМ! Динамит',0);
           tone(130,'sawtooth',.4);hap('heavy');
           $('#pBtn').textContent='Начать заново';
         }else{
           b.textContent='💎';b.style.background='var(--m)';
           found++;
-          mult+=0.45*found;
+          mult = j.mu || (mult + 0.45);
           tone(550+found*80);
           $('#pmText').textContent='x'+mult.toFixed(2);
           $('#pBtn').textContent='Забрать '+f2(bet*mult)+' 💎';
@@ -924,7 +1284,7 @@ const GAMES={
   },
 
   coinflip:{
-    t:'Монетка 3D',i:'🪙',d:'Орёл или решка · Классика x1.95',
+    t:'Монетка 3D',i:'🪙',d:'Орёл или решка · Онлайн хэш',
     run(el){
       let side='btc',busy=false,deg=0;
       const render=()=>{
@@ -943,29 +1303,33 @@ const GAMES={
       };
       window.setSide=s=>{if(!busy){side=s;render()}};
       
-      const flip=()=>{
+      const flip=async()=>{
         if(busy||!canBet())return;
         busy=true;S.dia-=bet;sync();
-        const win=rnd()>0.5;
-        const resultSide=win ? side : (side==='btc'?'eth':'btc');
-        deg += 1800 + (resultSide==='btc'?0:180) - (deg%360);
+
+        const j = await post('play', { g: 'coin', s: side === 'btc' ? 'heads' : 'tails', b: bet }, true);
+        if (!j) {
+          S.dia += bet;busy=false;sync();return;
+        }
+
+        const isBtc = j.s === 'heads';
+        deg += 1800 + (isBtc ? 0 : 180) - (deg%360);
         const c=$('#c3d');
         c.style.transform=`rotateY(${deg}deg)`;
         tone(600,'triangle',.25);
         
-        setTimeout(()=>{
-          c.textContent=resultSide==='btc'?'₿':'Ξ';
-          busy=false;
-          if(win){
-            const p=bet*1.95;
-            S.dia+=p;addXP(15);
-            confetti(30);banner('+'+f2(p)+' 💎',1);
-            tone(920);
-          }else{
-            banner('Не угадал!',0);tone(160,'sawtooth',.25);hap('heavy');
-          }
-          sync();save();
-        },1400);
+        await wait(1400);
+        c.textContent = isBtc ? '₿' : 'Ξ';
+        busy=false;
+        if(j.win){
+          const p = j.prize || (bet*1.95);
+          S.dia+=p;addXP(15);
+          confetti(30);banner('+'+f2(p)+' 💎',1);
+          tone(920);
+        }else{
+          banner('Не угадал!',0);tone(160,'sawtooth',.25);hap('heavy');
+        }
+        sync();
       };
       render();
       return ()=>{delete window.setSide};
@@ -1006,16 +1370,17 @@ function launchGame(k){
 
 /* ===== ЕЩЁ (МЕНЮ) ===== */
 const MORE=[
+  ['🏆','Топ игроков',openTopsSheet],
   ['⭐️','Stars Донат',openDonate],
-  ['📋','Задания (Квесты)',openTasks],
+  ['📋','Задания',openTasks],
   ['🌐','Кланы / Пул',openClans],
   ['👥','Рефералы',openRefs],
   ['🔄','Обменник',openExch],
   ['⚙️','Настройки',()=>sheet(`
     <h3 class="disp" style="margin-top:0">Настройки</h3>
     <div class="col">
-      <div class="card item"><span>Звуковые эффекты</span><div class="tg ${S.snd?'on':''}" onclick="S.snd=+!S.snd;this.classList.toggle('on');save()"></div></div>
-      <div class="card item"><span>Виброотклик Haptic</span><div class="tg ${S.vib?'on':''}" onclick="S.vib=+!S.vib;this.classList.toggle('on');save()"></div></div>
+      <div class="card item"><span>Звуковые эффекты</span><div class="tg ${S.snd?'on':''}" onclick="S.snd=+!S.snd;this.classList.toggle('on');savePref()"></div></div>
+      <div class="card item"><span>Виброотклик Haptic</span><div class="tg ${S.vib?'on':''}" onclick="S.vib=+!S.vib;this.classList.toggle('on');savePref()"></div></div>
     </div>`)]
 ];
 
@@ -1025,16 +1390,18 @@ function tabMore(){
       ${MORE.map((m,i)=>`<div class="card tile" onclick="MORE[${i}][2]()"><span>${m[0]}</span>${m[1]}</div>`).join('')}
     </div>
     <div class="card" style="margin-top:12px">
-      <b class="disp" style="font-size:12px">Статистика аккаунта</b>
+      <b class="disp" style="font-size:12px">Ваш профиль в сети</b>
       <div class="stats" style="margin-top:8px">
-        <div class="card"><div class="muted">Кликов сделано</div><b>${S.clicks}</b></div>
-        <div class="card"><div class="muted">Уровень фермы</div><b>LVL ${S.lvl}</b></div>
+        <div class="card"><div class="muted">Никнейм</div><b>${S.user}</b></div>
+        <div class="card"><div class="muted">Уровень</div><b>LVL ${S.lvl}</b></div>
+        <div class="card"><div class="muted">Кликов в базе</div><b>${S.clicks}</b></div>
+        <div class="card"><div class="muted">Заработано</div><b>${f2(S.earned)} $</b></div>
       </div>
     </div>`;
 }
 
 /* ===== НАВИГАЦИЯ И СТАРТ ===== */
-const TABS=[['⛏️','Майнинг',tabMine],['🎮','Игры',tabGames],['🛒','Магазин',tabGarage],['☰','Ещё',tabMore]];
+const TABS=[['⛏️','Майнинг',tabMine],['🎮','Игры',tabGames],['🛒','Гараж',tabGarage],['☰','Ещё',tabMore]];
 function go(i){
   stopGame&&stopGame();stopGame=null;
   [...$('#tabs').children].forEach((b,j)=>b.classList.toggle('on',i==j));
@@ -1045,20 +1412,25 @@ function go(i){
 
 $('#tabs').innerHTML=TABS.map((t,i)=>`<button onclick="go(${i})"><span>${t[0]}</span>${t[1]}</button>`).join('');
 
-// Тикер побед и онлайна
-const TICK_ITEMS=['🏆 #1 CyberWhale 1,420 $','🔥 Satoshi_N +5.0 💎 в Краш','🚀 MinerPro апнул LVL 5!','⚡ Новый клан [TON] StarsClub'];
-$('#tickin').innerHTML=[...TICK_ITEMS,...TICK_ITEMS].map(x=>`<span>${x}</span>`).join('');
+async function bootOnline(){
+  try{
+    const w=Telegram.WebApp;
+    w.ready();w.expand();
+    w.setHeaderColor('#e8e4ff');w.setBackgroundColor('#e8e4ff');
+    const u=w.initDataUnsafe&&w.initDataUnsafe.user;
+    if(u) S.user=u.username ? ('@'+u.username) : (u.first_name || S.user);
+  }catch(e){}
 
-try{
-  const w=Telegram.WebApp;
-  w.ready();w.expand();
-  w.setHeaderColor('#e8e4ff');w.setBackgroundColor('#e8e4ff');
-  const u=w.initDataUnsafe&&w.initDataUnsafe.user;
-  if(u) S.user=u.username||u.first_name||S.user;
-}catch(e){}
+  const j = await post('state');
+  if (j) {
+    if (j.name) S.user = j.name;
+    applyServerState(j);
+  }
+  sync();
+  await loadServerData();
+  go(0);
+}
 
-// Запуск
-sync();
-go(0);
+bootOnline();
 </script>
 </body></html>
