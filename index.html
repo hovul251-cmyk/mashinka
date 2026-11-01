@@ -86,6 +86,49 @@ input,select{font:800 14px Unbounded,sans-serif;border:2.5px solid var(--ink);bo
 .clash{animation:cls .22s infinite alternate}@keyframes cls{from{transform:translateX(-10px) rotate(-8deg) scale(1.05)}to{transform:translateX(10px) rotate(8deg) scale(1.05)}}
 .jump{animation:jmp .5s 2 ease-out}@keyframes jmp{50%{transform:translateY(-22px) scale(1.15)}}
 .flip{animation:flp .4s ease-out}@keyframes flp{0%{transform:rotateY(0)}50%{transform:rotateY(90deg) scale(1.2)}100%{transform:rotateY(0)}}
+.seg5{display:grid;grid-template-columns:repeat(5,1fr);gap:5px;margin-bottom:10px}.seg5 .on{background:var(--b);color:#fff}.seg5 .btn{padding:8px 1px;font-size:9px}
+.fan-spin{transform-box:fill-box;transform-origin:center}
+.fan-spin.rev{animation-direction:reverse}
+.rgb{animation:hue 4s linear infinite}@keyframes hue{to{filter:hue-rotate(360deg)}}
+.orb{transform-box:fill-box;transform-origin:center;animation:orbp 1.6s ease-in-out infinite}@keyframes orbp{50%{transform:scale(1.3);opacity:.7}}
+.led{animation:ledb 1s steps(2) infinite}@keyframes ledb{50%{opacity:.15}}
+.gpu-art{height:130px}
+.bob{display:inline-block;animation:bob 1.6s ease-in-out infinite}@keyframes bob{50%{transform:translateY(-5px) rotate(-6deg)}}
+.gift{display:inline-block;animation:bob 1.2s ease-in-out infinite}
+.pop{display:inline-block;animation:popk .45s ease-out}@keyframes popk{0%{transform:scale(.6)}60%{transform:scale(1.25)}100%{transform:scale(1)}}
+.shk2{animation:shk2 .45s}@keyframes shk2{20%{transform:translate(-7px,3px)}40%{transform:translate(6px,-3px)}60%{transform:translate(-5px,2px)}80%{transform:translate(3px,-1px)}}
+.hit{animation:hitk .3s}@keyframes hitk{30%{transform:scale(.85) rotate(-8deg)}60%{transform:scale(1.12) rotate(6deg)}}
+.pulse{animation:pulsek .5s infinite alternate}@keyframes pulsek{to{transform:scale(1.04);box-shadow:0 3px 0 var(--ink),0 0 18px var(--p)}}
+.pt{position:absolute;pointer-events:none;z-index:50;font-size:18px;animation:ptk .9s ease-out forwards}
+@keyframes ptk{to{transform:translate(var(--dx),var(--dy)) scale(.4) rotate(var(--r));opacity:0}}
+.surge{position:absolute;z-index:120;animation:pulsek .25s infinite alternate}
+.bossface{display:inline-block;animation:bob 2s ease-in-out infinite;user-select:none}
+/* колесо */
+.wwrap{position:relative;width:216px;height:216px;margin:10px auto}
+.wwrap .wheel{position:absolute;left:18px;top:18px;margin:0}
+.wwrap .pin{top:-4px;z-index:6}
+.wwrap .hub{position:absolute;left:50%;top:50%;width:44px;height:44px;margin:-22px 0 0 -22px;border-radius:50%;background:var(--y);border:3px solid var(--ink);display:grid;place-items:center;z-index:4;font-size:20px;box-shadow:0 3px 0 var(--ink)}
+.bulb{position:absolute;left:50%;top:50%;width:9px;height:9px;margin:-4.5px;border-radius:50%;background:var(--y);border:2px solid var(--ink);transform:rotate(var(--a)) translateY(-104px);animation:blb 1s infinite}
+.bulb:nth-child(even){animation-delay:.5s}
+@keyframes blb{50%{background:#fff;box-shadow:0 0 8px var(--y)}}
+.spinning .bulb{animation-duration:.18s}
+.spinning .pin{animation:pinw .12s infinite alternate}@keyframes pinw{to{transform:rotate(-14deg)}}
+.winpulse .wheel{animation:winp .4s 3}@keyframes winp{50%{box-shadow:0 0 0 10px rgba(46,229,157,.5),0 6px 0 rgba(21,18,43,.2)}}
+/* кирка */
+.cave{background:linear-gradient(#2a1d3d,#120c1e);color:#fff}
+.cave .mine button{background:#3a2c52;border-color:#0d0818;box-shadow:0 3px 0 #0d0818;color:#fff}
+.cave .mine button.gem{background:var(--m);animation:gemk .5s}
+.cave .mine button.boom{background:var(--p);animation:shk2 .45s}
+.cave .mine button.dig{animation:digk .3s}
+@keyframes digk{40%{transform:scale(.8) rotate(-10deg)}70%{transform:scale(1.1) rotate(8deg)}}
+@keyframes gemk{0%{transform:scale(.4) rotate(-40deg)}70%{transform:scale(1.25)}100%{transform:scale(1)}}
+.flashred{animation:fr .5s}@keyframes fr{30%{box-shadow:inset 0 0 0 200px rgba(255,93,143,.45)}}
+/* монета */
+.coinWrap{perspective:700px;height:170px;display:grid;place-items:center;position:relative}
+.coin3{width:112px;height:112px;position:relative;transform-style:preserve-3d;transition:transform 1.5s cubic-bezier(.2,.8,.25,1)}
+.coin3 .fc{position:absolute;inset:0;border-radius:50%;border:4px solid var(--ink);display:grid;place-items:center;font:900 42px Unbounded;backface-visibility:hidden;-webkit-backface-visibility:hidden;background:radial-gradient(circle at 30% 30%,#fff3b0,#ffd23f 45%,#ff9f1c);box-shadow:inset 0 0 0 5px rgba(255,255,255,.35)}
+.coin3 .bk{transform:rotateY(180deg);background:radial-gradient(circle at 30% 30%,#e6efff,#8fb0ff 45%,#4d7cff);color:#fff}
+.cshadow{position:absolute;bottom:6px;left:50%;width:90px;height:14px;margin-left:-45px;border-radius:50%;background:rgba(21,18,43,.35);opacity:.35}
 </style></head><body>
 <div id="app">
 <div id="toast"></div>
@@ -114,6 +157,14 @@ input,select{font:800 14px Unbounded,sans-serif;border:2.5px solid var(--ink);bo
 </div>
 
 <script>
+/* ===== !!! НАСТРОЙКИ ВАШЕГО БОТА — ЗАМЕНИТЕ НА СВОИ !!! ===== */
+const BOT_USERNAME = 'CryptoClickGameBot';      // username вашего бота БЕЗ @ (например MyMinerBot)
+const CHANNEL_USERNAME = 'CryptoClickGame';        // username вашего канала БЕЗ @ (бот должен быть админом канала)
+const CHANNEL_URL = 'https://t.me/@CryptoClickGame' + CHANNEL_USERNAME;
+const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const tgUserId = () => { try { const u = Telegram.WebApp.initDataUnsafe.user; if (u && u.id) return String(u.id); } catch(e){} return localStorage.getItem('gid') || ''; };
+const startParam = () => { try { return Telegram.WebApp.initDataUnsafe.start_param || ''; } catch(e){ return ''; } };
+
 /* ===== НАСТРОЙКИ СЕРВЕРА SUPABASE И ОНЛАЙН СИНХРОНИЗАЦИЯ ===== */
 const SB_URL='https://qmcvgtkfvsxthukbpafy.supabase.co',SB_KEY='sb_publishable_dmFpfh7OvvYv_LgiP0gSvQ_n124nmga';
 
@@ -172,12 +223,28 @@ const post = async (method, body = {}, hold = false) => {
   }
 };
 
+/* Вызов Edge Function game-extra (проверка подписки, рефералы). Работает только внутри Telegram. */
+const fx = async (action, extra = {}) => {
+  try {
+    const initData = (window.Telegram && Telegram.WebApp && Telegram.WebApp.initData) || '';
+    if (!initData) return null;
+    const r = await fetch(SB_URL + '/functions/v1/game-extra', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', apikey: SB_KEY },
+      body: JSON.stringify({ initData, action, ...extra })
+    });
+    if (!r.ok) return null;
+    return await r.json();
+  } catch (e) { return null; }
+};
+
 /* Сброс накопленных кликов на сервер */
 const flush = async () => {
   const n = pend;
   if (!n) return;
   pend = 0;
-  await post('mine', { n });
+  const r = await post('mine', { n });
+  if (!r) pend += n;
 };
 setInterval(flush, 1500);
 
@@ -194,8 +261,8 @@ async function loadServerData() {
   
   if (REAL_TOPS.length || REAL_FEED.length) {
     const a = [
-      ...REAL_TOPS.map((t, i) => `🏆 #${i+1} <b>${t.name}</b> ${(+t.earned).toFixed(0)} $`),
-      ...REAL_FEED.map(f => `🔥 <b>${f.name}</b> +${(+f.amt).toFixed(2)} 💎`)
+      ...REAL_TOPS.map((t, i) => `🏆 #${i+1} <b>${esc(t.name)}</b> ${(+t.earned).toFixed(0)} $`),
+      ...REAL_FEED.map(f => `🔥 <b>${esc(f.name)}</b> +${(+f.amt).toFixed(2)} 💎`)
     ];
     $('#tickin').innerHTML = [...a, ...a].map(x => `<span>${x}</span>`).join('');
   } else {
@@ -212,46 +279,82 @@ async function loadRealClans() {
   }
 }
 
-/* 2D ВЕКТОРНЫЕ АРТЫ ДЛЯ ВИДЕОКАРТ */
-const GPU_ART=[
-  // GTX 1660
-  `<svg viewBox="0 0 200 110"><rect x="15" y="15" width="170" height="80" rx="14" fill="#292d3e" stroke="#15122b" stroke-width="4"/>
-  <rect x="25" y="25" width="65" height="60" rx="30" fill="#383d57" stroke="#15122b" stroke-width="3"/>
-  <rect x="105" y="25" width="65" height="60" rx="30" fill="#383d57" stroke="#15122b" stroke-width="3"/>
-  <g class="fan-spin" style="transform-origin: 57px 55px"><circle cx="57" cy="55" r="24" fill="none" stroke="#2ee59d" stroke-dasharray="8 6" stroke-width="4"/><circle cx="57" cy="55" r="8" fill="#ffd23f" stroke="#15122b" stroke-width="2"/></g>
-  <g class="fan-spin" style="transform-origin: 137px 55px"><circle cx="137" cy="55" r="24" fill="none" stroke="#2ee59d" stroke-dasharray="8 6" stroke-width="4"/><circle cx="137" cy="55" r="8" fill="#ffd23f" stroke="#15122b" stroke-width="2"/></g>
-  <rect x="4" y="32" width="12" height="46" rx="3" fill="#8892b0" stroke="#15122b" stroke-width="3"/></svg>`,
-  // RTX 3070 Ti
-  `<svg viewBox="0 0 200 110"><rect x="15" y="15" width="170" height="80" rx="14" fill="#1b1c27" stroke="#15122b" stroke-width="4"/>
-  <path d="M 25 22 L 175 22 L 165 88 L 35 88 Z" fill="#282a3d"/>
-  <line x1="45" y1="24" x2="45" y2="86" stroke="#4d7cff" stroke-width="3"/><line x1="55" y1="24" x2="55" y2="86" stroke="#4d7cff" stroke-width="3"/>
-  <g class="fan-spin" style="transform-origin: 120px 55px"><circle cx="120" cy="55" r="28" fill="#15122b"/><circle cx="120" cy="55" r="24" fill="none" stroke="#4d7cff" stroke-width="4" stroke-dasharray="10 5"/><circle cx="120" cy="55" r="9" fill="#ff5d8f" stroke="#fff" stroke-width="2"/></g>
-  <text x="32" y="58" fill="#ffd23f" font-family="Unbounded" font-size="11" font-weight="900">RTX</text>
-  <rect x="4" y="28" width="12" height="54" rx="3" fill="#cfd6e6" stroke="#15122b" stroke-width="3"/></svg>`,
-  // RTX 4080
-  `<svg viewBox="0 0 200 110"><rect x="15" y="12" width="170" height="86" rx="16" fill="#11131a" stroke="#15122b" stroke-width="4"/>
-  <rect x="22" y="20" width="70" height="70" rx="35" fill="#1c2030" stroke="#2ee59d" stroke-width="2.5"/>
-  <rect x="106" y="20" width="70" height="70" rx="35" fill="#1c2030" stroke="#ff5d8f" stroke-width="2.5"/>
-  <g class="fan-spin" style="transform-origin: 57px 55px"><circle cx="57" cy="55" r="26" fill="none" stroke="#2ee59d" stroke-width="5" stroke-dasharray="7 5"/><circle cx="57" cy="55" r="9" fill="#2ee59d"/></g>
-  <g class="fan-spin" style="transform-origin: 141px 55px"><circle cx="141" cy="55" r="26" fill="none" stroke="#ff5d8f" stroke-width="5" stroke-dasharray="7 5"/><circle cx="141" cy="55" r="9" fill="#ff5d8f"/></g>
-  <rect x="88" y="22" width="22" height="66" rx="4" fill="#ffd23f" stroke="#15122b" stroke-width="2"/></svg>`,
-  // RTX 4090 OC
-  `<svg viewBox="0 0 200 110"><rect x="12" y="10" width="176" height="90" rx="18" fill="#0d0e17" stroke="#15122b" stroke-width="4"/>
-  <path d="M 16 14 L 184 96 M 184 14 L 16 96" stroke="#4d7cff" stroke-width="3" opacity="0.4"/>
-  <circle cx="50" cy="55" r="27" fill="#1b1c2b" stroke="#ffd23f" stroke-width="3"/>
-  <circle cx="100" cy="55" r="27" fill="#1b1c2b" stroke="#2ee59d" stroke-width="3"/>
-  <circle cx="150" cy="55" r="27" fill="#1b1c2b" stroke="#ff5d8f" stroke-width="3"/>
-  <g class="fan-spin" style="transform-origin: 50px 55px"><circle cx="50" cy="55" r="20" fill="none" stroke="#ffd23f" stroke-dasharray="8 4" stroke-width="4"/></g>
-  <g class="fan-spin" style="transform-origin: 100px 55px"><circle cx="100" cy="55" r="20" fill="none" stroke="#2ee59d" stroke-dasharray="8 4" stroke-width="4"/></g>
-  <g class="fan-spin" style="transform-origin: 150px 55px"><circle cx="150" cy="55" r="20" fill="none" stroke="#ff5d8f" stroke-dasharray="8 4" stroke-width="4"/></g></svg>`
-];
+/* ===== ВИДЕОКАРТЫ: ГЕНЕРАТОР 2D-АРТА ===== */
+let _gid=0;
+function gpuSVG(o){
+  const id='g'+(++_gid), n=o.fans||2, X=20, W=160, cy=60;
+  const slot=W/n, R=Math.min(26,slot/2-6), a=o.acc, b=o.body;
+  const r1=v=>+v.toFixed(1);
+  let s=`<svg viewBox="0 0 200 112"><defs>
+   <linearGradient id="${id}b" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${b}"/><stop offset="1" stop-color="#05060c"/></linearGradient>
+   <linearGradient id="${id}s" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".22"/><stop offset=".5" stop-color="#fff" stop-opacity="0"/></linearGradient>
+   <linearGradient id="${id}r" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#ff5d8f"/><stop offset=".33" stop-color="#ffd23f"/><stop offset=".66" stop-color="#2ee59d"/><stop offset="1" stop-color="#4d7cff"/></linearGradient>
+   <radialGradient id="${id}o"><stop offset="0" stop-color="#fff"/><stop offset=".35" stop-color="${a}"/><stop offset="1" stop-color="${a}" stop-opacity="0"/></radialGradient>
+  </defs>`;
+  // планка PCIe
+  s+=`<rect x="3" y="22" width="13" height="64" rx="2" fill="#aeb6cc" stroke="#15122b" stroke-width="3"/>
+      <rect x="6" y="30" width="7" height="6" rx="1" fill="#15122b"/><rect x="6" y="44" width="7" height="6" rx="1" fill="#15122b"/><rect x="6" y="58" width="7" height="6" rx="1" fill="#15122b"/><rect x="6" y="72" width="7" height="6" rx="1" fill="#15122b"/>`;
+  // золотые контакты
+  s+=`<rect x="38" y="97" width="96" height="9" rx="1.5" fill="#d9a520" stroke="#15122b" stroke-width="2"/><line x1="41" y1="101.5" x2="131" y2="101.5" stroke="#fff3b0" stroke-width="4.5" stroke-dasharray="2 3"/>`;
+  // разъём питания
+  s+=`<rect x="128" y="5" width="${o.pw||34}" height="10" rx="2" fill="#15122b"/><rect x="132" y="8" width="${(o.pw||34)-8}" height="4" rx="1" fill="#555c75"/>`;
+  // корпус
+  if(o.sty==='asic'){
+    s+=`<rect x="15" y="10" width="170" height="88" rx="8" fill="#4a4f5c" stroke="#15122b" stroke-width="4"/><rect x="21" y="16" width="158" height="76" rx="4" fill="#2c303b" stroke="#15122b" stroke-width="2"/>`;
+    for(let i=0;i<9;i++)s+=`<rect x="${25+i*17}" y="20" width="12" height="3" rx="1.5" fill="#15122b"/>`;
+    for(let i=0;i<6;i++)s+=`<circle class="led" style="animation-delay:${i*.17}s" cx="${30+i*9}" cy="87" r="2.2" fill="${a}"/>`;
+  } else {
+    s+=`<rect x="15" y="12" width="170" height="86" rx="14" fill="url(#${id}b)" stroke="#15122b" stroke-width="4"/>
+        <g stroke="${a}" stroke-width="1.4" opacity=".16">`;
+    for(let x=24;x<178;x+=6)s+=`<line x1="${x}" y1="20" x2="${x-6}" y2="88"/>`;
+    s+=`</g><rect x="15" y="12" width="170" height="86" rx="14" fill="url(#${id}s)"/>
+        <path d="M27 18 H173" stroke="${a}" stroke-width="3" stroke-linecap="round"/>`;
+  }
+  // вентиляторы
+  if(o.sty==='plasma'){
+    s+=`<circle cx="100" cy="${cy}" r="31" fill="#0a0b12" stroke="${a}" stroke-width="2"/>
+        <g transform="translate(100 ${cy})"><g class="fan-spin"><circle r="29" fill="none"/><circle r="26" fill="none" stroke="${a}" stroke-width="3" stroke-dasharray="14 8"/></g></g>
+        <g transform="translate(100 ${cy})"><g class="fan-spin rev"><circle r="21" fill="none"/><circle r="19" fill="none" stroke="#fff" stroke-width="2" stroke-dasharray="4 7"/></g></g>
+        <circle class="orb" cx="100" cy="${cy}" r="14" fill="url(#${id}o)"/>`;
+  } else {
+    for(let k=0;k<n;k++){
+      const cx=r1(X+slot*(k+.5));
+      s+=`<circle cx="${cx}" cy="${cy}" r="${r1(R+4)}" fill="#0a0b12" stroke="${a}" stroke-width="1.6"/>`;
+      let bl='';
+      const B=o.blades||9;
+      for(let i=0;i<B;i++){
+        bl+=`<path transform="rotate(${r1(360/B*i)})" d="M0,${r1(-R*.22)} C${r1(R*.38)},${r1(-R*.32)} ${r1(R*.52)},${r1(-R*.8)} ${r1(R*.13)},${r1(-R)} C${r1(-R*.26)},${r1(-R*.74)} ${r1(-R*.18)},${r1(-R*.4)} 0,${r1(-R*.22)}Z" fill="${a}" fill-opacity=".92" stroke="#15122b" stroke-width="1"/>`;
+      }
+      s+=`<g transform="translate(${cx} ${cy})"><g class="fan-spin${k%2&&o.rev?' rev':''}"><circle r="${r1(R)}" fill="none"/>${bl}</g><circle r="${r1(R*.27)}" fill="#15122b" stroke="${a}" stroke-width="2"/><circle r="${r1(R*.1)}" fill="${a}"/></g>`;
+      if(o.sty==='quantum'&&k===1)s+=`<g transform="translate(${cx} ${cy})"><g class="fan-spin rev"><circle r="${r1(R+8)}" fill="none"/><circle r="${r1(R+8)}" fill="none" stroke="#fff" stroke-width="1.6" stroke-dasharray="3 6"/></g></g><circle class="orb" cx="${cx}" cy="${cy}" r="9" fill="url(#${id}o)"/>`;
+    }
+  }
+  if(o.rgb)s+=`<rect class="rgb" x="30" y="89" width="140" height="3.6" rx="2" fill="url(#${id}r)"/>`;
+  s+=`<text x="${o.sty==='asic'?27:25}" y="${o.sty==='asic'?32:27}" fill="${a}" font-family="Unbounded,sans-serif" font-weight="900" font-size="7.5" opacity=".95">${o.tag||''}</text></svg>`;
+  return s;
+}
 
 const GPU=[
-  {n:'GTX 1660 Miner',r:.30,h:'12.5 MH/s',p:'85 W',e:'0.147 M/W',c:0},
-  {n:'RTX 3070 Ti LHR',r:.75,h:'31.2 MH/s',p:'140 W',e:'0.222 M/W',c:50},
-  {n:'RTX 4080 Gaming',r:1.80,h:'78.4 MH/s',p:'220 W',e:'0.356 M/W',c:200},
-  {n:'RTX 4090 OC Ultra',r:4.50,h:'185.0 MH/s',p:'380 W',e:'0.486 M/W',c:650}
+  {n:'GTX 1660 Miner',   r:.30, h:'12.5 MH/s', p:'85 W',  c:0,      art:{fans:2,body:'#2a2f45',acc:'#2ee59d',tag:'GTX 1660'}},
+  {n:'RTX 3070 Ti LHR',  r:.75, h:'31.2 MH/s', p:'140 W', c:700,    art:{fans:2,body:'#1b1c27',acc:'#4d7cff',tag:'RTX 3070 Ti',rgb:1}},
+  {n:'RTX 4080 Gaming',  r:1.80,h:'78.4 MH/s', p:'220 W', c:5000,   art:{fans:3,body:'#11131a',acc:'#2ee59d',tag:'RTX 4080',rgb:1}},
+  {n:'RTX 4090 OC Ultra',r:3.20,h:'185 MH/s',  p:'380 W', c:16000,  art:{fans:3,body:'#0d0e17',acc:'#ffd23f',tag:'RTX 4090 OC',rgb:1,rev:1,pw:44}},
+  {n:'Radeon RX 580 8GB',r:.45, h:'20.1 MH/s', p:'110 W', c:120,    art:{fans:2,body:'#3a1e24',acc:'#ff5d5d',tag:'RX 580',blades:7}},
+  {n:'RTX 2060 Super',   r:.60, h:'27.4 MH/s', p:'125 W', c:300,    art:{fans:2,body:'#1f2a3a',acc:'#76ff7a',tag:'RTX 2060S'}},
+  {n:'Radeon RX 6800 XT',r:1.05,h:'62.0 MH/s', p:'200 W', c:1500,   art:{fans:3,body:'#2b1420',acc:'#ff3d6e',tag:'RX 6800 XT',rgb:1}},
+  {n:'RTX 3090 Founders',r:1.45,h:'121 MH/s',  p:'290 W', c:3000,   art:{fans:2,body:'#2a2a2e',acc:'#9be84b',tag:'RTX 3090',blades:11}},
+  {n:'Radeon RX 7900 XTX',r:2.40,h:'96 MH/s',  p:'300 W', c:9000,   art:{fans:3,body:'#241014',acc:'#ff6a3d',tag:'RX 7900 XTX',rgb:1,rev:1}},
+  {n:'RTX 5080 Phantom', r:4.20,h:'240 MH/s',  p:'320 W', c:30000,  art:{fans:3,body:'#10151f',acc:'#7be9ff',tag:'RTX 5080',rgb:1,rev:1}},
+  {n:'RTX 5090 Titan',   r:6.00,h:'390 MH/s',  p:'450 W', c:60000,  art:{fans:3,body:'#0b0b12',acc:'#c77dff',tag:'RTX 5090',rgb:1,rev:1,blades:11,pw:46}},
+  {n:'ASIC Antminer S21',r:9.00,h:'200 TH/s',  p:'3.5 kW',c:120000, art:{fans:2,body:'#4a4f5c',acc:'#ffb703',tag:'ASIC S21',sty:'asic',blades:5}},
+  {n:'Quantum Rig Q-9',  r:14.0,h:'1.2 PH/s',  p:'5 kW',  c:300000, art:{fans:3,body:'#06161f',acc:'#00e1ff',tag:'QUANTUM Q-9',sty:'quantum',rgb:1,rev:1}},
+  {n:'Plasma Core X',    r:22.0,h:'9.9 PH/s',  p:'12 kW', c:800000, art:{fans:1,body:'#1a0620',acc:'#ff2bd6',tag:'PLASMA CORE X',sty:'plasma'}}
 ];
+/* порядок показа в гараже: от слабых к сильным (индексы остаются прежними для сервера) */
+const GPU_ORDER=[0,4,5,1,6,7,2,8,3,9,10,11,12,13];
+GPU_ORDER.forEach((idx,pos)=>{GPU[idx].ht=+(1+pos*.075).toFixed(3)});
+const GPU_ART=GPU.map(g=>gpuSVG(g.art));
+const nf=n=>n>=1e6?(n/1e6).toFixed(n%1e6?2:0)+'M':n>=1e4?(n/1e3).toFixed(0)+'k':n>=1e3?(n/1e3).toFixed(1)+'k':String(n);
 
 const S={
   bal: 0.00,
@@ -261,7 +364,7 @@ const S={
   temp: 36,
   hot: false,
   gpu: 0,
-  own: [1,0,0,0],
+  own: [1,0,0,0,0,0,0,0,0,0,0,0,0,0],
   snd: 1,
   vib: 1,
   user: 'Онлайн Игрок',
@@ -277,7 +380,10 @@ const S={
   paste: 0,
   power: 0,
   tasks: {},
-  tgChannelJoined: false
+  tgChannelJoined: false,
+  items: {},
+  boostMul: 2,
+  refEarned: 0
 };
 
 const applyServerState = (u) => {
@@ -287,14 +393,19 @@ const applyServerState = (u) => {
   if (u.earned !== undefined) S.earned = +u.earned;
   if (u.clicks !== undefined) S.clicks = +u.clicks;
   if (u.gpu !== undefined) S.gpu = +u.gpu;
-  if (u.own) S.own = u.own;
+  if (u.own) { S.own = [...u.own]; while (S.own.length < GPU.length) S.own.push(0); }
+  if (u.items) S.items = u.items;
   if (u.ac !== undefined) S.ac = +u.ac;
   if (u.fan !== undefined) S.fan = +u.fan;
   if (u.lvl !== undefined) S.lvl = +u.lvl;
   if (u.xp !== undefined) S.xp = +u.xp;
   if (u.refCount !== undefined) S.refCount = +u.refCount;
+  if (u.refEarned !== undefined) S.refEarned = +u.refEarned;
   if (u.clan !== undefined) S.clan = u.clan;
   if (u.tasks) S.tasks = u.tasks;
+  if (u.paste !== undefined) S.paste = +u.paste;
+  if (u.power !== undefined) S.power = +u.power;
+  if (u.sub !== undefined) S.tgChannelJoined = !!u.sub;
   if (u.dl !== undefined) S.dailyAt = Date.now() + u.dl * 1000;
   if (u.bl !== undefined) S.boostAt = Date.now() + u.bl * 1000;
 };
@@ -306,7 +417,6 @@ try {
     const p = JSON.parse(local);
     S.snd = p.snd ?? 1;
     S.vib = p.vib ?? 1;
-    S.tgChannelJoined = p.tgChannelJoined ?? false;
   }
 } catch(e) {}
 
@@ -314,34 +424,37 @@ const savePref = () => {
   try {
     localStorage.setItem('cm_online_pref', JSON.stringify({
       snd: S.snd,
-      vib: S.vib,
-      tgChannelJoined: S.tgChannelJoined
+      vib: S.vib
     }));
   } catch(e) {}
 };
 
+const loc=(j,fn)=>{ if(j && !j.u) fn(); };
 const rnd=Math.random, f2=n=>(+n).toFixed(2), $=s=>document.querySelector(s);
 
+const xpNeed=l=>Math.round(100*Math.pow(l,1.5));
 function addXP(amount){
+  if(S.items&&S.items.xpbook)amount*=1.5;
   S.xp+=amount;
-  const need=S.lvl*100;
+  const need=xpNeed(S.lvl);
   if(S.xp>=need){
     S.xp-=need;
     S.lvl++;
-    S.dia+=2;
-    banner('🎉 НОВЫЙ LVL '+S.lvl+'! (+2 💎)',1);
+    S.dia+=1;
+    banner('🎉 НОВЫЙ LVL '+S.lvl+'! (+1 💎)',1);
     tone(950,'triangle',.3,.3);
     confetti(40);
   }
   updateXPUI();
-  post('save_lvl', { lvl: S.lvl, xp: S.xp }, true);
+  clearTimeout(window._xpT);
+  window._xpT = setTimeout(()=>post('save_lvl', { lvl: S.lvl, xp: Math.floor(S.xp) }, true), 2500);
 }
 
 function updateXPUI(){
-  const need=S.lvl*100;
+  const need=xpNeed(S.lvl);
   const b=$('#lvlBadge');if(b) b.textContent='LVL '+S.lvl;
   const f=$('#xpFill');if(f) f.style.width=(Math.min(100,(S.xp/need)*100))+'%';
-  const t=$('#xpText');if(t) t.textContent=`${S.xp}/${need} XP`;
+  const t=$('#xpText');if(t) t.textContent=`${Math.floor(S.xp)}/${need} XP`;
 }
 
 const sync=()=>{
@@ -349,6 +462,8 @@ const sync=()=>{
   document.querySelectorAll('[data-dia]').forEach(e=>e.textContent=f2(S.dia));
   updateXPUI();
 };
+
+setInterval(()=>{ try{ if(typeof bonusUI==='function')bonusUI(); if(typeof ctlUI==='function')ctlUI(); }catch(e){} },1000);
 
 /* ===== ЗВУК И СИГНАЛЫ ===== */
 let acx;
@@ -392,8 +507,9 @@ const banner=(t,g)=>{
 };
 
 /* ===== МАЙНИНГ ===== */
-const FC=()=>([1,1.4,1.9,2.6][S.fan]||1)*(S.paste?1.35:1);
-const FH=()=>([1,.9,.8,.7][S.fan]||1)*(S.paste?0.75:1);
+const FC=()=>([1,1.4,1.9,2.6,3.4,4.5][S.fan]||1)*(S.paste?1.35:1);
+const FH=()=>([1,.9,.8,.7,.6,.45][S.fan]||1)*(S.paste?0.75:1)*(S.items.pad?.85:1);
+const IM=()=>(BL()>0?S.boostMul:1)*(1+S.power*.15)*(1+(S.items.bios?.10:0)+(S.items.solar?.25:0))*(S.clan?(1+S.clan.bonus/100):1);
 const BL=()=>Math.max(0,(S.boostAt-Date.now())/1000);
 const DL=()=>Math.max(0,(S.dailyAt-Date.now())/1000);
 const fmt=t=>{t=Math.ceil(t);const h=t/3600|0,m=t%3600/60|0;return h?h+'ч '+m+'м':m+':'+String(t%60).padStart(2,'0')};
@@ -405,7 +521,7 @@ function tabMine(){
     <div class="gpu-art" id="gpuVisual">${GPU_ART[S.gpu]}</div>
     <div id="lock">
       <div style="font-size:36px">🔥</div>ПЕРЕГРЕВ!
-      <div style="font:700 11px Manrope">Остывание до 60°C</div>
+      <div style="font:700 11px Manrope">Остывание до 55°C</div>
       <div class="bar" style="width:110px"><i id="cd" style="background:#fff;width:100%"></i></div>
     </div>
   </div>
@@ -416,7 +532,7 @@ function tabMine(){
     <div class="bar"><i id="tb"></i></div>
   </div>
   <div class="stats" id="st"></div>
-  <p class="muted" style="text-align:center;margin-top:8px" id="hint">Кликай по видеокарте для майнинга крипты!</p>`;
+  <p class="muted" style="text-align:center;margin-top:8px" id="hint">Кликай по видеокарте! Следи за температурой и скачками напряжения ⚡</p>`;
   
   gpuStats();heatUI();ctlUI();
   $('#gc').onpointerdown=mineTap;
@@ -429,7 +545,9 @@ const gpuStats=()=>{
     ['Хешрейт',g.h],
     ['Потребление',g.p],
     ['Бонус клана', S.clan?'+'+S.clan.bonus+'%':'0%'],
-    ['Доход / клик','+'+f2(g.r*(BL()>0?2:1)*(1+(S.power*.15)))+' $']
+    ['Доход / клик','+'+f2(g.r*IM())+' $'],
+    ['Нагрев / клик','+'+(1.9*FH()*g.ht).toFixed(1)+'°C'],
+    ['Множитель дохода','×'+IM().toFixed(2)]
   ].map(([a,b])=>`<div class="card"><div class="muted">${a}</div><b>${b}</b></div>`).join('');
 };
 
@@ -442,7 +560,7 @@ const heatUI=()=>{
   const b=$('#tb');b.style.width=t+'%';
   b.style.background=t<55?'var(--m)':t<80?'var(--y)':'var(--p)';
   $('#gs').textContent=S.hot?'ПЕРЕГРЕВ':t<55?'Готова':t<80?'Тепло':'Горячо!';
-  if(S.hot)$('#cd').style.width=Math.max(0,(t-60)/40*100)+'%';
+  if(S.hot)$('#cd').style.width=Math.max(0,(t-55)/45*100)+'%';
 };
 
 function mineTap(e){
@@ -451,12 +569,13 @@ function mineTap(e){
 }
 
 function mineCore(x,y,auto){
-  S.temp=Math.min(100,S.temp+1.5*FH());
+  S.temp=Math.min(100,S.temp+1.9*FH()*GPU[S.gpu].ht);
   S.clicks++;
-  const mult=(BL()>0?2:1)*(1+(S.power*.15))*(S.clan?(1+S.clan.bonus/100):1);
+  const mult=IM();
   const r=GPU[S.gpu].r*mult;
   S.bal+=r;S.earned+=r;
   pend++;
+  if(!bossOff)bossPend++;
   addXP(1);
   sync();
   
@@ -475,6 +594,9 @@ function mineCore(x,y,auto){
   }
   
   if(!auto){tone(480+rnd()*180,'triangle',.05);hap()}
+  if(S.temp>=100&&(S.items.fuse||0)>0){
+    S.items.fuse--;S.temp=70;post('use_item',{id:'fuse'},true);banner('🧯 Предохранитель спас!',1);
+  }
   if(S.temp>=100){
     S.hot=true;S.temp=100;
     document.body.classList.add('hot');
@@ -486,8 +608,8 @@ function mineCore(x,y,auto){
 
 setInterval(function(){
   if(S.temp>36){
-    S.temp=Math.max(36,S.temp-(S.hot?.85:.65)*FC());
-    if(S.hot&&S.temp<=60){
+    S.temp=Math.max(36,S.temp-(S.hot?.75:.5)*FC());
+    if(S.hot&&S.temp<=55){
       S.hot=false;
       document.body.classList.remove('hot');
       $('#hint')&&($('#hint').textContent='Кликай по видеокарте для майнинга крипты!');
@@ -497,7 +619,7 @@ setInterval(function(){
   }
 },200);
 
-const ACPS=[0,2,4,7];
+const ACPS=[0,2,4,7,11,16];
 let acAcc=0;
 setInterval(()=>{
   if(S.acOn&&S.ac&&!S.hot&&S.temp<95){
@@ -514,36 +636,51 @@ const ctlUI=()=>{
   const c=$('#ctl');if(!c)return;
   c.innerHTML=(S.ac?`<button class="btn sm ${S.acOn?'g':'r'}" onclick="S.acOn=+!S.acOn;ctlUI();hap()">🤖 Автомайнер: ${S.acOn?'ВКЛ':'ВЫКЛ'} (${ACPS[S.ac]}/с)</button>`:'')+
   (S.fan?`<span class="chip">❄️ Охлаждение: ур.${S.fan}</span>`:'')+
-  (BL()>0?`<span class="chip" style="background:var(--y)">⚡ Буст ×2 ${fmt(BL())}</span>`:'');
+  (BL()>0?`<span class="chip" style="background:var(--y)">⚡ Буст ×${S.boostMul} ${fmt(BL())}</span>`:'');
 };
 
 /* ===== МАГАЗИН И ОБОРУДОВАНИЕ ===== */
 let gTab=0;
-const AC=[{n:'Бот-новичок',cps:2,c:100},{n:'Бот-про',cps:4,c:400},{n:'Квантовый бот',cps:7,c:1200}];
-const FN=[{n:'Кулер 120мм',cool:1.4,heat:10,c:60},{n:'Двойной кулер',cool:1.9,heat:20,c:250},{n:'СВО Liquid Cooler',cool:2.6,heat:30,c:800}];
+const AC=[
+  {n:'Бот-новичок',cps:2,c:400},{n:'Бот-про',cps:4,c:1800},{n:'Квантовый бот',cps:7,c:6000},
+  {n:'Нейро-бот',cps:11,c:25000},{n:'ИИ-ферма',cps:16,c:90000}];
+const FN=[
+  {n:'Кулер 120мм',cool:1.4,heat:10,c:250},{n:'Двойной кулер',cool:1.9,heat:20,c:900},
+  {n:'СВО Liquid Cooler',cool:2.6,heat:30,c:3500},{n:'Фреон-чиллер',cool:3.4,heat:40,c:14000},
+  {n:'Криокамера',cool:4.5,heat:55,c:50000}];
+
+const SHOP=[
+  {id:'spray',i:'🧊',n:'Хладагент',d:'Мгновенно охлаждает видеокарту до 40°C',cur:'usd',c:80,cons:1},
+  {id:'fuse',i:'🧯',n:'Предохранитель',d:'Один раз спасает от перегрева (расходник)',cur:'usd',c:250,cons:1},
+  {id:'boost3',i:'🚀',n:'Мега-буст ×3',d:'Утроение дохода на 120 сек',cur:'dia',c:2,cons:1},
+  {id:'pad',i:'🩹',n:'Термопрокладки',d:'Нагрев −15% навсегда',cur:'usd',c:900},
+  {id:'bios',i:'💾',n:'Модифицированный BIOS',d:'+10% к доходу навсегда',cur:'usd',c:1500},
+  {id:'solar',i:'☀️',n:'Солнечные панели',d:'+25% к доходу навсегда',cur:'usd',c:8000},
+  {id:'xpbook',i:'📚',n:'Книга шахтёра',d:'+50% к опыту навсегда',cur:'dia',c:4}
+];
 
 function tabGarage(){
   let body;
   if(gTab==0){
-    body=GPU.map((g,i)=>`
+    body=GPU_ORDER.map(i=>{const g=GPU[i];return `
       <div class="card item ${S.gpu==i?'on':''}">
-        <div style="width:60px;height:45px;display:flex;align-items:center">${GPU_ART[i]}</div>
-        <div style="flex:1"><b>${g.n}</b><div class="muted">+${f2(g.r)} $ / клик · ${g.h}</div></div>
-        ${S.own[i]?(S.gpu==i?'<span class="chip">Выбрано</span>':`<button class="btn b sm" onclick="equip(${i})">Надеть</button>`):`<button class="btn g sm" ${S.bal<g.c?'disabled':''} onclick="buyGPU(${i})">${f2(g.c)}$</button>`}
-      </div>`).join('');
+        <div style="width:78px;height:50px;flex:none">${GPU_ART[i]}</div>
+        <div style="flex:1;min-width:0"><b style="font-size:12px">${g.n}</b><div class="muted">+${f2(g.r)} $/клик · ${g.h}<br>${g.p} · 🌡×${g.ht}</div></div>
+        ${S.own[i]?(S.gpu==i?'<span class="chip">Выбрано</span>':`<button class="btn b sm" onclick="equip(${i})">Надеть</button>`):`<button class="btn g sm" ${S.bal<g.c?'disabled':''} onclick="buyGPU(${i})">${nf(g.c)} $</button>`}
+      </div>`}).join('');
   }else if(gTab==1){
     body=AC.map((x,i)=>`
       <div class="card item ${i<S.ac?'on':''}">
-        <div class="row"><span style="font-size:24px">🤖</span><div><b>${x.n}</b><div class="muted">${x.cps} кл/с автомайнинга</div></div></div>
-        ${i<S.ac?'<span class="chip">Установлено</span>':`<button class="btn g sm" ${i>S.ac||S.bal<x.c?'disabled':''} onclick="upgAC(${i})">${x.c} $</button>`}
+        <div class="row"><span style="font-size:24px">🤖</span><div><b>${x.n}</b><div class="muted">${x.cps} кл/с автомайнинга (греет карту!)</div></div></div>
+        ${i<S.ac?'<span class="chip">Установлено</span>':`<button class="btn g sm" ${i>S.ac||S.bal<x.c?'disabled':''} onclick="upgAC(${i})">${nf(x.c)} $</button>`}
       </div>`).join('');
   }else if(gTab==2){
     body=FN.map((x,i)=>`
       <div class="card item ${i<S.fan?'on':''}">
         <div class="row"><span style="font-size:24px">❄️</span><div><b>${x.n}</b><div class="muted">Остывание ×${x.cool} · Нагрев −${x.heat}%</div></div></div>
-        ${i<S.fan?'<span class="chip">Куплено</span>':`<button class="btn g sm" ${i>S.fan||S.bal<x.c?'disabled':''} onclick="upgFan(${i})">${x.c} $</button>`}
+        ${i<S.fan?'<span class="chip">Куплено</span>':`<button class="btn g sm" ${i>S.fan||S.bal<x.c?'disabled':''} onclick="upgFan(${i})">${nf(x.c)} $</button>`}
       </div>`).join('');
-  }else{
+  }else if(gTab==3){
     body=`
       <div class="card" style="text-align:center">
         <div class="big gift" id="gf">🎁</div>
@@ -560,13 +697,22 @@ function tabGarage(){
       </div>
       <div class="card item ${S.power?'on':''}">
         <div class="row"><span style="font-size:24px">🔌</span><div><b>Стабилизатор Gold</b><div class="muted">+15% к доходу майнинга</div></div></div>
-        ${S.power?'<span class="chip">Куплено</span>':`<button class="btn g sm" onclick="buyPower()">150 $</button>`}
+        ${S.power?'<span class="chip">Куплено</span>':`<button class="btn g sm" onclick="buyPower()">600 $</button>`}
       </div>`;
+  }else{
+    body=SHOP.map(it=>{
+      const have=S.items[it.id]||0, owned=!it.cons&&have;
+      const afford=(it.cur=='dia'?S.dia:S.bal)>=it.c;
+      return `
+      <div class="card item ${owned?'on':''}">
+        <div class="row"><span style="font-size:26px">${it.i}</span><div><b>${it.n}</b>${it.cons&&have?` <span class="chip">×${have}</span>`:''}<div class="muted">${it.d}</div></div></div>
+        ${owned?'<span class="chip">Куплено</span>':`<button class="btn g sm" ${afford?'':'disabled'} onclick="buyItem('${it.id}')">${nf(it.c)} ${it.cur=='dia'?'💎':'$'}</button>`}
+      </div>`}).join('');
   }
-  
+
   $('#stage').innerHTML=`
-    <div class="seg4">
-      ${['Карты','Боты','Кулеры','Бонусы'].map((t,i)=>`<button class="btn w sm ${gTab==i?'on':''}" onclick="gTab=${i};tabGarage()">${t}</button>`).join('')}
+    <div class="seg5">
+      ${['Карты','Боты','Кулеры','Бонусы','Предметы'].map((t,i)=>`<button class="btn w sm ${gTab==i?'on':''}" onclick="gTab=${i};tabGarage()">${t}</button>`).join('')}
     </div>
     <div class="col">${body}</div>`;
   bonusUI();
@@ -582,7 +728,7 @@ async function buyGPU(i){
   if(S.bal<GPU[i].c)return;
   const j = await post('buy', { i });
   if (j) {
-    S.bal-=GPU[i].c;S.own[i]=1;S.gpu=i;
+    loc(j,()=>{S.bal-=GPU[i].c;S.own[i]=1;S.gpu=i});
     confetti(25);toast('Поздравляем!','Вы установили '+GPU[i].n);
     sync();tabGarage();
   }
@@ -595,7 +741,7 @@ async function upgAC(i){
   if(S.bal<AC[i].c)return;
   const j = await post('upg', { k: 'ac' });
   if (j) {
-    S.bal-=AC[i].c;S.ac=i+1;S.acOn=1;
+    loc(j,()=>{S.bal-=AC[i].c;S.ac=i+1});S.acOn=1;
     confetti(20);sync();tabGarage();
   }
 }
@@ -603,7 +749,7 @@ async function upgFan(i){
   if(S.bal<FN[i].c)return;
   const j = await post('upg', { k: 'fan' });
   if (j) {
-    S.bal-=FN[i].c;S.fan=i+1;
+    loc(j,()=>{S.bal-=FN[i].c;S.fan=i+1});
     confetti(20);sync();tabGarage();
   }
 }
@@ -611,7 +757,7 @@ async function buyBoost(){
   if(S.dia<0.5)return toast('Не хватает 💎','Нужно 0.5 алмаза');
   const j = await post('boost');
   if (j) {
-    S.dia-=0.5;S.boostAt=Date.now()+60000;
+    loc(j,()=>{S.dia-=0.5;S.boostAt=Date.now()+60000});S.boostMul=2;
     sync();toast('Буст активирован!','×2 майнинг на 60 секунд!');tabGarage();
   }
 }
@@ -619,38 +765,68 @@ async function buyPaste(){
   if(S.dia<3)return toast('Не хватает 💎','Требуется 3.0 💎');
   const j = await post('buy_paste');
   if(j){
-    S.dia-=3;S.paste=1;
+    loc(j,()=>{S.dia-=3});S.paste=1;
     sync();toast('Термоинтерфейс заменен!','Температура видеокарты оптимизирована');tabGarage();
   }
 }
 async function buyPower(){
-  if(S.bal<150)return toast('Не хватает $','Нужно 150 $');
+  if(S.bal<600)return toast('Не хватает $','Нужно 600 $');
   const j = await post('buy_power');
   if(j){
-    S.bal-=150;S.power=1;
+    loc(j,()=>{S.bal-=600});S.power=1;
     sync();toast('Питание улучшено!','+15% эффективности');tabGarage();
   }
 }
+async function buyItem(id){
+  const it=SHOP.find(x=>x.id==id); if(!it)return;
+  if((it.cur=='dia'?S.dia:S.bal)<it.c)return toast('Не хватает средств','Нужно '+nf(it.c)+(it.cur=='dia'?' 💎':' $'));
+  if(!it.cons&&S.items[id])return;
+  const j=await post('buy_item',{id});
+  if(!j)return;
+  loc(j,()=>{ if(it.cur=='dia')S.dia-=it.c; else S.bal-=it.c; });
+  if(!(j.u&&j.u.items)){ S.items[id]=it.cons?(S.items[id]||0)+1:1; }
+  if(id=='spray'){ S.items.spray=Math.max(0,(S.items.spray||1)-1); S.temp=Math.min(S.temp,40); if(S.hot){S.hot=false;document.body.classList.remove('hot')} heatUI(); }
+  if(id=='boost3'){ S.items.boost3=Math.max(0,(S.items.boost3||1)-1); S.boostMul=3; S.boostAt=Date.now()+120000; }
+  confetti(20); sync(); toast('Куплено',it.n); tabGarage();
+}
+
+/* Случайное событие: скачок напряжения */
+let surgeOn=false;
+function surge(){
+  if(surgeOn||S.hot||!$('#gc'))return;
+  surgeOn=true;
+  const b=document.createElement('button');
+  b.className='btn r surge'; b.textContent='⚡ СКАЧОК НАПРЯЖЕНИЯ! ЖМИ!';
+  let done=false;
+  const end=ok=>{ if(done)return; done=true; b.remove(); surgeOn=false;
+    if(ok){ banner('Стабилизировано!',1); tone(800,'triangle',.15) }
+    else if((S.items.fuse||0)>0){ S.items.fuse--; post('use_item',{id:'fuse'},true); banner('🧯 Предохранитель сработал',1) }
+    else { S.temp=Math.min(100,S.temp+22); banner('Перегрузка! +22°C',0); tone(150,'sawtooth',.3,.2); hap('heavy'); heatUI() } };
+  b.onclick=e=>{e.stopPropagation();end(true)};
+  b.style.left=(15+rnd()*40)+'%'; b.style.top=(30+rnd()*35)+'%';
+  $('#app').append(b); tone(300,'square',.2,.1); hap('heavy');
+  setTimeout(()=>end(false),3000);
+}
+setInterval(()=>{ if(rnd()<.22)surge() },20000);
+
 async function claimDaily(){
   if(DL()>0)return;
   const j = await post('daily');
   if(j){
-    S.dailyAt=Date.now()+86400000;
-    S.bal+=50;S.dia+=1;
+    if(!j.u){S.dailyAt=Date.now()+86400000;S.bal+=30;S.dia+=.5}
     addXP(30);
-    banner('+50 $  +1 💎',1);confetti(45);
+    banner('Ежедневный подарок получен!',1);confetti(45);
     sync();tabGarage();
   }
 }
 
 /* ===== ОДНОРАЗОВЫЕ ЗАДАНИЯ С ССЫЛКОЙ НА КАНАЛ ===== */
-const TG_CHANNEL_URL = 'https://t.me/CryptoClickGame';
 
 const TASKS=[
   {
     id:'sub_tg',
     t:'Подписка на канал',
-    d:'Подпишись на официальный канал CryptoClickGame',
+    d:'Подпишись на наш официальный канал и нажми «Проверить»',
     r:'+2 💎',
     dia:2,
     usd:0,
@@ -661,23 +837,38 @@ const TASKS=[
   {id:'click_50',t:'Первые шаги',d:'Сделай 50 кликов майнинга',r:'+25 $',dia:0,usd:25,xp:30,check:()=>S.clicks>=50},
   {id:'click_200',t:'Опытный шахтёр',d:'Сделай 200 кликов по карте',r:'+1 💎',dia:1,usd:0,xp:60,check:()=>S.clicks>=200},
   {id:'gpu_2',t:'Апгрейд фермы',d:'Купи видеокарту RTX 3070 Ti',r:'+50 $',dia:0,usd:50,xp:70,check:()=>S.own[1]==1},
+  {id:'gpu_3',t:'Серьёзный майнер',d:'Купи Radeon RX 6800 XT',r:'+150 $',dia:0,usd:150,xp:80,check:()=>S.own[6]==1},
+  {id:'lvl_5',t:'Опытный игрок',d:'Достигни 5 уровня',r:'+1 💎',dia:1,usd:0,xp:50,check:()=>S.lvl>=5},
   {id:'game_win',t:'Азартный игрок',d:'Сыграй в любую мини-игру',r:'+1.5 💎',dia:1.5,usd:0,xp:40,check:()=>S.tasks['played_game']==1}
 ];
 
-function openChannelAndVerify(){
+function openChannel(){
   try{
     if(window.Telegram&&Telegram.WebApp&&Telegram.WebApp.openTelegramLink){
-      Telegram.WebApp.openTelegramLink(TG_CHANNEL_URL);
+      Telegram.WebApp.openTelegramLink(CHANNEL_URL);
     }else{
-      window.open(TG_CHANNEL_URL,'_blank');
+      window.open(CHANNEL_URL,'_blank');
     }
   }catch(e){
-    window.open(TG_CHANNEL_URL,'_blank');
+    window.open(CHANNEL_URL,'_blank');
   }
-  S.tgChannelJoined = true;
-  savePref();
-  toast('Проверка...','Возвращайтесь и забирайте награду!');
-  setTimeout(()=>{openTasks()}, 1200);
+  S.subOpened = true;
+  setTimeout(openTasks, 600);
+}
+
+/* Реальная проверка подписки: сервер вызывает Bot API getChatMember */
+async function verifySub(){
+  toast('Проверка...','Смотрим вашу подписку на канал');
+  const j = await fx('check_sub');
+  if (!j) { toast('Проверка недоступна','Откройте игру внутри Telegram и попробуйте ещё раз'); return; }
+  if (j.sub === true) {
+    S.tgChannelJoined = true;
+    toast('Подписка подтверждена','Можно забирать награду');
+  } else {
+    S.tgChannelJoined = false;
+    toast('Вы не подписаны','Подпишитесь на канал и повторите проверку');
+  }
+  openTasks();
 }
 
 function openTasks(){
@@ -689,7 +880,8 @@ function openTasks(){
     if(done){
       actionBtn='<span class="chip">Выполнено</span>';
     }else if(t.isChannel && !S.tgChannelJoined){
-      actionBtn=`<button class="btn b sm" onclick="openChannelAndVerify()">Подписаться</button>`;
+      actionBtn=`<button class="btn b sm" onclick="openChannel()">Подписаться</button>
+        <button class="btn w sm" style="margin-top:4px" onclick="verifySub()">Проверить</button>`;
     }else{
       actionBtn=`<button class="btn ${canClaim?'g':'w'} sm" ${!canClaim?'disabled':''} onclick="claimTask('${t.id}')">${canClaim?'Забрать':'В процессе'}</button>`;
     }
@@ -713,10 +905,14 @@ function openTasks(){
 async function claimTask(id){
   const t=TASKS.find(x=>x.id==id);
   if(!t||S.tasks[id])return;
+  if(t.isChannel){
+    const c = await fx('check_sub');
+    if(!(c && c.sub === true)){ S.tgChannelJoined=false; toast('Вы не подписаны','Подпишитесь на канал'); return openTasks(); }
+  }
   const j = await post('task_claim', { id });
   if(j){
     S.tasks[id]=1;
-    S.dia+=t.dia;S.bal+=t.usd;
+    loc(j,()=>{S.dia+=t.dia;S.bal+=t.usd});
     addXP(t.xp);
     confetti(30);
     banner(`Награда: ${t.r}`,1);
@@ -733,13 +929,13 @@ async function openTopsSheet(){
     }
     return arr.map((x, i) => `
       <div class="card item">
-        <span><b>${i+1}.</b> ${x.name || 'Игрок'}</span>
+        <span><b>${i+1}.</b> ${esc(x.name || 'Игрок')}</span>
         <b class="disp" style="font-size:12px">${isDia ? '💎 ' + f2(x.dia) : f2(x.earned) + ' $'}</b>
       </div>`).join('');
   };
 
   const feedHtml = REAL_FEED.length 
-    ? REAL_FEED.map(f => `<div class="card item"><span>🔥 ${f.name}</span><b>+${f2(f.amt)} 💎</b></div>`).join('')
+    ? REAL_FEED.map(f => `<div class="card item"><span>🔥 ${esc(f.name)}</span><b>+${f2(f.amt)} 💎</b></div>`).join('')
     : '<div class="card" style="text-align:center"><span class="muted">Здесь будут отображаться реальные победы игроков</span></div>';
 
   sheet(`
@@ -758,10 +954,10 @@ async function openClans(){
     const clansHtml = REAL_CLANS.length ? REAL_CLANS.map(c => `
       <div class="card item">
         <div>
-          <b>${c.tag ? '['+c.tag+'] ' : ''}${c.name}</b>
+          <b>${c.tag ? '['+esc(c.tag)+'] ' : ''}${esc(c.name)}</b>
           <div class="muted">Участников: ${c.members_count} · Бонус: +${c.bonus}%</div>
         </div>
-        <button class="btn b sm" onclick="joinRealClan('${c.id}')">Вступить</button>
+        <button class="btn b sm" onclick="joinRealClan('${esc(c.id)}')">Вступить</button>
       </div>
     `).join('') : '<div class="card" style="text-align:center"><span class="muted">Пока не создано ни одного клана. Станьте первым создателем!</span></div>';
 
@@ -782,7 +978,7 @@ async function openClans(){
   } else {
     sheet(`
       <div class="row sp">
-        <h3 class="disp" style="margin:0">${S.clan.tag ? '['+S.clan.tag+'] ' : ''}${S.clan.name}</h3>
+        <h3 class="disp" style="margin:0">${S.clan.tag ? '['+esc(S.clan.tag)+'] ' : ''}${esc(S.clan.name)}</h3>
         <span class="chip" style="background:var(--m)">Бонус: +${S.clan.bonus}%</span>
       </div>
       <p class="muted">Вы ${S.clan.isOwner?'Создатель':'Участник'} клана</p>
@@ -821,7 +1017,7 @@ async function createRealClan(){
   
   const j = await post('clan_create', { name, tag });
   if (j && !j.err) {
-    S.dia-=10;
+    loc(j,()=>{S.dia-=10});
     S.clan={name,tag,isOwner:true,bonus:4,members:1,tax:5,treasury:0,isPrivate:false};
     confetti(40);banner('КЛАН СОЗДАН!',1);
     sync();openClans();
@@ -859,7 +1055,7 @@ async function upgradeClan(){
   if(S.dia<5)return toast('Не хватает 💎','Требуется 5 💎');
   const j = await post('clan_upgrade');
   if (j) {
-    S.dia-=5;
+    loc(j,()=>{S.dia-=5});
     S.clan.bonus+=2;
     confetti(25);
     sync();openClans();
@@ -896,71 +1092,55 @@ function openDonate(){
         </div>
       `).join('')}
     </div>
-    <div class="card" style="margin-top:10px;font-size:11px" class="muted">
+    <div class="card muted" style="margin-top:10px;font-size:11px">
       💳 Счёт выставляется через Telegram Bot API и оплачивается со звёздного баланса вашего Telegram.
     </div>`);
 }
 
 async function startStarsPayment(stars, diaBonus, usdBonus){
-  toast('Создание инвойса...','Запрос счета Telegram Stars на сервере');
-  
-  try {
-    const credsData = creds();
-    const res = await post('create_stars_invoice', {
-      stars: stars,
-      initData: credsData.d,
-      item: `pack_${stars}`
-    }, true);
-    
-    if (res && res.invoice_link) {
-      if (window.Telegram && Telegram.WebApp && typeof Telegram.WebApp.openInvoice === 'function') {
-        Telegram.WebApp.openInvoice(res.invoice_link, async function(status) {
-          if (status === 'paid') {
-            await post('verify_stars_payment', { stars });
-            creditStars(stars, diaBonus, usdBonus);
-          } else if (status === 'failed') {
-            toast('Отмена', 'Платеж не был завершен');
-          } else if (status === 'pending') {
-            toast('Ожидание...', 'Подтверждение транзакции сетью Telegram');
-          }
-        });
-        return;
-      }
-    }
-  } catch(e) {}
-
-  // Прямой вызов openInvoice через нативный метод WebApp
-  if (window.Telegram && Telegram.WebApp && typeof Telegram.WebApp.openInvoice === 'function') {
-    Telegram.WebApp.openInvoice(`https://t.me/$stars_invoice_${stars}`, async function(status) {
-      if (status === 'paid' || status === 'pending') {
-        creditStars(stars, diaBonus, usdBonus);
-      }
-    });
-  } else {
-    toast('Внимание', 'Откройте приложение внутри Telegram для оплаты звездами');
+  if (!(window.Telegram && Telegram.WebApp && typeof Telegram.WebApp.openInvoice === 'function' && Telegram.WebApp.initData)) {
+    return toast('Внимание', 'Откройте приложение внутри Telegram для оплаты звёздами');
   }
-}
-
-function creditStars(stars, dia, usd){
-  S.dia += dia;
-  S.bal += usd;
-  addXP(stars);
-  confetti(50);
-  banner(`⭐️ +${stars} Stars получено!`, 1);
-  tone(950, 'triangle', .3);
-  sync();
-  toast('Успешно!', `Начислено +${dia} 💎 и +${usd} $`);
+  toast('Создание счёта...','Запрос у сервера');
+  const res = await post('create_stars_invoice', { stars, item: `pack_${stars}` }, true);
+  if (!res || !res.invoice_link) return toast('Ошибка','Не удалось создать счёт');
+  Telegram.WebApp.openInvoice(res.invoice_link, async function(status) {
+    if (status === 'paid') {
+      // Начисление только после подтверждения сервером (сервер сверяет платёж с Telegram)
+      const v = await post('verify_stars_payment', { stars }, true);
+      if (v && !v.err) {
+        if (v.u) applyServerState(v.u); else { S.dia += diaBonus; S.bal += usdBonus; }
+        addXP(stars); confetti(50);
+        banner(`⭐️ +${stars} Stars получено!`, 1);
+        sync(); toast('Успешно!', `Начислено +${diaBonus} 💎 и +${usdBonus} $`);
+      } else {
+        toast('Проверка платежа','Платёж не подтверждён сервером. Если звёзды списаны — напишите в поддержку');
+      }
+    } else if (status === 'failed') {
+      toast('Ошибка', 'Платёж не был завершён');
+    } else if (status === 'pending') {
+      toast('Ожидание...', 'Подтверждение транзакции Telegram');
+    }
+  });
 }
 
 /* ===== РЕАЛЬНЫЕ РЕФЕРАЛЫ (ДАННЫЕ ИЗ БАЗЫ) ===== */
-function openRefs(){
-  const link=`https://t.me/CryptoClickGame?start=ref_${S.user}`;
+async function syncRefs(){
+  const r = await fx('ref_sync');
+  if (!r || r.err) return null;
+  S.refCount = +r.count || 0; S.refEarned = +r.earned || 0;
+  if (r.added > 0) { const j = await post('state', {}); if (j) applyServerState(j); sync(); }
+  return r;
+}
+async function openRefs(){
+  await syncRefs();
+  const link=`https://t.me/${BOT_USERNAME}?startapp=ref_${tgUserId()}`;
   sheet(`
     <h3 class="disp" style="margin-top:0">👥 Реферальная система</h3>
     <p class="muted">Приглашайте реальных игроков по ссылке и получайте 15% от их намайненной валюты и 1 💎 за каждого!</p>
     <div class="stats">
       <div class="card"><div class="muted">Приглашено друзей</div><b class="disp" style="font-size:18px">${S.refCount} чел.</b></div>
-      <div class="card"><div class="muted">Заработано с рефералов</div><b class="disp" style="font-size:18px">${f2(S.refCount * 15.0)} $</b></div>
+      <div class="card"><div class="muted">Заработано с рефералов</div><b class="disp" style="font-size:18px">${f2(S.refEarned || 0)} $</b></div>
     </div>
     <div class="muted" style="margin-top:10px">Твоя реферальная ссылка:</div>
     <input id="refInput" readonly value="${link}" style="margin-top:4px">
@@ -976,7 +1156,7 @@ function copyRef(){
 }
 function shareRef(url){
   if(window.Telegram&&Telegram.WebApp&&Telegram.WebApp.openTelegramLink){
-    Telegram.WebApp.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(url)}&text=Заходи%20майнить%20крипту!`);
+    Telegram.WebApp.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent('Заходи майнить крипту!')}`);
   }else{
     copyRef();
   }
@@ -1011,7 +1191,7 @@ async function doExch(){
   
   const j = await post('exch', { d: val });
   if (j) {
-    S.bal-=cost;S.dia+=val;
+    loc(j,()=>{S.bal-=cost;S.dia+=val});
     confetti(30);banner(`+${val} 💎`,1);
     tone(880);sync();openExch();
   }
@@ -1035,22 +1215,32 @@ const betUI=()=>`
 const setB=v=>{bet=Math.max(.1,+v.toFixed(1));$('#betVal').value=bet;tone(500)};
 const canBet=()=>{
   if(S.dia<bet){toast('Мало 💎','Обменяйте $ в обменнике');openExch();return false}
+  S.tasks['played_game']=1;
   return true;
 };
-
 const wait = ms => new Promise(res => setTimeout(res, ms));
+const shake=(el,cls='shk2')=>{ if(!el)return; el.classList.remove(cls); void el.offsetWidth; el.classList.add(cls); setTimeout(()=>el.classList.remove(cls),550) };
+const burst=(box,btn,emos,n=10)=>{
+  if(!box||!btn)return;
+  const r=btn.getBoundingClientRect(),q=box.getBoundingClientRect();
+  const cx=r.left-q.left+r.width/2, cy=r.top-q.top+r.height/2;
+  for(let i=0;i<n;i++){
+    const e=document.createElement('span'); e.className='pt'; e.textContent=emos[i%emos.length];
+    e.style.cssText=`left:${cx}px;top:${cy}px;--dx:${(rnd()-.5)*140}px;--dy:${-30-rnd()*90}px;--r:${(rnd()-.5)*540}deg`;
+    box.append(e); setTimeout(()=>e.remove(),950);
+  }
+};
 
 const GAMES={
   crash:{
     t:'Краш Ракета (Общий онлайн)',i:'🚀',d:'Единый раунд для всех игроков онлайн',
     run(el){
-      let C={ph:'bet',t:0,hist:[],pl:[],cp:0,my:null}, on=1, raf, at=Date.now();
+      let C={ph:'bet',t:0,hist:[],pl:[],cp:0,my:null}, on=1, raf, at=Date.now(), prevPh='bet', parts=[];
+      const stars=Array.from({length:50},()=>({x:rnd(),y:rnd(),s:rnd()*1.7+.4,p:rnd()*6}));
       el.innerHTML=`
-      <div class="card" style="background:#0c0f1d;color:#fff;overflow:hidden;padding:10px">
-        <div style="height:140px;position:relative;display:flex;align-items:center;justify-content:center">
-          <div class="big disp" id="cmTxt" style="color:var(--m);z-index:2">x1.00</div>
-          <div id="rkIcon" style="position:absolute;bottom:15px;left:20px;font-size:36px;transition:all .1s linear">🚀</div>
-        </div>
+      <div class="card" id="crBox" style="padding:0;overflow:hidden;background:#0c0f1d">
+        <canvas id="crCv" width="640" height="320" style="width:100%;display:block"></canvas>
+        <div class="big disp" id="cmTxt" style="position:absolute;inset:0;display:grid;place-items:center;color:#fff;text-shadow:0 3px 0 #15122b;pointer-events:none">x1.00</div>
       </div>
       <div class="row" id="plOnline" style="overflow-x:auto;margin:6px 0;padding:4px 0"></div>
       ${betUI()}
@@ -1058,53 +1248,75 @@ const GAMES={
 
       const M = () => Math.exp(.1 * (C.t + (Date.now() - at)/1000));
 
+      const frame=()=>{
+        if(!on)return; raf=requestAnimationFrame(frame);
+        const cv=$('#crCv'); if(!cv)return;
+        const ctx=cv.getContext('2d'), w=cv.width, h=cv.height, now=Date.now();
+        const fly=C.ph==='fly', m=fly?Math.max(1.0001,M()):(C.ph==='crash'?Math.max(1.0001,C.cp):1.0001);
+        const g=ctx.createLinearGradient(0,0,0,h);
+        g.addColorStop(0,'#0c0f1d'); g.addColorStop(1,C.ph==='crash'?'#3a0f1f':fly?'#12304a':'#1b1f3d');
+        ctx.fillStyle=g; ctx.fillRect(0,0,w,h);
+        stars.forEach(s=>{ctx.globalAlpha=.35+.65*Math.abs(Math.sin(now/600+s.p));ctx.fillStyle='#fff';ctx.fillRect(s.x*w,((s.y*h)+(fly?(now/40*s.s)%h:0))%h,s.s,s.s)});
+        ctx.globalAlpha=1;
+        ctx.strokeStyle='rgba(255,255,255,.07)';ctx.lineWidth=1;
+        for(let i=1;i<5;i++){ctx.beginPath();ctx.moveTo(0,h*i/5);ctx.lineTo(w,h*i/5);ctx.stroke()}
+        const maxM=Math.max(2,m*1.2), px=34, py=h-30;
+        const pt=u=>{const mm=Math.exp(Math.log(m)*u);return [px+u*(w-px*2-30),py-((mm-1)/(maxM-1))*(h-70)]};
+        let end=[px,py];
+        if(C.ph!=='bet'){
+          ctx.beginPath();
+          for(let k=0;k<=60;k++){const p=pt(k/60);k?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1]);end=p}
+          const col=C.ph==='crash'?'#ff5d8f':'#2ee59d';
+          ctx.lineWidth=5;ctx.strokeStyle=col;ctx.shadowColor=col;ctx.shadowBlur=14;ctx.stroke();ctx.shadowBlur=0;
+          ctx.lineTo(end[0],py);ctx.lineTo(px,py);
+          ctx.fillStyle=C.ph==='crash'?'rgba(255,93,143,.15)':'rgba(46,229,157,.15)';ctx.fill();
+        }
+        ctx.font='36px serif';ctx.textAlign='center';ctx.textBaseline='middle';
+        if(C.ph==='bet'){ctx.fillText('🚀',px+16,py-10+Math.sin(now/250)*4)}
+        else if(fly){
+          ctx.save();ctx.translate(end[0],end[1]);ctx.rotate(-.1);ctx.fillText('🚀',0,0);ctx.restore();
+          for(let k=0;k<2;k++)parts.push({x:end[0]-14,y:end[1]+10,vx:-1.4-rnd()*1.2,vy:.5+rnd(),l:1,c:rnd()<.5?'#ffd23f':'#ff9f1c'});
+        }
+        if(C.ph==='crash'&&prevPh!=='crash'){
+          for(let k=0;k<46;k++){const an=rnd()*6.28,sp=2+rnd()*5;parts.push({x:end[0],y:end[1],vx:Math.cos(an)*sp,vy:Math.sin(an)*sp,l:1.6,c:['#ff5d8f','#ffd23f','#fff'][k%3],b:1})}
+          shake($('#crBox')); tone(120,'sawtooth',.4,.2); hap('heavy');
+        }
+        prevPh=C.ph;
+        if(C.ph==='crash')ctx.fillText('💥',end[0],end[1]);
+        parts=parts.filter(p=>p.l>0);
+        parts.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.l-=p.b?.025:.04;ctx.globalAlpha=Math.max(0,Math.min(1,p.l));ctx.fillStyle=p.c;ctx.beginPath();ctx.arc(p.x,p.y,p.b?3.5:2.5,0,6.28);ctx.fill()});
+        ctx.globalAlpha=1;
+      };
+
       const renderUI = () => {
         if (!$('#cmTxt')) return;
         const isFlying = C.ph === 'fly';
         const m = isFlying ? M() : 1.0;
-        
         if (C.ph === 'bet') {
           $('#cmTxt').textContent = 'Старт через ' + Math.max(0, 5 - C.t - (Date.now()-at)/1000).toFixed(0) + 'с';
           $('#cmTxt').style.color = '#fff';
-          $('#rkIcon').textContent = '🚀';
-          $('#rkIcon').style.transform = 'none';
         } else if (C.ph === 'crash') {
           $('#cmTxt').textContent = '💥 КРАШ x' + C.cp.toFixed(2);
           $('#cmTxt').style.color = 'var(--p)';
-          $('#rkIcon').textContent = '💥';
         } else {
           $('#cmTxt').textContent = 'x' + m.toFixed(2);
           $('#cmTxt').style.color = 'var(--m)';
-          $('#rkIcon').style.transform = `translate(${Math.min(220, m*35)}px, -${Math.min(90, m*16)}px) rotate(-18deg)`;
         }
-
-        const b = $('#cBtn');
-        const my = C.my;
+        const b = $('#cBtn'), my = C.my;
         if (C.ph === 'bet') {
-          b.className = 'btn wide g';
-          b.textContent = my ? 'Ставка принята' : 'Поставить ставку';
-          b.disabled = !!my;
+          b.className = 'btn wide g'; b.textContent = my ? 'Ставка принята' : 'Поставить ставку'; b.disabled = !!my;
         } else if (isFlying) {
-          b.className = 'btn wide ' + (my && !my.o ? 'r' : 'g');
+          b.className = 'btn wide ' + (my && !my.o ? 'r pulse' : 'g');
           b.textContent = (my && !my.o) ? 'Забрать ' + f2(my.b * m) + ' 💎' : (my ? 'Вы забрали ✅' : 'Ожидание раунда');
           b.disabled = !my || !!my.o;
         } else {
-          b.className = 'btn wide g';
-          b.textContent = 'Раунд завершен';
-          b.disabled = true;
+          b.className = 'btn wide g'; b.textContent = 'Раунд завершен'; b.disabled = true;
         }
-
-        // Список только реальных участников текущего раунда
         const plBox = $('#plOnline');
         if (plBox) {
-          if (C.pl && C.pl.length) {
-            plBox.innerHTML = C.pl.map(p => `
-              <span class="chip" style="background:${p.o ? '#c5f7e0' : '#fff'}">
-                ${p.n} ${f2(p.b)}💎 ${p.o ? '✅x'+p.o.toFixed(2) : ''}
-              </span>`).join('');
-          } else {
-            plBox.innerHTML = '<span class="muted" style="font-size:11px">В этом раунде пока нет ставок — будь первым!</span>';
-          }
+          plBox.innerHTML = (C.pl && C.pl.length)
+            ? C.pl.map(p => `<span class="chip" style="background:${p.o ? '#c5f7e0' : '#fff'}">${esc(p.n)} ${f2(p.b)}💎 ${p.o ? '✅x'+(+p.o).toFixed(2) : ''}</span>`).join('')
+            : '<span class="muted" style="font-size:11px">В этом раунде пока нет ставок — будь первым!</span>';
         }
       };
 
@@ -1112,100 +1324,76 @@ const GAMES={
         if (!on) return;
         const j = await post('crash', {}, true);
         if (!on || !j) return;
-        C = j;
-        at = Date.now();
-        renderUI();
+        C = j; at = Date.now(); renderUI();
       };
 
       $('#cBtn').onclick = async () => {
         if (C.ph === 'bet' && !C.my) {
           if (!canBet()) return;
           const j = await post('cbet', { b: bet }, true);
-          if (j && !j.err) {
-            S.dia -= bet;
-            sync();
-            tone(600);
-            await poll();
-          }
+          if (j && !j.err) { S.dia -= bet; sync(); tone(600); await poll(); }
         } else if (C.ph === 'fly' && C.my && !C.my.o) {
           const j = await post('cout', {}, true);
           if (j && !j.err) {
-            S.dia += j.win;
-            addXP(20);
-            banner('+' + f2(j.win) + ' 💎 x' + j.m.toFixed(2), 1);
-            confetti(35);
-            sync();
-            await poll();
+            S.dia += j.win; addXP(20);
+            banner('+' + f2(j.win) + ' 💎 x' + j.m.toFixed(2), 1); confetti(35);
+            sync(); await poll();
           }
         }
       };
 
-      const iv = setInterval(poll, 700);
-      const iu = setInterval(renderUI, 100);
-      poll();
-
-      return () => {
-        on = 0;
-        clearInterval(iv);
-        clearInterval(iu);
-      };
+      const iv = setInterval(poll, 700), iu = setInterval(renderUI, 100);
+      poll(); frame();
+      return () => { on = 0; cancelAnimationFrame(raf); clearInterval(iv); clearInterval(iu); };
     }
   },
-  
+
   wheel:{
     t:'Колесо Фортуны (Онлайн)',i:'⚡',d:'Выбери сектор риска · Проверка на сервере',
     run(el){
-      let ch=50,mu=1.95,rot=0,busy=false;
+      let ch=50,mu=1.85,rot=0,busy=false;
       const render=()=>{
+        const bulbs=[...Array(16)].map((_,k)=>`<i class="bulb" style="--a:${k*22.5}deg"></i>`).join('');
         el.innerHTML=`
-        <div class="card" style="text-align:center">
-          <div style="position:relative;width:180px;margin:12px auto">
-            <div class="pin"></div>
+        <div class="card" id="wBox" style="text-align:center;overflow:hidden">
+          <div class="wwrap" id="wwrap">
+            ${bulbs}
+            <div class="pin" id="wpin"></div>
             <div class="wheel" id="whl" style="background:conic-gradient(var(--m) 0 ${ch*3.6}deg, var(--p) 0);transform:rotate(${rot}deg)"></div>
+            <div class="hub">⚡</div>
           </div>
           <div class="disp" id="whlRes" style="margin-top:8px">Шанс: ${ch}% · Множитель: x${mu}</div>
         </div>
         <div class="seg" style="grid-template-columns:repeat(4,1fr);margin:8px 0">
-          ${[[80,1.22],[50,1.95],[25,3.85],[10,9.5]].map(([c,m])=>`<button class="btn w sm ${c==ch?'on':''}" onclick="selW(${c},${m})">${c}%<br>x${m}</button>`).join('')}
+          ${[[80,1.15],[50,1.85],[25,3.6],[10,8.8]].map(([c,m])=>`<button class="btn w sm ${c==ch?'on':''}" onclick="selW(${c},${m})">${c}%<br>x${m}</button>`).join('')}
         </div>
         ${betUI()}
         <button class="btn g wide" id="wSpin">Крутить колесо</button>`;
         $('#wSpin').onclick=spin;
       };
       window.selW=(c,m)=>{if(busy)return;ch=c;mu=m;render()};
-      
+
       const spin=async()=>{
         if(busy||!canBet())return;
-        busy=true;
-        S.dia-=bet;
-        sync();
-        
-        // Серверный результат
+        busy=true; S.dia-=bet; sync();
         const j = await post('play', { g: 'up', c: ch, b: bet }, true);
-        if (!j) {
-          S.dia += bet;
-          busy = false;
-          sync();
-          return;
-        }
-
+        if (!j) { S.dia += bet; busy = false; sync(); return; }
         const roll = j.roll !== undefined ? j.roll : (rnd() * 100);
         rot = rot - (rot % 360) + 1440 + (360 - roll * 3.6);
-        const w=$('#whl');
+        const w=$('#whl'), wrap=$('#wwrap');
+        wrap.classList.add('spinning');
         w.style.transform=`rotate(${rot}deg)`;
-        tone(350,'square',.6);
-        
-        await wait(2400);
-        busy=false;
+        let k=0; const ticks=()=>{ if(!busy||k>=30)return; k++; tone(260+(k%2)*90,'square',.03,.05); setTimeout(ticks,35+k*k*.17) }; ticks();
+        await wait(2450);
+        busy=false; wrap.classList.remove('spinning');
         if(j.win){
           const prize=j.prize || (bet*mu);
-          S.dia+=prize;addXP(15);
-          confetti(30);banner('+'+f2(prize)+' 💎',1);
-          tone(920);
+          S.dia+=prize; addXP(15);
+          wrap.classList.add('winpulse'); setTimeout(()=>wrap.classList.remove('winpulse'),1600);
+          confetti(30); banner('+'+f2(prize)+' 💎',1); tone(920);
         }else{
-          banner('Мимо!',0);tone(160,'sawtooth',.3);hap('heavy');
+          shake($('#wBox')); banner('Мимо!',0); tone(160,'sawtooth',.3); hap('heavy');
         }
-        S.tasks['played_game']=1;
         sync();
       };
       render();
@@ -1216,21 +1404,22 @@ const GAMES={
   pickaxe:{
     t:'Кирка Шахтера',i:'⛏️',d:'Найди алмазы среди 9 тайлов · Онлайн сервер',
     run(el){
-      let active=false, found=0, mult=1.0;
+      let active=false, found=0, mult=1.0, digBusy=false;
       const render=()=>{
         el.innerHTML=`
-        <div class="card" style="text-align:center">
+        <div class="card cave" id="cvBox" style="text-align:center;overflow:hidden">
           <div class="big disp" id="pmText">x${mult.toFixed(2)}</div>
-          <div class="muted">${active?'Открывай ячейки и забирай 💎':'2 динамита на поле'}</div>
-        </div>
-        <div class="mine" style="margin:12px auto">
-          ${[...Array(9)].map((_,i)=>`<button class="btn w" id="m_${i}" onclick="dig(${i})">⬜</button>`).join('')}
+          <div style="opacity:.8;font-size:12px">${active?'Открывай ячейки и забирай 💎':'2 динамита на поле'}</div>
+          <div class="mine" style="margin:12px auto">
+            ${[...Array(9)].map((_,i)=>`<button class="rock" id="m_${i}" onclick="dig(${i})">🪨</button>`).join('')}
+          </div>
         </div>
         ${betUI()}
         <button class="btn g wide" id="pBtn">${active?'Забрать '+f2(bet*mult)+' 💎':'Начать поиск'}</button>`;
         $('#pBtn').onclick=action;
       };
-      
+      const popMult=()=>{const t=$('#pmText'); if(t){t.textContent='x'+mult.toFixed(2);t.classList.remove('pop');void t.offsetWidth;t.classList.add('pop')}};
+
       const action=async()=>{
         if(!active){
           if(!canBet())return;
@@ -1244,37 +1433,38 @@ const GAMES={
           active=false;
           if (j && j.prize) {
             S.dia+=j.prize;addXP(25);
-            confetti(30);banner('+'+f2(j.prize)+' 💎',1);
-            tone(880);
+            confetti(30);banner('+'+f2(j.prize)+' 💎',1);tone(880);
           }
           sync();render();
         }
       };
 
       window.dig=async(i)=>{
-        if(!active)return;
+        if(!active||digBusy)return;
         const b=$('#m_'+i);
-        if(b.textContent!=='⬜')return;
-        b.classList.add('flip');
-        
+        if(!b||b.textContent!=='🪨')return;
+        digBusy=true;
+        b.classList.add('dig'); tone(220,'square',.06,.08);
         const j = await post('play', { g: 'pick', a: 'dig', i }, true);
-        if (!j) return;
-
+        digBusy=false;
+        if (!j) { b.classList.remove('dig'); return; }
+        const box=$('#cvBox');
         if(j.bomb){
-          b.textContent='💣';b.style.background='var(--p)';
+          b.textContent='💣';b.classList.add('boom');
           active=false;
-          if (Array.isArray(j.bombs)) {
-            j.bombs.forEach(k=>{$('#m_'+k).textContent='💣';$('#m_'+k).style.background='var(--p)'});
-          }
+          if (Array.isArray(j.bombs)) j.bombs.forEach((k,n)=>setTimeout(()=>{const t=$('#m_'+k);if(t){t.textContent='💣';t.classList.add('boom')}},n*160));
+          burst(box,b,['💥','🔥','💨'],12);
+          shake(box); box&&box.classList.add('flashred'); setTimeout(()=>box&&box.classList.remove('flashred'),500);
           banner('БАМ! Динамит',0);
           tone(130,'sawtooth',.4);hap('heavy');
           $('#pBtn').textContent='Начать заново';
         }else{
-          b.textContent='💎';b.style.background='var(--m)';
+          b.textContent='💎';b.classList.add('gem');
           found++;
           mult = j.mu || (mult + 0.45);
-          tone(550+found*80);
-          $('#pmText').textContent='x'+mult.toFixed(2);
+          burst(box,b,['✨','💎','⭐'],9);
+          tone(550+found*80); hap();
+          popMult();
           $('#pBtn').textContent='Забрать '+f2(bet*mult)+' 💎';
         }
       };
@@ -1289,8 +1479,12 @@ const GAMES={
       let side='btc',busy=false,deg=0;
       const render=()=>{
         el.innerHTML=`
-        <div class="card" style="text-align:center">
-          <div class="coin" id="c3d">₿</div>
+        <div class="card" id="cfBox" style="text-align:center;overflow:hidden">
+          <div class="coinWrap">
+            <div id="ctoss"><div class="coin3" id="c3d" style="transform:rotateY(${deg}deg)">
+              <div class="fc">₿</div><div class="fc bk">Ξ</div></div></div>
+            <div class="cshadow" id="csh"></div>
+          </div>
           <div class="disp" style="margin-top:8px">Выбор: ${side==='btc'?'Bitcoin (Орёл)':'Ethereum (Решка)'}</div>
         </div>
         <div class="seg" style="margin:10px 0">
@@ -1302,32 +1496,29 @@ const GAMES={
         $('#cFlip').onclick=flip;
       };
       window.setSide=s=>{if(!busy){side=s;render()}};
-      
+
       const flip=async()=>{
         if(busy||!canBet())return;
         busy=true;S.dia-=bet;sync();
-
         const j = await post('play', { g: 'coin', s: side === 'btc' ? 'heads' : 'tails', b: bet }, true);
-        if (!j) {
-          S.dia += bet;busy=false;sync();return;
-        }
-
+        if (!j) { S.dia += bet;busy=false;sync();return; }
         const isBtc = j.s === 'heads';
-        deg += 1800 + (isBtc ? 0 : 180) - (deg%360);
-        const c=$('#c3d');
-        c.style.transform=`rotateY(${deg}deg)`;
+        deg = (Math.floor(deg/360)+6)*360 + (isBtc?0:180);
+        const c=$('#c3d'), t=$('#ctoss'), sh=$('#csh');
+        c.style.transform=`rotateY(${deg}deg) rotateX(0deg)`;
+        t.animate([{transform:'translateY(0) scale(1)'},{transform:'translateY(-95px) scale(1.18)',offset:.45},{transform:'translateY(0) scale(1)',offset:.85},{transform:'translateY(-12px)',offset:.92},{transform:'translateY(0)'}],{duration:1500,easing:'ease-out'});
+        sh.animate([{transform:'scale(1)',opacity:.35},{transform:'scale(.5)',opacity:.12,offset:.45},{transform:'scale(1)',opacity:.35}],{duration:1500});
         tone(600,'triangle',.25);
-        
-        await wait(1400);
-        c.textContent = isBtc ? '₿' : 'Ξ';
+        let k=0; const ticks=()=>{ if(!busy||k>=9)return; k++; tone(500+k*40,'triangle',.03,.05); setTimeout(ticks,90+k*14) }; ticks();
+        await wait(1550);
         busy=false;
         if(j.win){
-          const p = j.prize || (bet*1.95);
+          const p = j.prize || (bet*1.9);
           S.dia+=p;addXP(15);
-          confetti(30);banner('+'+f2(p)+' 💎',1);
-          tone(920);
+          confetti(30);banner('+'+f2(p)+' 💎',1);tone(920);
+          burst($('#cfBox'),c,['✨','🪙','⭐'],10);
         }else{
-          banner('Не угадал!',0);tone(160,'sawtooth',.25);hap('heavy');
+          shake($('#cfBox'));banner('Не угадал!',0);tone(160,'sawtooth',.25);hap('heavy');
         }
         sync();
       };
@@ -1368,6 +1559,105 @@ function launchGame(k){
   stopGame=g.run($('#gameZone'));
 }
 
+/* ===== ОНЛАЙН: ОБЩИЙ ЧАТ И МИРОВОЙ БОСС (нужен supabase_online.sql) ===== */
+const rest = async (path, opt = {}) => {
+  const r = await fetch(SB_URL + '/rest/v1/' + path, {
+    ...opt,
+    headers: { apikey: SB_KEY, Authorization: 'Bearer ' + SB_KEY, 'content-type': 'application/json', ...(opt.headers || {}) }
+  });
+  if (!r.ok) throw new Error(String(r.status));
+  const t = await r.text();
+  return t ? JSON.parse(t) : null;
+};
+const sheetOpen = () => $('#sh').classList.contains('open');
+
+/* --- Чат --- */
+let chatIv = null, chatLast = 0;
+async function openChat(){
+  sheet(`<h3 class="disp" style="margin-top:0">💬 Общий чат</h3>
+    <div id="chatBox" class="col" style="height:42vh;overflow-y:auto"><span class="muted">Загрузка...</span></div>
+    <div class="row" style="margin-top:8px"><input id="chatIn" maxlength="120" placeholder="Сообщение..."><button class="btn g sm" onclick="sendChat()">➤</button></div>`);
+  $('#chatIn').onkeydown = e => { if (e.key === 'Enter') sendChat(); };
+  await loadChat();
+  clearInterval(chatIv);
+  chatIv = setInterval(() => { if (!$('#chatBox') || !sheetOpen()) { clearInterval(chatIv); return; } loadChat(); }, 4000);
+}
+async function loadChat(){
+  const box = $('#chatBox'); if (!box) return;
+  try {
+    const rows = await rest('chat?select=name,msg,created_at&order=created_at.desc&limit=40');
+    const stick = box.scrollTop + box.clientHeight >= box.scrollHeight - 30;
+    box.innerHTML = rows.reverse().map(m => `<div class="card" style="padding:6px 10px"><b style="font-size:11px">${esc(m.name)}</b> <span class="muted" style="font-size:10px">${new Date(m.created_at).toLocaleTimeString('ru',{hour:'2-digit',minute:'2-digit'})}</span><div>${esc(m.msg)}</div></div>`).join('') || '<div class="muted">Пока тихо. Напишите первым!</div>';
+    if (stick) box.scrollTop = box.scrollHeight;
+  } catch (e) {
+    box.innerHTML = '<div class="card muted">Чат ещё не подключён: выполните supabase_online.sql в Supabase</div>';
+  }
+}
+async function sendChat(){
+  const inp = $('#chatIn'); if (!inp) return;
+  const msg = inp.value.trim().slice(0, 120);
+  if (!msg) return;
+  if (Date.now() - chatLast < 3000) return toast('Не так быстро', 'Подождите пару секунд');
+  chatLast = Date.now(); inp.value = '';
+  try {
+    await rest('chat', { method: 'POST', headers: { Prefer: 'return=minimal' }, body: JSON.stringify({ uid: tgUserId(), name: String(S.user).slice(0, 32), msg }) });
+    await loadChat(); const b = $('#chatBox'); if (b) b.scrollTop = b.scrollHeight;
+  } catch (e) { toast('Ошибка', 'Не удалось отправить сообщение'); }
+}
+
+/* --- Мировой босс: все игроки бьют одного босса кликами --- */
+let BOSS = null, bossPend = 0, bossOff = false, bossBusy = false;
+const BOSS_ICONS = ['👹','🐲','👾','🦖','☠️','🐙','🦑','👽'];
+async function bossFlush(){
+  if (bossOff || bossBusy) return;
+  const n = bossPend;
+  if (!n && !$('#bossBox')) return;
+  bossBusy = true; bossPend = 0;
+  try {
+    const st = n > 0
+      ? await rest('rpc/boss_hit', { method: 'POST', body: JSON.stringify({ n: Math.min(n, 120), p_uid: tgUserId(), p_name: String(S.user).slice(0, 32) }) })
+      : await rest('rpc/boss_state', { method: 'POST', body: '{}' });
+    if (n > 120) bossPend += n - 120;
+    if (st) {
+      if (BOSS && st.lvl > BOSS.lvl) { banner('👹 БОСС ПОВЕРЖЕН!', 1); confetti(50); tone(950, 'triangle', .3, .3); }
+      BOSS = st;
+      if ($('#bossBox')) renderBoss();
+    }
+  } catch (e) {
+    bossPend += n;
+    if (String(e.message) === '404') bossOff = true;
+  }
+  bossBusy = false;
+}
+setInterval(bossFlush, 4000);
+
+function renderBoss(){
+  const box = $('#bossBox'); if (!box) return;
+  if (bossOff || !BOSS) { box.innerHTML = '<div class="card muted">Босс ещё не подключён: выполните supabase_online.sql в Supabase</div>'; return; }
+  const pct = Math.max(0, Math.min(100, BOSS.hp / BOSS.max * 100));
+  box.innerHTML = `
+    <div class="card" style="text-align:center">
+      <div class="big bossface" id="bossFace" onclick="hitBoss()" style="cursor:pointer">${BOSS_ICONS[(BOSS.lvl - 1) % BOSS_ICONS.length]}</div>
+      <div class="disp" style="font-size:13px">Мировой босс · ур. ${BOSS.lvl}</div>
+      <div class="bar" style="margin:8px 0"><i style="width:${pct}%;background:var(--p)"></i></div>
+      <div class="muted">${nf(Math.max(0, BOSS.hp))} / ${nf(BOSS.max)} HP · бей кликами по карте или по боссу!</div>
+    </div>
+    <b class="disp" style="font-size:12px">Топ урона</b>
+    <div class="col" style="margin-top:6px">${(BOSS.top || []).map((t, i) => `<div class="card item"><span><b>${i + 1}.</b> ${esc(t.name)}</span><b class="disp" style="font-size:12px">${nf(+t.dmg)}</b></div>`).join('') || '<div class="card muted" style="text-align:center">Пока никто не бил босса</div>'}</div>`;
+}
+function hitBoss(){
+  bossPend++; tone(200 + rnd() * 80, 'square', .05, .08); hap();
+  const f = $('#bossFace'); if (f) shake(f, 'hit');
+  if (BOSS) { BOSS.hp = Math.max(0, BOSS.hp - 1); renderBoss(); }
+}
+async function openBoss(){
+  bossOff = false;
+  sheet(`<h3 class="disp" style="margin-top:0">👹 Мировой босс</h3><div id="bossBox"><span class="muted">Загрузка...</span></div>`);
+  await bossFlush();
+  if (!BOSS && !bossOff) { try { BOSS = await rest('rpc/boss_state', { method: 'POST', body: '{}' }); } catch (e) { if (String(e.message) === '404') bossOff = true; } }
+  renderBoss();
+}
+
 /* ===== ЕЩЁ (МЕНЮ) ===== */
 const MORE=[
   ['🏆','Топ игроков',openTopsSheet],
@@ -1375,6 +1665,8 @@ const MORE=[
   ['📋','Задания',openTasks],
   ['🌐','Кланы / Пул',openClans],
   ['👥','Рефералы',openRefs],
+  ['💬','Чат',openChat],
+  ['👹','Мировой босс',openBoss],
   ['🔄','Обменник',openExch],
   ['⚙️','Настройки',()=>sheet(`
     <h3 class="disp" style="margin-top:0">Настройки</h3>
@@ -1392,7 +1684,7 @@ function tabMore(){
     <div class="card" style="margin-top:12px">
       <b class="disp" style="font-size:12px">Ваш профиль в сети</b>
       <div class="stats" style="margin-top:8px">
-        <div class="card"><div class="muted">Никнейм</div><b>${S.user}</b></div>
+        <div class="card"><div class="muted">Никнейм</div><b>${esc(S.user)}</b></div>
         <div class="card"><div class="muted">Уровень</div><b>LVL ${S.lvl}</b></div>
         <div class="card"><div class="muted">Кликов в базе</div><b>${S.clicks}</b></div>
         <div class="card"><div class="muted">Заработано</div><b>${f2(S.earned)} $</b></div>
@@ -1427,6 +1719,13 @@ async function bootOnline(){
     applyServerState(j);
   }
   sync();
+  const sp = startParam();
+  if (/^ref_\d+$/.test(sp) && !localStorage.getItem('ref_done')) {
+    const rr = await fx('ref_register', { ref: sp });
+    if (rr && (rr.ok || rr.why)) localStorage.setItem('ref_done', '1');
+  }
+  syncRefs();
+  setInterval(syncRefs, 120000);
   await loadServerData();
   go(0);
 }
