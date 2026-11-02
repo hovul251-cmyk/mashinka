@@ -217,6 +217,11 @@ const post = async (method, body = {}, hold = false) => {
       return null;
     }
     if (!r.ok) return null;
+    if (Array.isArray(j.hacks) && j.hacks.length) {
+      if (j.u) applyServerState(j.u);
+      j.hacks.forEach(h => toast('🚨 Вас взломали!', h.who + ' украл ' + (+h.amt).toFixed(2) + (h.what === 'dia' ? ' 💎' : ' $')));
+      sync();
+    }
     if (j.u && !hold) {
       applyServerState(j.u);
       sync();
@@ -394,7 +399,8 @@ const S={
   tgChannelJoined: false,
   items: {},
   boostMul: 2,
-  refEarned: 0
+  refEarned: 0,
+  shield: 0
 };
 
 const applyServerState = (u) => {
@@ -409,8 +415,12 @@ const applyServerState = (u) => {
   if (u.bmul !== undefined) S.boostMul = +u.bmul;
   if (u.ac !== undefined) S.ac = +u.ac;
   if (u.fan !== undefined) S.fan = +u.fan;
-  if (u.lvl !== undefined) S.lvl = +u.lvl;
-  if (u.xp !== undefined) S.xp = +u.xp;
+  if (u.lvl !== undefined) {
+    const sl = +u.lvl, sx = +(u.xp || 0);
+    if (!S._lvlInit || sl > S.lvl || (sl === S.lvl && sx > S.xp)) { S.lvl = sl; S.xp = sx; }
+    S._lvlInit = 1;
+  }
+  if (u.shield !== undefined) S.shield = +u.shield;
   if (u.refCount !== undefined) S.refCount = +u.refCount;
   if (u.refEarned !== undefined) S.refEarned = +u.refEarned;
   if (u.clan !== undefined) S.clan = u.clan;
@@ -671,6 +681,8 @@ const SHOP=[
   {id:'xpbook',i:'📚',n:'Книга шахтёра',d:'+50% к опыту навсегда',cur:'dia',c:4}
 ];
 
+const SHIELDS=[{n:'Нет защиты'},{n:'Фаервол',c:500,d:'Взломщику −1 попытка · кража 11%'},{n:'Антивирус',c:3000,d:'−2 попытки · кража 8%'},{n:'Квантовый щит',c:15000,d:'−3 попытки · кража 5%'}];
+async function buyShield(){ const j=await post('buy_shield'); if(j){ banner('🛡 Защита установлена',1); confetti(30); tabGarage(); } }
 function tabGarage(){
   let body;
   if(gTab==0){
@@ -711,6 +723,10 @@ function tabGarage(){
         <div class="row"><span style="font-size:24px">🔌</span><div><b>Стабилизатор Gold</b><div class="muted">+15% к доходу майнинга</div></div></div>
         ${S.power?'<span class="chip">Куплено</span>':`<button class="btn g sm" onclick="buyPower()">600 $</button>`}
       </div>`;
+  }else if(gTab==5){
+    body=`<div class="card muted" style="font-size:12px">Защита от взлома: у взломщика меньше попыток, а добыча меньше. Покупай по порядку.</div>`+SHIELDS.slice(1).map((x,i)=>{
+      const lv=i+1, owned=S.shield>=lv;
+      return `<div class="card item ${owned?'on':''}"><div class="row"><span style="font-size:26px">🛡</span><div><b>${x.n}</b><div class="muted">${x.d}</div></div></div>${owned?'<span class="chip">Куплено</span>':`<button class="btn g sm" ${lv!==S.shield+1||S.bal<x.c?'disabled':''} onclick="buyShield()">${nf(x.c)} $</button>`}</div>`}).join('');
   }else{
     body=SHOP.map(it=>{
       const have=S.items[it.id]||0, owned=!it.cons&&have;
@@ -723,8 +739,8 @@ function tabGarage(){
   }
 
   $('#stage').innerHTML=`
-    <div class="seg5">
-      ${['Карты','Боты','Кулеры','Бонусы','Предметы'].map((t,i)=>`<button class="btn w sm ${gTab==i?'on':''}" onclick="gTab=${i};tabGarage()">${t}</button>`).join('')}
+    <div class="seg5" style="grid-template-columns:repeat(3,1fr)">
+      ${['Карты','Боты','Кулеры','Бонусы','Предметы','🛡 Защита'].map((t,i)=>`<button class="btn w sm ${gTab==i?'on':''}" onclick="gTab=${i};tabGarage()">${t}</button>`).join('')}
     </div>
     <div class="col">${body}</div>`;
   bonusUI();
@@ -1082,71 +1098,8 @@ async function leaveClan(){
   toast('Вы вышли из клана','');
 }
 
-/* ===== РЕАЛЬНАЯ ОПЛАТА TELEGRAM STARS (XTR) ===== */
-const STARS_PACKS = [
-  {stars: 50, dia: 1.5, usd: 50, title: 'Пакет «Новичок»'},
-  {stars: 150, dia: 5.0, usd: 200, title: 'Пакет «Майнер»'},
-  {stars: 500, dia: 20.0, usd: 800, title: 'Пакет «Олигарх»'}
-];
-
-function openDonate(){
-  sheet(`
-    <h3 class="disp" style="margin-top:0">⭐️ Покупка через Telegram Stars</h3>
-    <p class="muted">Реальные звёзды Telegram (XTR). Нажмите на набор для открытия счета.</p>
-    <div class="col">
-      ${STARS_PACKS.map(p=>`
-        <div class="card item" onclick="startStarsPayment(${p.stars}, ${p.dia}, ${p.usd})">
-          <div>
-            <b>⭐️ ${p.stars} Stars</b>
-            <div class="muted">${p.title}</div>
-          </div>
-          <button class="btn g sm">+${p.dia} 💎 (+${p.usd} $)</button>
-        </div>
-      `).join('')}
-    </div>
-    <div class="card muted" style="margin-top:10px;font-size:11px">
-      💳 Счёт выставляется через Telegram Bot API и оплачивается со звёздного баланса вашего Telegram.
-    </div>`);
-}
-
-async function startStarsPayment(stars, diaBonus, usdBonus){
-  if (!(window.Telegram && Telegram.WebApp && typeof Telegram.WebApp.openInvoice === 'function' && Telegram.WebApp.initData)) {
-    return toast('Внимание', 'Откройте приложение внутри Telegram для оплаты звёздами');
-  }
-  toast('Создание счёта...','Запрос у сервера');
-  const res = await fx('create_stars_invoice', { stars });
-  if (!res || !res.invoice_link) return toast('Ошибка', 'Не удалось создать счёт: ' + ((res && res.err) || 'нет ответа'));
-  const before = S.dia;
-  Telegram.WebApp.openInvoice(res.invoice_link, async function(status) {
-    if (status === 'paid') {
-      toast('Оплата принята','Зачисляем награду...');
-      for (let n = 0; n < 12; n++) {
-        await wait(1500);
-        const v = await post('state', {}, true);
-        if (v && v.u && +v.u.dia >= before + diaBonus - 0.01) {
-          applyServerState(v.u); addXP(stars); confetti(50);
-          banner(`⭐️ +${stars} Stars получено!`, 1);
-          sync(); toast('Успешно!', `Начислено +${diaBonus} 💎 и +${usdBonus} $`);
-          return;
-        }
-      }
-      toast('Платёж обрабатывается','Если награда не пришла в течение минуты — напишите в поддержку');
-    } else if (status === 'failed') {
-      toast('Ошибка', 'Платёж не был завершён');
-    } else if (status === 'pending') {
-      toast('Ожидание...', 'Подтверждение транзакции Telegram');
-    }
-  });
-}
-
 /* ===== РЕАЛЬНЫЕ РЕФЕРАЛЫ (ДАННЫЕ ИЗ БАЗЫ) ===== */
-async function syncRefs(){
-  const r = await fx('ref_sync');
-  if (!r || r.err) return null;
-  S.refCount = +r.count || 0; S.refEarned = +r.earned || 0;
-  if (r.added > 0) { const j = await post('state', {}); if (j) applyServerState(j); sync(); }
-  return r;
-}
+async function syncRefs(){ const j = await post('ref_sync', {}); return j; }
 async function openRefs(){
   await syncRefs();
   const link=`https://t.me/${BOT_USERNAME}?startapp=ref_${tgUserId()}`;
@@ -1250,7 +1203,7 @@ const GAMES={
   crash:{
     t:'Краш Ракета (Общий онлайн)',i:'🚀',d:'Единый раунд для всех игроков онлайн',
     run(el){
-      let C={ph:'bet',t:0,hist:[],pl:[],cp:0,my:null}, on=1, raf, at=Date.now(), prevPh='bet', parts=[];
+      let queued=0, placing=false; let C={ph:'bet',t:0,hist:[],pl:[],cp:0,my:null}, on=1, raf, at=Date.now(), prevPh='bet', parts=[];
       const stars=Array.from({length:50},()=>({x:rnd(),y:rnd(),s:rnd()*1.7+.4,p:rnd()*6}));
       el.innerHTML=`
       <div class="card" id="crBox" style="padding:0;overflow:hidden;background:#0c0f1d">
@@ -1308,7 +1261,7 @@ const GAMES={
         const isFlying = C.ph === 'fly';
         const m = isFlying ? M() : 1.0;
         if (C.ph === 'bet') {
-          $('#cmTxt').textContent = 'Старт через ' + Math.max(0, 5 - C.t - (Date.now()-at)/1000).toFixed(0) + 'с';
+          $('#cmTxt').textContent = 'Старт через ' + Math.max(0, 10 - C.t - (Date.now()-at)/1000).toFixed(0) + 'с';
           $('#cmTxt').style.color = '#fff';
         } else if (C.ph === 'crash') {
           $('#cmTxt').textContent = '💥 КРАШ x' + C.cp.toFixed(2);
@@ -1322,10 +1275,11 @@ const GAMES={
           b.className = 'btn wide g'; b.textContent = my ? 'Ставка принята' : 'Поставить ставку'; b.disabled = !!my;
         } else if (isFlying) {
           b.className = 'btn wide ' + (my && !my.o ? 'r pulse' : 'g');
-          b.textContent = (my && !my.o) ? 'Забрать ' + f2(my.b * m) + ' 💎' : (my ? 'Вы забрали ✅' : 'Ожидание раунда');
-          b.disabled = !my || !!my.o;
+          b.textContent = (my && !my.o) ? 'Забрать ' + f2(my.b * m) + ' 💎' : (my ? 'Вы забрали ✅' : 'Поставить на след. раунд');
+          b.disabled = !!(my && my.o);
         } else {
-          b.className = 'btn wide g'; b.textContent = 'Раунд завершен'; b.disabled = true;
+          b.className = 'btn wide ' + (queued ? 'r' : 'g'); b.disabled = false;
+          b.textContent = queued ? 'Отменить автоставку ' + f2(queued) + ' 💎' : 'Поставить на след. раунд';
         }
         const plBox = $('#plOnline');
         if (plBox) {
@@ -1346,9 +1300,18 @@ const GAMES={
         const j = await post('crash', {}, true);
         if (!on || !j) return;
         C = j; at = Date.now(); renderUI();
+        if (C.ph === 'bet' && !C.my && queued && !placing) {
+          placing = true; const q = queued; queued = 0;
+          if (S.dia >= q) { const r = await post('cbet', { b: q }, true); if (r && !r.err) { S.dia -= q; sync(); } }
+          placing = false;
+        }
       };
 
       $('#cBtn').onclick = async () => {
+        if (C.ph !== 'bet' && !(C.ph === 'fly' && C.my)) {
+          if (queued) { queued = 0; } else if (canBet()) { queued = bet; toast('Автоставка', f2(bet) + ' 💎 на следующий раунд'); }
+          renderUI(); return;
+        }
         if (C.ph === 'bet' && !C.my) {
           if (!canBet()) return;
           const j = await post('cbet', { b: bet }, true);
@@ -1546,6 +1509,69 @@ const GAMES={
       render();
       return ()=>{delete window.setSide};
     }
+  },
+
+  slots:{
+    t:'Слоты',i:'🎰',d:'Пара x1.1 · три одинаковых x10',
+    run(el){
+      const SY=['🍒','🍋','🔔','⭐','💎']; let busy=false;
+      el.innerHTML=`<div class="card" id="slBox" style="text-align:center"><div class="row" style="justify-content:center;gap:14px;font-size:56px"><span id="sl0">🎰</span><span id="sl1">🎰</span><span id="sl2">🎰</span></div></div>${betUI()}<button class="btn g wide" id="slGo">Крутить</button>`;
+      $('#slGo').onclick=async()=>{
+        if(busy||!canBet())return; busy=true; S.dia-=bet; sync();
+        const j=await post('play',{g:'slots',b:bet},true);
+        if(!j){S.dia+=bet;busy=false;sync();return;}
+        const stop=[0,0,0];
+        const iv=setInterval(()=>[0,1,2].forEach(k=>{if(!stop[k]){const e=$('#sl'+k);if(e)e.textContent=SY[Math.floor(rnd()*5)]}}),80);
+        for(let k=0;k<3;k++){await wait(550);stop[k]=1;const e=$('#sl'+k);if(e)e.textContent=SY[j.r[k]];tone(400+k*120,'square',.05,.06);}
+        clearInterval(iv); busy=false;
+        if(j.win){S.dia+=j.prize;addXP(15);confetti(30);banner('+'+f2(j.prize)+' 💎',1);tone(920);}
+        else{shake($('#slBox'));banner('Мимо!',0);tone(160,'sawtooth',.3);hap('heavy');}
+        sync();
+      };
+      return ()=>{};
+    }
+  },
+
+  dice:{
+    t:'Кости',i:'🎲',d:'Выбери шанс: меньше шанс — больше множитель',
+    run(el){
+      let ch=50,busy=false;
+      el.innerHTML=`<div class="card" id="dcBox" style="text-align:center"><div class="big disp" id="dcNum">--</div><div class="muted" id="dcInf"></div></div><div class="card"><input id="dcR" type="range" min="5" max="95" value="50" style="width:100%" oninput="window._dc(+this.value)"></div>${betUI()}<button class="btn g wide" id="dcGo">Бросить кубик</button>`;
+      window._dc=v=>{ch=v;const i=$('#dcInf');if(i)i.textContent='Выпадет меньше '+ch+' → x'+(95/ch).toFixed(2)+' · шанс '+ch+'%'};
+      window._dc(50);
+      $('#dcGo').onclick=async()=>{
+        if(busy||!canBet())return; busy=true; S.dia-=bet; sync();
+        const j=await post('play',{g:'dice',c:ch,b:bet},true);
+        if(!j){S.dia+=bet;busy=false;sync();return;}
+        const t0=Date.now(); while(Date.now()-t0<800){const e=$('#dcNum');if(e)e.textContent=(rnd()*100).toFixed(2);tone(300+rnd()*200,'square',.02,.03);await wait(70);}
+        const e=$('#dcNum'); if(e){e.textContent=(+j.roll).toFixed(2);e.style.color=j.win?'var(--m)':'var(--p)';}
+        busy=false;
+        if(j.win){S.dia+=j.prize;addXP(15);confetti(30);banner('+'+f2(j.prize)+' 💎',1);tone(920);}
+        else{shake($('#dcBox'));banner('Не повезло!',0);tone(160,'sawtooth',.3);hap('heavy');}
+        sync();
+      };
+      return ()=>{delete window._dc};
+    }
+  },
+
+  chests:{
+    t:'Сундуки',i:'🧰',d:'Три сундука: пусто / x0.5 / x2.2',
+    run(el){
+      let busy=false;
+      const render=()=>{el.innerHTML=`<div class="card" style="text-align:center"><div class="row" style="justify-content:center;gap:10px">${[0,1,2].map(k=>`<button class="btn w" id="ch${k}" style="font-size:40px;padding:14px 16px" onclick="openChest(${k})">🧰</button>`).join('')}</div><div class="muted" style="margin-top:8px">Выбери сундук</div></div>${betUI()}`;};
+      render();
+      window.openChest=async k=>{
+        if(busy||!canBet())return; busy=true; S.dia-=bet; sync();
+        const j=await post('play',{g:'chest',s:k,b:bet},true);
+        if(!j){S.dia+=bet;busy=false;sync();return;}
+        j.p.forEach((v,n)=>{const e=$('#ch'+n);if(e){e.innerHTML=(v==0?'💨':v==5?'🪙':'💎')+'<div style="font-size:11px">x'+(v/10)+'</div>';if(n===k)e.classList.add('on');}});
+        tone(600);
+        if(j.win){S.dia+=j.prize;addXP(15);confetti(30);banner('+'+f2(j.prize)+' 💎',1);}
+        else{banner('Пусто!',0);tone(160,'sawtooth',.3);}
+        sync(); await wait(2000); busy=false; if($('#ch0'))render();
+      };
+      return ()=>{delete window.openChest};
+    }
   }
 };
 
@@ -1679,10 +1705,47 @@ async function openBoss(){
   renderBoss();
 }
 
+/* ===== ВЗЛОМ ИГРОКОВ ===== */
+let HK=null;
+function openHack(){
+  HK=null;
+  sheet(`<h3 class="disp" style="margin-top:0">💻 Взлом игроков</h3>
+  <p class="muted">Подбери секретный код случайного игрока из 3 разных цифр. 🟩 — цифра на своём месте, 🟨 — цифра есть, но не там. Запуск 20 $, перезарядка 30 с. Взломанный игрок защищён 10 минут.</p>
+  <div class="card item"><span>🛡 Твоя защита: <b>${SHIELDS[S.shield||0].n}</b></span></div>
+  <div class="seg" style="margin:10px 0"><button class="btn g" onclick="startHack('usd')">💵 Красть $</button><button class="btn b" onclick="startHack('dia')">💎 Красть алмазы</button></div>
+  <div id="hkBox"></div>`);
+}
+async function startHack(t){
+  await flush();
+  const j=await post('hack_start',{t});
+  if(!j||!j.hack)return;
+  HK=j.hack; HK.hist=[]; sync(); tone(500); renderHack();
+}
+function renderHack(res){
+  const b=$('#hkBox'); if(!b||!HK)return;
+  const rows=HK.hist.map(h=>`<div class="card item" style="padding:6px 12px"><b class="disp">${h.g}</b><span>${'🟩'.repeat(h.h)}${'🟨'.repeat(h.n)}${(h.h+h.n)?'':'⬛'}</span></div>`).join('');
+  b.innerHTML=`<div class="card"><b>🎯 Цель: ${esc(HK.name)}</b> <span class="chip">🛡 ${SHIELDS[HK.shield].n}</span><div class="muted">Крадём ${HK.t==='dia'?'💎':'$'} · попыток: <b>${HK.tries}</b></div></div>
+    <div class="col" style="gap:6px;margin:8px 0">${rows}</div>
+    ${res?res:`<div class="row"><input id="hkIn" inputmode="numeric" maxlength="3" placeholder="3 цифры" style="text-align:center;font-size:20px"><button class="btn g" onclick="guessHack()">Взломать</button></div>`}`;
+}
+async function guessHack(){
+  const g=($('#hkIn').value||'').trim();
+  const j=await post('hack_guess',{g},true);
+  if(!j||!j.hack)return;
+  const h=j.hack; if(h.last)HK.hist.push(h.last);
+  if(j.u){applyServerState(j.u);sync();}
+  if(!h.done){HK.tries=h.tries;tone(400);return renderHack();}
+  HK.tries=0;
+  if(h.win){confetti(50);banner('💻 Взлом удался!',1);tone(900);
+    renderHack(`<div class="card" style="text-align:center"><b class="disp">✅ Украдено ${f2(h.loot)} ${h.t==='dia'?'💎':'$'}</b><div class="muted">у игрока ${esc(h.name)}</div></div>`);}
+  else{banner('Взлом провален',0);tone(160,'sawtooth',.3);
+    renderHack(`<div class="card" style="text-align:center"><b class="disp">❌ Система заблокировала доступ</b><div class="muted">Код был: ${h.code}</div></div>`);}
+}
+
 /* ===== ЕЩЁ (МЕНЮ) ===== */
 const MORE=[
   ['🏆','Топ игроков',openTopsSheet],
-  ['⭐️','Stars Донат',openDonate],
+  ['💻','Взлом',openHack],
   ['📋','Задания',openTasks],
   ['🌐','Кланы / Пул',openClans],
   ['👥','Рефералы',openRefs],
@@ -1746,8 +1809,8 @@ async function bootOnline(){
   (async () => {
     const sp = startParam();
     if (/^ref_\d+$/.test(sp) && !localStorage.getItem('ref_done')) {
-      const rr = await fx('ref_register', { ref: sp });
-      if (rr && (rr.ok || rr.why)) localStorage.setItem('ref_done', '1');
+      const rr = await post('ref_reg', { ref: sp.slice(4) }, true);
+      if (rr && rr.ref && (rr.ref.ok || ['dup','self','no_referrer','not_new'].includes(rr.ref.why))) localStorage.setItem('ref_done', '1');
     }
     syncRefs();
     setInterval(syncRefs, 120000);
@@ -1765,6 +1828,7 @@ setInterval(heartbeat, 8000);
 async function softRestart(){
   try {
     await flush();
+    await post('save_lvl', { lvl: S.lvl, xp: Math.floor(S.xp) }, true);
     const j = await post('state');            // свежее состояние игрока
     if (j && j.name) S.user = j.name;
     await loadServerData(); sync();
@@ -1772,7 +1836,7 @@ async function softRestart(){
   } catch(e) {}
 }
 setInterval(softRestart, 10 * 60 * 1000);
-document.addEventListener('visibilitychange', () => { if (!document.hidden) { heartbeat(); loadServerData(); } });
+document.addEventListener('visibilitychange', () => { if (document.hidden) { post('save_lvl', { lvl: S.lvl, xp: Math.floor(S.xp) }, true); } else { heartbeat(); loadServerData(); } });
 try { Telegram.WebApp.onEvent('activated', () => { heartbeat(); loadServerData(); }); } catch(e) {}
 </script>
 </body></html>
