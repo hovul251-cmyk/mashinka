@@ -219,8 +219,13 @@ const post = async (method, body = {}, hold = false) => {
     if (!r.ok) return null;
     if (Array.isArray(j.hacks) && j.hacks.length) {
       if (j.u) applyServerState(j.u);
-      j.hacks.forEach(h => toast('🚨 Вас взломали!', h.who + ' украл ' + (+h.amt).toFixed(2) + (h.what === 'dia' ? ' 💎' : ' $')));
       sync();
+      j.hacks.forEach(showHackAlert);
+    }
+    if (Array.isArray(j.gifts) && j.gifts.length) {
+      if (j.u) applyServerState(j.u);
+      sync();
+      j.gifts.forEach(g => toast('🎁 Подарок!', g.who + ' отправил вам ' + (+g.amt).toFixed(2) + ' 💎'));
     }
     if (j.u && !hold) {
       applyServerState(j.u);
@@ -269,7 +274,7 @@ async function loadServerData() {
     return;
   }
   
-  REAL_TOPS = (Array.isArray(j.bal) ? j.bal : (Array.isArray(j.earned) ? j.earned : [])).map(t => ({ name: t.name, earned: t.bal !== undefined ? t.bal : t.earned }));
+  REAL_TOPS = (Array.isArray(j.bal) ? j.bal : (Array.isArray(j.earned) ? j.earned : [])).map(t => ({ name: t.name + (t.b ? ' ' + t.b : ''), earned: t.bal !== undefined ? t.bal : t.earned }));
   REAL_FEED = Array.isArray(j.feed) ? j.feed : [];
   ONLINE_COUNT = j.online || 1;
   
@@ -400,7 +405,8 @@ const S={
   items: {},
   boostMul: 2,
   refEarned: 0,
-  shield: 0
+  shield: 0,
+  streak: 0, stc: true, trap: 0, hw: 0, cw: 0, smax: 0, badges: ''
 };
 
 const applyServerState = (u) => {
@@ -421,6 +427,13 @@ const applyServerState = (u) => {
     S._lvlInit = 1;
   }
   if (u.shield !== undefined) S.shield = +u.shield;
+  if (u.streak !== undefined) S.streak = +u.streak;
+  if (u.stc !== undefined) S.stc = !!u.stc;
+  if (u.trap !== undefined) S.trap = +u.trap;
+  if (u.hw !== undefined) S.hw = +u.hw;
+  if (u.cw !== undefined) S.cw = +u.cw;
+  if (u.smax !== undefined) S.smax = +u.smax;
+  if (u.badges !== undefined) S.badges = u.badges || '';
   if (u.refCount !== undefined) S.refCount = +u.refCount;
   if (u.refEarned !== undefined) S.refEarned = +u.refEarned;
   if (u.clan !== undefined) S.clan = u.clan;
@@ -1713,11 +1726,14 @@ function openHack(){
   <p class="muted">Подбери секретный код случайного игрока из 3 разных цифр. 🟩 — цифра на своём месте, 🟨 — цифра есть, но не там. Запуск 20 $, перезарядка 30 с. Взломанный игрок защищён 10 минут.</p>
   <div class="card item"><span>🛡 Твоя защита: <b>${SHIELDS[S.shield||0].n}</b></span></div>
   <div class="seg" style="margin:10px 0"><button class="btn g" onclick="startHack('usd')">💵 Красть $</button><button class="btn b" onclick="startHack('dia')">💎 Красть алмазы</button></div>
+  <div class="card item"><span>🪤 Ловушки: <b>${S.trap||0}</b><div class="muted">Провалившийся взломщик отдаёт 8% баланса</div></span><button class="btn g sm" onclick="buyTrap()">400 $</button></div>
+  <div class="seg" style="margin:8px 0"><button class="btn w" onclick="openHackJournal()">📜 Журнал</button><button class="btn w" onclick="openHackTop()">🏆 Топ хакеров</button></div>
   <div id="hkBox"></div>`);
 }
-async function startHack(t){
+async function startHack(t,target){
+  if(!$('#hkBox'))openHack();
   await flush();
-  const j=await post('hack_start',{t});
+  const j=await post('hack_start',target?{t,target}:{t});
   if(!j||!j.hack)return;
   HK=j.hack; HK.hist=[]; sync(); tone(500); renderHack();
 }
@@ -1742,10 +1758,110 @@ async function guessHack(){
     renderHack(`<div class="card" style="text-align:center"><b class="disp">❌ Система заблокировала доступ</b><div class="muted">Код был: ${h.code}</div></div>`);}
 }
 
+/* ===== ВЗЛОМ: ловушки, журнал, топ, месть ===== */
+async function buyTrap(){ const j=await post('buy_trap'); if(j){ banner('🪤 Ловушка установлена',1); tone(700); openHack(); } }
+function showHackAlert(h){
+  if(h.kind==='trap'){ toast('🪤 Ловушка сработала!', h.who+' потерял '+f2(h.amt)+' $ — они ваши'); return; }
+  toast('🚨 Вас взломали!', h.who+' украл '+f2(h.amt)+(h.what==='dia'?' 💎':' $'));
+  if(typeof sheetOpen==='function' && !sheetOpen() && h.aid){
+    sheet(`<h3 class="disp" style="margin-top:0">🚨 Вас взломали!</h3>
+      <div class="card" style="text-align:center"><b>${esc(h.who)}</b> украл <b>${f2(h.amt)} ${h.what==='dia'?'💎':'$'}</b></div>
+      <p class="muted">Отомстить можно в течение 24 часов. Иммунитет цели не мешает.</p>
+      <button class="btn r wide" onclick="startHack('${h.what==='dia'?'dia':'usd'}','${esc(h.aid)}')">⚔️ Взломать в ответ</button>`);
+  }
+}
+const agoTxt=s=>s<60?'только что':s<3600?Math.floor(s/60)+' мин назад':s<86400?Math.floor(s/3600)+' ч назад':Math.floor(s/86400)+' д назад';
+async function openHackJournal(){
+  const j=await post('hack_journal',{},true); if(!j)return;
+  const rows=(j.journal||[]).map(e=>{
+    const a=f2(e.amt)+' '+(e.what==='dia'?'💎':'$');
+    let t;
+    if(e.kind==='trap') t=e.role==='victim'?`🪤 Ловушка поймала <b>${esc(e.who)}</b> · +${a}`:`🪤 Вы попались на ловушку <b>${esc(e.who)}</b> · −${a}`;
+    else t=e.role==='victim'?`🚨 <b>${esc(e.who)}</b> взломал вас · −${a}`:`💻 Вы взломали <b>${esc(e.who)}</b> · +${a}`;
+    const rv=(e.role==='victim'&&e.kind!=='trap'&&e.ago<86400&&e.wid)?`<button class="btn r sm" onclick="startHack('${e.what==='dia'?'dia':'usd'}','${esc(e.wid)}')">⚔️</button>`:'';
+    return `<div class="card item" style="padding:8px 12px"><div><div>${t}</div><div class="muted" style="font-size:11px">${agoTxt(e.ago)}</div></div>${rv}</div>`;
+  }).join('')||'<div class="card muted" style="text-align:center">Журнал пуст</div>';
+  sheet(`<h3 class="disp" style="margin-top:0">📜 Журнал взломов</h3><div class="col">${rows}</div><button class="btn w wide" style="margin-top:10px" onclick="openHack()">← К взлому</button>`);
+}
+async function openHackTop(){
+  const j=await post('hack_top',{},true); if(!j)return;
+  const rows=(j.htop||[]).map((x,i)=>`<div class="card item"><span><b>${i+1}.</b> ${esc(x.name)} <span class="muted">· ${x.n} взломов</span></span><b class="disp" style="font-size:12px">${f2(x.score)} $</b></div>`).join('')||'<div class="card muted" style="text-align:center">Пока никто не взламывал</div>';
+  sheet(`<h3 class="disp" style="margin-top:0">🏆 Топ хакеров за неделю</h3><p class="muted">Украдено за 7 дней (💎 считаются как 100 $)</p><div class="col">${rows}</div><button class="btn w wide" style="margin-top:10px" onclick="openHack()">← К взлому</button>`);
+}
+
+/* ===== ПОДАРКИ ===== */
+function openGifts(){
+  sheet(`<h3 class="disp" style="margin-top:0">🎁 Подарки</h3>
+    <p class="muted">Отправь 💎 другу. Комиссия 10%. У тебя: <b data-dia></b> 💎</p>
+    <input id="gfTo" placeholder="Ник игрока (без @)">
+    <input id="gfAmt" type="number" min="0.5" max="50" step="0.5" value="1" style="margin-top:6px">
+    <div class="row" style="margin-top:8px"><button class="btn g wide" onclick="sendGift()">Отправить по нику</button><button class="btn b wide" onclick="makeGiftLink()">Ссылка-подарок</button></div>
+    <div id="gfOut" style="margin-top:10px"></div>`);
+  sync();
+}
+async function sendGift(){
+  const to=($('#gfTo').value||'').trim(), d=+($('#gfAmt').value)||0;
+  if(!to)return toast('Ошибка','Укажите ник игрока');
+  const j=await post('gift_send',{to,d});
+  if(j&&j.gift_sent){ confetti(30); banner('🎁 '+f2(j.gift_sent.amt)+' 💎 → '+j.gift_sent.to,1); sync(); }
+}
+async function makeGiftLink(){
+  const d=+($('#gfAmt').value)||0;
+  const j=await post('gift_link',{d});
+  if(!j||!j.gift_code)return;
+  const url=`https://t.me/${BOT_USERNAME}?startapp=gift_${j.gift_code}`;
+  $('#gfOut').innerHTML=`<div class="card"><div class="muted">Ссылка на ${f2(d)} 💎 (получатель заберёт ${f2(d*0.9)}). Откроешь её сам — получишь всё обратно.</div>
+    <input id="gfLink" readonly value="${url}" style="margin-top:6px"><button class="btn g wide" style="margin-top:6px" onclick="shareGift('${url}')">Поделиться</button></div>`;
+  sync();
+}
+function shareGift(url){
+  if(window.Telegram&&Telegram.WebApp&&Telegram.WebApp.openTelegramLink){
+    Telegram.WebApp.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent('Держи подарок 💎 в игре!')}`);
+  }else{ const el=$('#gfLink'); el.select(); try{navigator.clipboard.writeText(el.value)}catch(e){} toast('Скопировано','Ссылка в буфере'); }
+}
+
+/* ===== БОСС КЛАНА ===== */
+async function openClanBoss(){
+  const j=await post('clan_boss',{},true); if(!j||!j.cboss)return;
+  const b=j.cboss, pc=Math.max(0,Math.min(100,b.hp/b.max*100));
+  sheet(`<h3 class="disp" style="margin-top:0">🐲 Босс клана · LVL ${b.lvl}</h3>
+    <p class="muted">Урон наносит майнинг всех участников клана. Награда ${f2(b.pool)} 💎 делится по вкладу.</p>
+    <div class="card"><div style="height:16px;border-radius:9px;background:#ddd;overflow:hidden"><div style="height:100%;width:${pc}%;background:var(--p)"></div></div>
+      <div class="muted" style="margin-top:4px">❤️ ${nf(b.hp)} / ${nf(b.max)} · твой вклад: <b>${nf(b.my)}</b></div></div>
+    <b class="disp" style="font-size:13px">Лучшие бойцы</b>
+    <div class="col" style="margin-top:6px">${(b.top||[]).map((x,i)=>`<div class="card item"><span><b>${i+1}.</b> ${esc(x.name)}</span><b>${nf(x.dmg)}</b></div>`).join('')||'<div class="card muted" style="text-align:center">Пока никто не бил босса — майни!</div>'}</div>`);
+}
+
+/* ===== ДОСТИЖЕНИЯ ===== */
+function openBadges(){
+  const B=[['💰','Миллионер','Заработать 1 000 000 $',S.earned,1e6],['💻','Хакер','10 успешных взломов',S.hw,10],['👑','Король краша','25 выводов в краше на x2+',S.cw,25],['🛡','Неуязвимый','Купить Квантовый щит',S.shield,3],['🔥','Верный','Серия заходов 7 дней',S.smax,7]];
+  sheet(`<h3 class="disp" style="margin-top:0">🏅 Достижения</h3><p class="muted">Значки видны рядом с ником в топах. Сейчас: <b>${S.badges||'—'}</b></p>
+    <div class="col">${B.map(([e,n,d,v,need])=>{const ok=v>=need;return `<div class="card item ${ok?'on':''}"><div class="row"><span style="font-size:28px">${e}</span><div><b>${n}</b><div class="muted">${d}</div></div></div>${ok?'<span class="chip">Получено</span>':`<span class="muted">${nf(Math.floor(v))}/${nf(need)}</span>`}</div>`}).join('')}</div>`);
+}
+
+/* ===== СЕРИЯ ЗАХОДОВ ===== */
+const STREAK_R=['50 $','80 $','120 $','170 $','230 $','300 $','500 $ + 3 💎'];
+function openStreak(){
+  const cp=S.stc?((S.streak-1)%7)+1:(S.streak%7);
+  sheet(`<h3 class="disp" style="margin-top:0">🔥 Серия заходов: ${S.streak} дн.</h3>
+    <p class="muted">Заходи каждый день — награда растёт. Пропустишь день — серия начнётся заново.</p>
+    <div class="col" style="gap:6px">${STREAK_R.map((r,i)=>{const d=i+1,done=d<=cp,now=!S.stc&&d===cp+1;return `<div class="card item ${done?'on':''}" ${now?'style="border-color:var(--m)"':''}><b>День ${d}</b><span>${done?'✅ ':''}${r}</span></div>`}).join('')}</div>
+    <button class="btn g wide" style="margin-top:10px" ${S.stc?'disabled':''} onclick="claimStreak()">${S.stc?'Сегодня уже получено':'Забрать награду'}</button>`);
+}
+async function claimStreak(){
+  const j=await post('streak_claim'); if(!j||!j.streak_got)return;
+  const g=j.streak_got; confetti(50); tone(900);
+  banner('🔥 День '+g.n+': +'+g.usd+' $'+(g.dia?' +'+g.dia+' 💎':''),1); sync(); openStreak();
+}
+
 /* ===== ЕЩЁ (МЕНЮ) ===== */
 const MORE=[
   ['🏆','Топ игроков',openTopsSheet],
   ['💻','Взлом',openHack],
+  ['🔥','Серия заходов',openStreak],
+  ['🎁','Подарки',openGifts],
+  ['🐲','Босс клана',openClanBoss],
+  ['🏅','Достижения',openBadges],
   ['📋','Задания',openTasks],
   ['🌐','Кланы / Пул',openClans],
   ['👥','Рефералы',openRefs],
@@ -1805,12 +1921,19 @@ async function bootOnline(){
   sync();
   loadServerData();
   go(0);
+  if (!S.stc) setTimeout(openStreak, 900);
   /* рефералы в фоне, не блокируют запуск */
   (async () => {
     const sp = startParam();
     if (/^ref_\d+$/.test(sp) && !localStorage.getItem('ref_done')) {
       const rr = await post('ref_reg', { ref: sp.slice(4) }, true);
       if (rr && rr.ref && (rr.ref.ok || ['dup','self','no_referrer','not_new'].includes(rr.ref.why))) localStorage.setItem('ref_done', '1');
+    }
+    const gp = startParam();
+    if (/^gift_[A-Za-z0-9]+$/.test(gp) && !localStorage.getItem('gift_' + gp)) {
+      const g = await post('gift_claim', { code: gp.slice(5) });
+      localStorage.setItem('gift_' + gp, '1');
+      if (g && g.gift_got) { banner('🎁 +' + f2(g.gift_got.amt) + ' 💎', 1); confetti(40); toast('Подарок получен', 'от ' + g.gift_got.from); }
     }
     syncRefs();
     setInterval(syncRefs, 120000);
