@@ -196,6 +196,7 @@ const creds = () => {
 
 /* Универсальный метод обращения к онлайн API Supabase */
 let LASTERR = '';
+const QUIET = new Set(['tops','crash','state','mine','clans_list']);
 const post = async (method, body = {}, hold = false) => {
   try {
     const c = creds();
@@ -209,7 +210,7 @@ const post = async (method, body = {}, hold = false) => {
       body: JSON.stringify({ d: c.d, h: c.h, f: method, a: body })
     });
     const j = await r.json();
-    if (!r.ok) LASTERR = method + ': HTTP ' + r.status + ' ' + (j.message || j.hint || j.details || j.err || '');
+    if (!r.ok) { LASTERR = method + ': HTTP ' + r.status + ' ' + (j.message || j.hint || j.details || j.err || ''); if (!QUIET.has(method)) toast('Ошибка сервера', LASTERR.slice(0, 110)); }
     if (j.err) {
       LASTERR = method + ': ' + j.err;
       if (j.err !== 'auth') toast('Сеть', j.err);
@@ -237,9 +238,10 @@ const fx = async (action, extra = {}) => {
       headers: { 'content-type': 'application/json', apikey: SB_KEY },
       body: JSON.stringify({ initData, action, ...extra })
     });
-    if (!r.ok) return null;
-    return await r.json();
-  } catch (e) { return null; }
+    let j = null; try { j = await r.json(); } catch (e) {}
+    if (!r.ok) return { err: (j && (j.err || j.message)) || ('HTTP ' + r.status) };
+    return j;
+  } catch (e) { return { err: 'network' }; }
 };
 
 /* Сброс накопленных кликов на сервер */
@@ -262,7 +264,7 @@ async function loadServerData() {
     return;
   }
   
-  REAL_TOPS = Array.isArray(j.earned) ? j.earned : [];
+  REAL_TOPS = (Array.isArray(j.bal) ? j.bal : (Array.isArray(j.earned) ? j.earned : [])).map(t => ({ name: t.name, earned: t.bal !== undefined ? t.bal : t.earned }));
   REAL_FEED = Array.isArray(j.feed) ? j.feed : [];
   ONLINE_COUNT = j.online || 1;
   
@@ -278,7 +280,7 @@ async function loadServerData() {
     $('#tickin').innerHTML = `<span>🟢 Онлайн в игре: <b>${ONLINE_COUNT}</b> чел.</span>`;
   }
 }
-setInterval(loadServerData, 12000);
+setInterval(loadServerData, 10000);
 
 /* Загрузка реальных кланов с сервера */
 async function loadRealClans() {
@@ -949,7 +951,7 @@ async function openTopsSheet(){
     : '<div class="card" style="text-align:center"><span class="muted">Здесь будут отображаться реальные победы игроков</span></div>';
 
   sheet(`
-    <h3 class="disp" style="margin-top:0">🏆 Топ игроков онлайн</h3>
+    <h3 class="disp" style="margin-top:0">🏆 Топ игроков по балансу</h3>
     <p class="muted">🟢 Реальный онлайн сейчас: <b>${ONLINE_COUNT}</b> чел.</p>
     <div class="col">${L(REAL_TOPS, false)}</div>
     <h3 class="disp" style="margin-top:14px">Живая лента побед</h3>
@@ -1112,20 +1114,23 @@ async function startStarsPayment(stars, diaBonus, usdBonus){
     return toast('Внимание', 'Откройте приложение внутри Telegram для оплаты звёздами');
   }
   toast('Создание счёта...','Запрос у сервера');
-  const res = await post('create_stars_invoice', { stars, item: `pack_${stars}` }, true);
-  if (!res || !res.invoice_link) return toast('Ошибка','Не удалось создать счёт');
+  const res = await fx('create_stars_invoice', { stars });
+  if (!res || !res.invoice_link) return toast('Ошибка', 'Не удалось создать счёт: ' + ((res && res.err) || 'нет ответа'));
+  const before = S.dia;
   Telegram.WebApp.openInvoice(res.invoice_link, async function(status) {
     if (status === 'paid') {
-      // Начисление только после подтверждения сервером (сервер сверяет платёж с Telegram)
-      const v = await post('verify_stars_payment', { stars }, true);
-      if (v && !v.err) {
-        if (v.u) applyServerState(v.u); else { S.dia += diaBonus; S.bal += usdBonus; }
-        addXP(stars); confetti(50);
-        banner(`⭐️ +${stars} Stars получено!`, 1);
-        sync(); toast('Успешно!', `Начислено +${diaBonus} 💎 и +${usdBonus} $`);
-      } else {
-        toast('Проверка платежа','Платёж не подтверждён сервером. Если звёзды списаны — напишите в поддержку');
+      toast('Оплата принята','Зачисляем награду...');
+      for (let n = 0; n < 12; n++) {
+        await wait(1500);
+        const v = await post('state', {}, true);
+        if (v && v.u && +v.u.dia >= before + diaBonus - 0.01) {
+          applyServerState(v.u); addXP(stars); confetti(50);
+          banner(`⭐️ +${stars} Stars получено!`, 1);
+          sync(); toast('Успешно!', `Начислено +${diaBonus} 💎 и +${usdBonus} $`);
+          return;
+        }
       }
+      toast('Платёж обрабатывается','Если награда не пришла в течение минуты — напишите в поддержку');
     } else if (status === 'failed') {
       toast('Ошибка', 'Платёж не был завершён');
     } else if (status === 'pending') {
@@ -1252,7 +1257,7 @@ const GAMES={
         <canvas id="crCv" width="640" height="320" style="width:100%;display:block"></canvas>
         <div class="big disp" id="cmTxt" style="position:absolute;inset:0;display:grid;place-items:center;color:#fff;text-shadow:0 3px 0 #15122b;pointer-events:none">x1.00</div>
       </div>
-      <div class="row" id="plOnline" style="overflow-x:auto;margin:6px 0;padding:4px 0"></div>
+      <div class="col" id="plOnline" style="margin:8px 0;gap:6px;max-height:260px;overflow-y:auto"></div>
       ${betUI()}
       <button class="btn g wide" id="cBtn">Поставить ставку</button>`;
 
@@ -1324,9 +1329,15 @@ const GAMES={
         }
         const plBox = $('#plOnline');
         if (plBox) {
-          plBox.innerHTML = (C.pl && C.pl.length)
-            ? C.pl.map(p => `<span class="chip" style="background:${p.o ? '#c5f7e0' : '#fff'}">${esc(p.n)} ${f2(p.b)}💎 ${p.o ? '✅x'+(+p.o).toFixed(2) : ''}</span>`).join('')
-            : '<span class="muted" style="font-size:11px">В этом раунде пока нет ставок — будь первым!</span>';
+          const row = p => {
+            const win = p.o > 0, lost = !win && C.ph === 'crash';
+            const st = win ? `<b style="color:#0a9d63">✅ x${(+p.o).toFixed(2)} · +${f2(p.b * p.o)} 💎</b>`
+              : lost ? '<b style="color:#e0245e">💥 проиграл</b>' : '<span class="muted">🚀 в игре</span>';
+            return `<div class="card item" style="padding:8px 12px;margin:0"><span><b>${esc(p.n)}</b> · ${f2(p.b)} 💎</span>${st}</div>`;
+          };
+          plBox.innerHTML = '<div class="muted" style="font-size:11px">Прошлые раунды: ' + ((C.hist||[]).slice(0,8).map(x=>'x'+(+x).toFixed(2)).join(' · ')||'—') + '</div>'
+            + '<b class="disp" style="font-size:13px">👥 Ставки игроков ('+(C.pl||[]).length+')</b>'
+            + ((C.pl && C.pl.length) ? C.pl.map(row).join('') : '<div class="muted" style="font-size:11px">В этом раунде пока нет ставок — будь первым!</div>');
         }
       };
 
@@ -1744,5 +1755,24 @@ async function bootOnline(){
 }
 
 bootOnline();
+
+/* ===== ОНЛАЙН-ПУЛЬС И ТИХИЙ ПЕРЕЗАПУСК КАЖДЫЕ 10 МИНУТ ===== */
+async function heartbeat(){
+  const j = await post('state', {}, true);
+  if (j && j.online) { ONLINE_COUNT = j.online; const o = $('#onl'); if (o) o.textContent = '🟢 Онлайн: ' + ONLINE_COUNT; }
+}
+setInterval(heartbeat, 8000);
+async function softRestart(){
+  try {
+    await flush();
+    const j = await post('state');            // свежее состояние игрока
+    if (j && j.name) S.user = j.name;
+    await loadServerData(); sync();
+    if (typeof loadRealClans === 'function') loadRealClans();
+  } catch(e) {}
+}
+setInterval(softRestart, 10 * 60 * 1000);
+document.addEventListener('visibilitychange', () => { if (!document.hidden) { heartbeat(); loadServerData(); } });
+try { Telegram.WebApp.onEvent('activated', () => { heartbeat(); loadServerData(); }); } catch(e) {}
 </script>
 </body></html>
