@@ -129,6 +129,10 @@ input,select{font:800 14px Unbounded,sans-serif;border:2.5px solid var(--ink);bo
 .coin3 .fc{position:absolute;inset:0;border-radius:50%;border:4px solid var(--ink);display:grid;place-items:center;font:900 42px Unbounded;backface-visibility:hidden;-webkit-backface-visibility:hidden;background:radial-gradient(circle at 30% 30%,#fff3b0,#ffd23f 45%,#ff9f1c);box-shadow:inset 0 0 0 5px rgba(255,255,255,.35)}
 .coin3 .bk{transform:rotateY(180deg);background:radial-gradient(circle at 30% 30%,#e6efff,#8fb0ff 45%,#4d7cff);color:#fff}
 .cshadow{position:absolute;bottom:6px;left:50%;width:90px;height:14px;margin-left:-45px;border-radius:50%;background:rgba(21,18,43,.35);opacity:.35}
+body[data-th="th_ocean"] #gc{background:linear-gradient(160deg,#4de1ff,#2b6bff)!important}
+body[data-th="th_sunset"] #gc{background:linear-gradient(160deg,#ffb347,#ff5d8f)!important}
+body[data-th="th_candy"] #gc{background:linear-gradient(160deg,#ffc0f0,#a8f0ff)!important}
+body[data-th="th_matrix"] #gc{background:linear-gradient(160deg,#0b3d1e,#18c46a)!important}
 </style></head><body>
 <div id="app">
 <div id="toast"></div>
@@ -222,6 +226,8 @@ const post = async (method, body = {}, hold = false) => {
       sync();
       j.hacks.forEach(showHackAlert);
     }
+    if (Array.isArray(j.duels) && j.duels.length) { if (j.u) applyServerState(j.u); sync(); j.duels.forEach(showDuelNote); }
+    if (Array.isArray(j.lot) && j.lot.length) { if (j.u) applyServerState(j.u); sync(); j.lot.forEach(w => { banner('🎰 ДЖЕКПОТ! +' + f2(w.amt) + ' 💎', 1); confetti(120); tone(900); }); }
     if (Array.isArray(j.gifts) && j.gifts.length) {
       if (j.u) applyServerState(j.u);
       sync();
@@ -406,7 +412,8 @@ const S={
   boostMul: 2,
   refEarned: 0,
   shield: 0,
-  streak: 0, stc: true, trap: 0, hw: 0, cw: 0, smax: 0, badges: ''
+  streak: 0, stc: true, trap: 0, hw: 0, cw: 0, smax: 0, badges: '',
+  masks: 0, skin: {}, skins: []
 };
 
 const applyServerState = (u) => {
@@ -434,6 +441,9 @@ const applyServerState = (u) => {
   if (u.cw !== undefined) S.cw = +u.cw;
   if (u.smax !== undefined) S.smax = +u.smax;
   if (u.badges !== undefined) S.badges = u.badges || '';
+  if (u.masks !== undefined) S.masks = +u.masks;
+  if (u.skins !== undefined) S.skins = u.skins || [];
+  if (u.skin !== undefined) { S.skin = u.skin || {}; applySkin(); }
   if (u.refCount !== undefined) S.refCount = +u.refCount;
   if (u.refEarned !== undefined) S.refEarned = +u.refEarned;
   if (u.clan !== undefined) S.clan = u.clan;
@@ -621,7 +631,7 @@ function mineCore(x,y,auto){
     window.gvt=setTimeout(()=>gVis.classList.remove('fast'),400);
     const c=document.createElement('div');
     c.className='fl';
-    c.textContent=['₿','Ξ','💎','₮'][rnd()*4|0]+' +'+f2(r);
+    const fxs=FXMAP[(S.skin||{}).fx]||['₿','Ξ','💎','₮']; c.textContent=fxs[rnd()*fxs.length|0]+' +'+f2(r);
     c.style.left=(x-30+rnd()*30)+'px';
     c.style.top=(y-30)+'px';
     document.body.append(c);
@@ -1727,13 +1737,14 @@ function openHack(){
   <div class="card item"><span>🛡 Твоя защита: <b>${SHIELDS[S.shield||0].n}</b></span></div>
   <div class="seg" style="margin:10px 0"><button class="btn g" onclick="startHack('usd')">💵 Красть $</button><button class="btn b" onclick="startHack('dia')">💎 Красть алмазы</button></div>
   <div class="card item"><span>🪤 Ловушки: <b>${S.trap||0}</b><div class="muted">Провалившийся взломщик отдаёт 8% баланса</div></span><button class="btn g sm" onclick="buyTrap()">400 $</button></div>
+  <div class="card item"><span>🎭 Маскировка: <b>${S.masks||0}</b><div class="muted">Прячет твой ник от жертвы</div></span><span class="row" style="gap:6px"><label style="font-size:12px"><input type="checkbox" ${HMASK?'checked':''} onchange="HMASK=this.checked"> вкл</label><button class="btn g sm" onclick="buyMask()">250 $</button></span></div>
   <div class="seg" style="margin:8px 0"><button class="btn w" onclick="openHackJournal()">📜 Журнал</button><button class="btn w" onclick="openHackTop()">🏆 Топ хакеров</button></div>
   <div id="hkBox"></div>`);
 }
 async function startHack(t,target){
   if(!$('#hkBox'))openHack();
   await flush();
-  const j=await post('hack_start',target?{t,target}:{t});
+  const j=await post('hack_start',Object.assign({t,mask:!!(HMASK&&S.masks>0)},target?{target}:{}));
   if(!j||!j.hack)return;
   HK=j.hack; HK.hist=[]; sync(); tone(500); renderHack();
 }
@@ -1763,11 +1774,12 @@ async function buyTrap(){ const j=await post('buy_trap'); if(j){ banner('🪤 Л
 function showHackAlert(h){
   if(h.kind==='trap'){ toast('🪤 Ловушка сработала!', h.who+' потерял '+f2(h.amt)+' $ — они ваши'); return; }
   toast('🚨 Вас взломали!', h.who+' украл '+f2(h.amt)+(h.what==='dia'?' 💎':' $'));
-  if(typeof sheetOpen==='function' && !sheetOpen() && h.aid){
+  if(typeof sheetOpen==='function' && !sheetOpen()){
+    const act=h.aid?`<button class="btn r wide" onclick="startHack('${h.what==='dia'?'dia':'usd'}','${esc(h.aid)}')">⚔️ Взломать в ответ</button>`
+      :(h.masked?`<button class="btn b wide" onclick="investigate(${h.id})">🔎 Расследовать (2 💎)</button>`:'');
     sheet(`<h3 class="disp" style="margin-top:0">🚨 Вас взломали!</h3>
       <div class="card" style="text-align:center"><b>${esc(h.who)}</b> украл <b>${f2(h.amt)} ${h.what==='dia'?'💎':'$'}</b></div>
-      <p class="muted">Отомстить можно в течение 24 часов. Иммунитет цели не мешает.</p>
-      <button class="btn r wide" onclick="startHack('${h.what==='dia'?'dia':'usd'}','${esc(h.aid)}')">⚔️ Взломать в ответ</button>`);
+      <p class="muted">${h.masked?'Хакер скрыл личность. Расследование: 2 💎, шанс 60%.':'Отомстить можно в течение 24 часов.'}</p>${act}`);
   }
 }
 const agoTxt=s=>s<60?'только что':s<3600?Math.floor(s/60)+' мин назад':s<86400?Math.floor(s/3600)+' ч назад':Math.floor(s/86400)+' д назад';
@@ -1778,7 +1790,7 @@ async function openHackJournal(){
     let t;
     if(e.kind==='trap') t=e.role==='victim'?`🪤 Ловушка поймала <b>${esc(e.who)}</b> · +${a}`:`🪤 Вы попались на ловушку <b>${esc(e.who)}</b> · −${a}`;
     else t=e.role==='victim'?`🚨 <b>${esc(e.who)}</b> взломал вас · −${a}`:`💻 Вы взломали <b>${esc(e.who)}</b> · +${a}`;
-    const rv=(e.role==='victim'&&e.kind!=='trap'&&e.ago<86400&&e.wid)?`<button class="btn r sm" onclick="startHack('${e.what==='dia'?'dia':'usd'}','${esc(e.wid)}')">⚔️</button>`:'';
+    const rv=(e.role==='victim'&&e.kind!=='trap'&&e.ago<86400)?(e.wid?`<button class="btn r sm" onclick="startHack('${e.what==='dia'?'dia':'usd'}','${esc(e.wid)}')">⚔️</button>`:(e.masked?`<button class="btn b sm" onclick="investigate(${e.id})">🔎</button>`:'')):'';
     return `<div class="card item" style="padding:8px 12px"><div><div>${t}</div><div class="muted" style="font-size:11px">${agoTxt(e.ago)}</div></div>${rv}</div>`;
   }).join('')||'<div class="card muted" style="text-align:center">Журнал пуст</div>';
   sheet(`<h3 class="disp" style="margin-top:0">📜 Журнал взломов</h3><div class="col">${rows}</div><button class="btn w wide" style="margin-top:10px" onclick="openHack()">← К взлому</button>`);
@@ -1854,6 +1866,117 @@ async function claimStreak(){
   banner('🔥 День '+g.n+': +'+g.usd+' $'+(g.dia?' +'+g.dia+' 💎':''),1); sync(); openStreak();
 }
 
+/* ===== МАСКИРОВКА / РАССЛЕДОВАНИЕ ===== */
+let HMASK=false;
+async function buyMask(){ const j=await post('buy_mask'); if(j){ banner('🎭 Маскировка куплена',1); tone(700); openHack(); } }
+async function investigate(id){
+  const j=await post('hack_investigate',{id}); if(!j||!j.inv)return;
+  if(!j.inv.found){ toast('🔎 Следов нет','Попробуйте ещё раз (2 💎, шанс 60%)'); return; }
+  banner('🔎 Хакер найден!',1); confetti(30);
+  sheet(`<h3 class="disp" style="margin-top:0">🔎 Расследование</h3>
+    <div class="card" style="text-align:center">Вас взломал <b>${esc(j.inv.name)}</b></div>
+    <div class="seg" style="margin-top:10px"><button class="btn r" onclick="startHack('usd','${esc(j.inv.aid)}')">⚔️ Месть $</button><button class="btn r" onclick="startHack('dia','${esc(j.inv.aid)}')">⚔️ Месть 💎</button></div>`);
+}
+
+/* ===== СКИНЫ ===== */
+const SKINS={
+ frame:[['fr_fire','🔥','Огненная рамка',5],['fr_ice','❄️','Ледяная рамка',5],['fr_neon','⚡','Неоновая рамка',10],['fr_gold','👑','Золотая рамка',15]],
+ theme:[['th_ocean','🌊','Океан',8],['th_sunset','🌅','Закат',8],['th_candy','🍬','Конфеты',8],['th_matrix','🟩','Матрица',12]],
+ fx:[['fx_coin','💰','Монеты',3],['fx_star','⭐','Звёзды',3],['fx_fire','🔥','Огонь',5],['fx_heart','💖','Сердца',5],['fx_ghost','👻','Призраки',5]]
+};
+const SLOT_N={frame:'🖼 Рамка ника (видна в топах)',theme:'🎨 Цвет кнопки майнинга',fx:'✨ Эффект клика'};
+const FXMAP={fx_coin:['💰','🪙','💵'],fx_star:['⭐','✨','🌟'],fx_fire:['🔥','🔥','💥'],fx_heart:['💖','💗','💕'],fx_ghost:['👻','💀','🎃']};
+function applySkin(){ document.body.dataset.th=(S.skin&&S.skin.theme)||''; }
+function openSkins(){
+  const own=id=>(S.skins||[]).includes(id), eq=(sl,id)=>(S.skin||{})[sl]===id;
+  sheet(`<h3 class="disp" style="margin-top:0">🎨 Скины</h3><p class="muted">Покупаются за 💎 и остаются навсегда. У тебя: <b data-dia></b> 💎</p>`+
+   Object.keys(SKINS).map(sl=>`<b class="disp" style="font-size:13px;display:block;margin:10px 0 6px">${SLOT_N[sl]}</b><div class="col" style="gap:6px">`+
+    SKINS[sl].map(([id,e,n,pr])=>`<div class="card item ${eq(sl,id)?'on':''}"><div class="row"><span style="font-size:26px">${e}</span><b>${n}</b></div>${
+      own(id)?(eq(sl,id)?`<button class="btn w sm" onclick="skinEq('${sl}','')">Снять</button>`:`<button class="btn g sm" onclick="skinEq('${sl}','${id}')">Надеть</button>`)
+             :`<button class="btn b sm" onclick="skinBuy('${id}')">${pr} 💎</button>`}</div>`).join('')+`</div>`).join(''));
+  sync();
+}
+async function skinBuy(id){ const j=await post('skin_buy',{id}); if(j){ confetti(30); tone(800); toast('Скин куплен','Теперь можно надеть'); openSkins(); } }
+async function skinEq(slot,id){ const j=await post('skin_equip',{slot,id}); if(j){ applySkin(); tone(600); openSkins(); } }
+
+/* ===== ДУЭЛИ ===== */
+const MV=['✊','✋','✌️'], MVN=['Камень','Бумага','Ножницы'];
+let DMOVE=0, DBET=1;
+const pickDM=()=>{ const b=$('#dmv'); if(b)b.querySelectorAll('button').forEach((x,i)=>{x.style.background=i==DMOVE?'var(--b)':'';x.style.color=i==DMOVE?'#fff':''}); };
+async function openDuels(){
+  const j=await post('duel_list',{},true); if(!j)return;
+  const dl=j.dl||{open:[],mine:[]};
+  const mine=(dl.mine||[]).map(d=>`<div class="card item"><span>Твой вызов: ${MV[d.move]} · <b>${f2(d.bet)} 💎</b></span><button class="btn w sm" onclick="cancelDuel(${d.id})">Отмена</button></div>`).join('');
+  const open=(dl.open||[]).map(d=>`<div class="card item"><span><b>${esc(d.name)}</b> · ${f2(d.bet)} 💎</span><span class="row" style="gap:4px">${MV.map((e,i)=>`<button class="btn w sm" onclick="joinDuel(${d.id},${i})">${e}</button>`).join('')}</span></div>`).join('')||'<div class="card muted" style="text-align:center">Открытых вызовов нет — брось свой!</div>';
+  sheet(`<h3 class="disp" style="margin-top:0">⚔️ Дуэли</h3>
+    <p class="muted">Ставка 💎 против живого игрока. Победитель забирает банк минус 5%, при ничьей ставки возвращаются. Нажми на ход, чтобы принять вызов.</p>
+    <div class="card"><b>Бросить вызов</b>
+      <div class="row" id="dmv" style="justify-content:center;margin:8px 0">${MV.map((e,i)=>`<button class="btn w" style="font-size:26px" onclick="DMOVE=${i};pickDM()">${e}</button>`).join('')}</div>
+      <div class="row"><input id="dBet" type="number" min="0.5" max="100" step="0.5" value="${DBET}"><button class="btn g" onclick="createDuel()">Вызвать</button></div></div>
+    ${mine?`<b class="disp" style="font-size:13px;display:block;margin:10px 0 6px">Мои вызовы</b><div class="col" style="gap:6px">${mine}</div>`:''}
+    <b class="disp" style="font-size:13px;display:block;margin:10px 0 6px">Открытые вызовы</b><div class="col" style="gap:6px">${open}</div>`);
+  pickDM();
+}
+async function createDuel(){
+  DBET=+($('#dBet').value)||1;
+  const j=await post('duel_create',{bet:DBET,move:DMOVE}); if(j){ tone(600); toast('Вызов брошен','Ждём соперника'); sync(); openDuels(); }
+}
+async function cancelDuel(id){ const j=await post('duel_cancel',{id}); if(j){ sync(); openDuels(); } }
+async function joinDuel(id,move){
+  const j=await post('duel_join',{id,move}); if(!j||!j.duel){ openDuels(); return; }
+  const d=j.duel, t=d.res==='win'?'🏆 Победа! +'+f2(d.amt)+' 💎':d.res==='lose'?'😵 Поражение':'🤝 Ничья — ставка возвращена';
+  sheet(`<h3 class="disp" style="margin-top:0">⚔️ Дуэль с ${esc(d.cname)}</h3>
+    <div style="text-align:center;font-size:72px;margin:14px 0"><span class="clash">${MV[move]}</span> <span style="font-size:30px">⚡</span> <span class="clash">${MV[d.cmove]}</span></div>
+    <div class="card" style="text-align:center"><b class="disp">${t}</b></div>
+    <button class="btn g wide" style="margin-top:10px" onclick="openDuels()">Ещё дуэль</button>`);
+  if(d.res==='win'){ confetti(60); banner('Победа в дуэли!',1); tone(900); } else if(d.res==='lose'){ banner('Проигрыш',0); tone(160,'sawtooth',.3); }
+  sync();
+}
+function showDuelNote(d){
+  if(d.res==='win') toast('🏆 Дуэль выиграна!', d.opp+' проиграл · +'+f2(d.amt)+' 💎');
+  else if(d.res==='lose') toast('😵 Дуэль проиграна', 'Соперник: '+d.opp);
+  else toast('🤝 Ничья в дуэли', 'Ставка возвращена · '+d.opp);
+}
+
+/* ===== ЛОТЕРЕЯ ===== */
+let LOTIV=null;
+async function openLottery(){
+  const j=await post('lottery',{},true); if(!j||!j.lot_s)return;
+  const L=j.lot_s; let left=L.left;
+  const hist=(L.hist||[]).map(h=>`<div class="card item" style="padding:8px 12px"><span>🏆 <b>${esc(h.name)}</b></span><b>+${f2(h.amt)} 💎</b></div>`).join('')||'<div class="card muted" style="text-align:center">Пока нет победителей</div>';
+  sheet(`<h3 class="disp" style="margin-top:0">🎰 Лотерея</h3>
+    <div class="card" style="text-align:center"><div class="muted">Джекпот раунда</div><div class="big disp" style="color:var(--m)">${f2(L.pot)} 💎</div>
+      <div class="muted">Билетов: ${L.total} · у тебя: <b>${L.mine}</b></div><div class="disp" id="lotT" style="margin-top:6px"></div></div>
+    <p class="muted">1 билет = 1 💎. Розыгрыш каждый час, победитель получает 90% банка (шанс пропорционален числу билетов). До 100 билетов за раунд. У тебя: <b data-dia></b> 💎</p>
+    <div class="row">${[1,5,10,20].map(n=>`<button class="btn g wide" onclick="buyTix(${n})">×${n}</button>`).join('')}</div>
+    <b class="disp" style="font-size:13px;display:block;margin:12px 0 6px">Последние победители</b><div class="col" style="gap:6px">${hist}</div>`);
+  sync();
+  clearInterval(LOTIV);
+  const tick=()=>{ const e=$('#lotT'); if(!e){clearInterval(LOTIV);return;} e.textContent='⏳ До розыгрыша: '+Math.floor(left/60)+':'+String(left%60).padStart(2,'0'); if(--left<0){clearInterval(LOTIV);openLottery();} };
+  tick(); LOTIV=setInterval(tick,1000);
+}
+async function buyTix(n){ const j=await post('lottery_buy',{n}); if(j){ tone(700); confetti(15); sync(); openLottery(); } }
+
+/* ===== НАЛЁТЫ КЛАНОВ ===== */
+async function openRaids(){
+  const j=await post('raid_list',{},true); if(!j||!j.raids)return;
+  const R=j.raids, me=R.me;
+  if(!me.clan){ sheet(`<h3 class="disp" style="margin-top:0">🏰 Налёты кланов</h3><div class="card muted" style="text-align:center">Вступи в клан, чтобы участвовать в налётах</div>`); return; }
+  const rows=(R.list||[]).map(c=>`<div class="card item"><div><b>[${esc(c.tag)}] ${esc(c.name)}</b><div class="muted" style="font-size:11px">Очки: ${nf(Math.floor(c.rp))} · Казна: ${nf(Math.floor(c.tr))}${c.imm?' · 🛡 под защитой':''}</div></div>${me.owner?`<button class="btn r sm" ${(c.imm||me.cd>0)?'disabled':''} onclick="raidGo(${c.id})">⚔️</button>`:''}</div>`).join('')||'<div class="card muted" style="text-align:center">Других кланов пока нет</div>';
+  const log=(R.log||[]).map(l=>`<div class="muted" style="font-size:12px;padding:3px 0">${l.win?'✅':'❌'} ${esc(l.a)} → ${esc(l.d)} · ${l.win?'+':'−'}${nf(Math.floor(l.loot))}</div>`).join('')||'<div class="muted">Налётов пока не было</div>';
+  sheet(`<h3 class="disp" style="margin-top:0">🏰 Налёты кланов</h3>
+    <p class="muted">Очки клана за неделю растут от майнинга всех участников. Владелец клана может напасть на другой клан: победа даёт 10% его казны, поражение отдаёт 5% твоей. Перезарядка 6 ч.</p>
+    <div class="card item"><span>Очки твоего клана: <b>${nf(Math.floor(me.rp))}</b></span>${me.cd>0?`<span class="chip">⏳ ${Math.ceil(me.cd/60)} мин</span>`:''}</div>
+    ${me.owner?'':'<div class="muted" style="margin:6px 0">Запускать налёт может только владелец клана.</div>'}
+    <b class="disp" style="font-size:13px;display:block;margin:10px 0 6px">Цели</b><div class="col" style="gap:6px">${rows}</div>
+    <b class="disp" style="font-size:13px;display:block;margin:10px 0 6px">Последние налёты</b>${log}`);
+}
+async function raidGo(id){
+  const j=await post('raid_go',{target:id}); if(!j||!j.raid){ openRaids(); return; }
+  if(j.raid.win){ confetti(70); banner('⚔️ Налёт успешен! +'+nf(Math.floor(j.raid.loot)),1); tone(900); } else { banner('Налёт провален −'+nf(Math.floor(j.raid.loot)),0); tone(160,'sawtooth',.3); }
+  openRaids();
+}
+
 /* ===== ЕЩЁ (МЕНЮ) ===== */
 const MORE=[
   ['🏆','Топ игроков',openTopsSheet],
@@ -1862,6 +1985,10 @@ const MORE=[
   ['🎁','Подарки',openGifts],
   ['🐲','Босс клана',openClanBoss],
   ['🏅','Достижения',openBadges],
+  ['⚔️','Дуэли',openDuels],
+  ['🎰','Лотерея',openLottery],
+  ['🏰','Налёты кланов',openRaids],
+  ['🎨','Скины',openSkins],
   ['📋','Задания',openTasks],
   ['🌐','Кланы / Пул',openClans],
   ['👥','Рефералы',openRefs],
